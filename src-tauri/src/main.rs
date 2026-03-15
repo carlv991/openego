@@ -37,17 +37,17 @@ fn main() {
             let _tray = TrayIconBuilder::new()
                 .icon(app.default_window_icon().unwrap().clone())
                 .menu(&menu)
-                .on_menu_event(|app, event| {
+                .on_menu_event(|app: &tauri::AppHandle, event: tauri::menu::MenuEvent| {
                     match event.id().as_ref() {
                         "show" => {
                             if let Some(window) = app.get_webview_window("main") {
-                                let _ = window.show();
-                                let _ = window.set_focus();
+                                let _: Result<(), tauri::Error> = window.show();
+                                let _: Result<(), tauri::Error> = window.set_focus();
                             }
                         }
                         "hide" => {
                             if let Some(window) = app.get_webview_window("main") {
-                                let _ = window.hide();
+                                let _: Result<(), tauri::Error> = window.hide();
                             }
                         }
                         "mode" => {

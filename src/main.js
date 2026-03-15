@@ -1,5 +1,24 @@
 
 
+// ==================== TOGGLE SWITCH FUNCTIONS ====================
+
+function updateToggleStatus(checkboxId) {
+    const checkbox = document.getElementById(checkboxId);
+    const statusLabel = document.getElementById('status-' + checkboxId);
+    
+    if (checkbox && statusLabel) {
+        if (checkbox.checked) {
+            statusLabel.textContent = 'ON';
+            statusLabel.classList.remove('off');
+            statusLabel.classList.add('on');
+        } else {
+            statusLabel.textContent = 'OFF';
+            statusLabel.classList.remove('on');
+            statusLabel.classList.add('off');
+        }
+    }
+}
+
 // ==================== EMAIL PATTERN DETECTION ====================
 
 const patternDetection = {

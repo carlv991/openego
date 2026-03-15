@@ -71,27 +71,33 @@
                             <h3>📧 Email</h3>
                             <div class="permission-options">
                                 <label class="permission-item">
-                                    <input type="checkbox" id="permGmail" checked>
-                                    <span class="checkmark"></span>
                                     <div class="permission-info">
-                                        <strong>Gmail</strong>
+                                        <strong>Gmail <span class="permission-status on" id="status-permGmail">ON</span></strong>
                                         <small>Read emails and learn your style</small>
+                                    </div>
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" id="permGmail" checked onchange="updateToggleStatus('permGmail')">
+                                        <span class="toggle-slider"></span>
                                     </div>
                                 </label>
                                 <label class="permission-item">
-                                    <input type="checkbox" id="permOutlook">
-                                    <span class="checkmark"></span>
                                     <div class="permission-info">
-                                        <strong>Outlook</strong>
+                                        <strong>Outlook <span class="permission-status off" id="status-permOutlook">OFF</span></strong>
                                         <small>Read emails and learn your style</small>
+                                    </div>
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" id="permOutlook" onchange="updateToggleStatus('permOutlook')">
+                                        <span class="toggle-slider"></span>
                                     </div>
                                 </label>
                                 <label class="permission-item">
-                                    <input type="checkbox" id="permAppleMail">
-                                    <span class="checkmark"></span>
                                     <div class="permission-info">
-                                        <strong>Apple Mail</strong>
+                                        <strong>Apple Mail <span class="permission-status off" id="status-permAppleMail">OFF</span></strong>
                                         <small>Read emails and learn your style</small>
+                                    </div>
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" id="permAppleMail" onchange="updateToggleStatus('permAppleMail')">
+                                        <span class="toggle-slider"></span>
                                     </div>
                                 </label>
                             </div>
@@ -101,19 +107,23 @@
                             <h3>💬 Messaging</h3>
                             <div class="permission-options">
                                 <label class="permission-item">
-                                    <input type="checkbox" id="permTelegram" checked>
-                                    <span class="checkmark"></span>
                                     <div class="permission-info">
-                                        <strong>Telegram</strong>
+                                        <strong>Telegram <span class="permission-status on" id="status-permTelegram">ON</span></strong>
                                         <small>Read messages and respond</small>
+                                    </div>
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" id="permTelegram" checked onchange="updateToggleStatus('permTelegram')">
+                                        <span class="toggle-slider"></span>
                                     </div>
                                 </label>
                                 <label class="permission-item">
-                                    <input type="checkbox" id="permSlack">
-                                    <span class="checkmark"></span>
                                     <div class="permission-info">
-                                        <strong>Slack</strong>
+                                        <strong>Slack <span class="permission-status off" id="status-permSlack">OFF</span></strong>
                                         <small>Read work messages</small>
+                                    </div>
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" id="permSlack" onchange="updateToggleStatus('permSlack')">
+                                        <span class="toggle-slider"></span>
                                     </div>
                                 </label>
                             </div>
@@ -123,19 +133,23 @@
                             <h3>📁 Files & Documents</h3>
                             <div class="permission-options">
                                 <label class="permission-item">
-                                    <input type="checkbox" id="permDocuments" checked>
-                                    <span class="checkmark"></span>
                                     <div class="permission-info">
-                                        <strong>Documents</strong>
+                                        <strong>Documents <span class="permission-status on" id="status-permDocuments">ON</span></strong>
                                         <small>Learn from your writing style</small>
+                                    </div>
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" id="permDocuments" checked onchange="updateToggleStatus('permDocuments')">
+                                        <span class="toggle-slider"></span>
                                     </div>
                                 </label>
                                 <label class="permission-item">
-                                    <input type="checkbox" id="permCalendar" checked>
-                                    <span class="checkmark"></span>
                                     <div class="permission-info">
-                                        <strong>Calendar</strong>
+                                        <strong>Calendar <span class="permission-status on" id="status-permCalendar">ON</span></strong>
                                         <small>Understand your schedule</small>
+                                    </div>
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" id="permCalendar" checked onchange="updateToggleStatus('permCalendar')">
+                                        <span class="toggle-slider"></span>
                                     </div>
                                 </label>
                             </div>
