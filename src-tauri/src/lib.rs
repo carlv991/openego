@@ -4,6 +4,7 @@ pub mod commands;
 pub mod database;
 pub mod gmail;
 pub mod patterns;
+pub mod bot_tracking;
 
 use commands::AppState;
 use database::Database;

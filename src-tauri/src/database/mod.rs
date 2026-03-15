@@ -68,6 +68,38 @@ pub struct TodoItem {
     pub due_date: Option<i64>,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ActivityLog {
+    pub id: String,
+    pub user_id: String,
+    pub timestamp: i64,
+    pub mode: String, // 'auto-pilot', 'co-pilot', 'manual'
+    pub action_type: String, // 'email_sent', 'message_sent', 'todo_created', etc.
+    pub platform: String,
+    pub recipient: Option<String>,
+    pub recipient_hash: Option<String>,
+    pub subject: Option<String>,
+    pub content_preview: String,
+    pub content_hash: String,
+    pub bot_signature: String,
+    pub confidence_score: f64,
+    pub approved_by_user: bool,
+    pub auto_pilot_session_id: Option<String>,
+    pub metadata: Option<String>, // JSON string
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AutoPilotSession {
+    pub id: String,
+    pub user_id: String,
+    pub started_at: i64,
+    pub expires_at: i64,
+    pub ended_at: Option<i64>,
+    pub status: String, // 'active', 'expired', 'cancelled'
+    pub rules: Option<String>, // JSON string
+    pub action_count: i32,
+}
+
 pub struct Database {
     conn: Connection,
 }
@@ -151,7 +183,47 @@ impl Database {
             [],
         )?;
         
-        // Action log table
+        // Activity log table (comprehensive audit trail)
+        self.conn.execute(
+            "CREATE TABLE IF NOT EXISTS activity_log (
+                id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                timestamp INTEGER NOT NULL,
+                mode TEXT NOT NULL, -- 'auto-pilot', 'co-pilot', 'manual'
+                action_type TEXT NOT NULL, -- 'email_sent', 'message_sent', 'todo_created', etc.
+                platform TEXT NOT NULL, -- 'gmail', 'telegram', 'slack', etc.
+                recipient TEXT,
+                recipient_hash TEXT, -- hashed email/identifier for privacy
+                subject TEXT,
+                content_preview TEXT, -- First 200 chars
+                content_hash TEXT, -- SHA256 of full content for verification
+                bot_signature TEXT, -- Unique signature proving bot origin
+                confidence_score REAL,
+                approved_by_user BOOLEAN,
+                auto_pilot_session_id TEXT,
+                metadata TEXT, -- JSON string for flexible data
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )",
+            [],
+        )?;
+        
+        // Auto-pilot sessions table
+        self.conn.execute(
+            "CREATE TABLE IF NOT EXISTS auto_pilot_sessions (
+                id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                started_at INTEGER NOT NULL,
+                expires_at INTEGER NOT NULL,
+                ended_at INTEGER,
+                status TEXT DEFAULT 'active', -- 'active', 'expired', 'cancelled'
+                rules TEXT, -- JSON string of AutoPilotRules
+                action_count INTEGER DEFAULT 0,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )",
+            [],
+        )?;
+        
+        // Legacy action log table (keep for backwards compatibility)
         self.conn.execute(
             "CREATE TABLE IF NOT EXISTS action_log (
                 id TEXT PRIMARY KEY,
@@ -220,6 +292,24 @@ impl Database {
         )?;
         self.conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_todo_status ON todo_items(status)",
+            [],
+        )?;
+        
+        // Activity log indexes
+        self.conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_activity_user_time ON activity_log(user_id, timestamp)",
+            [],
+        )?;
+        self.conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_activity_action ON activity_log(action_type)",
+            [],
+        )?;
+        self.conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_activity_platform ON activity_log(platform)",
+            [],
+        )?;
+        self.conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_activity_session ON activity_log(auto_pilot_session_id)",
             [],
         )?;
         
@@ -535,6 +625,202 @@ impl Database {
             "critical": critical,
             "urgent": urgent,
         }))
+    }
+    
+    // ==================== ACTIVITY LOG OPERATIONS ====================
+    
+    pub fn log_activity(&self, activity: &ActivityLog) -> Result<()> {
+        self.conn.execute(
+            "INSERT INTO activity_log 
+             (id, user_id, timestamp, mode, action_type, platform, recipient, recipient_hash, 
+              subject, content_preview, content_hash, bot_signature, confidence_score, 
+              approved_by_user, auto_pilot_session_id, metadata)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)",
+            (
+                &activity.id,
+                &activity.user_id,
+                activity.timestamp,
+                &activity.mode,
+                &activity.action_type,
+                &activity.platform,
+                &activity.recipient,
+                &activity.recipient_hash,
+                &activity.subject,
+                &activity.content_preview,
+                &activity.content_hash,
+                &activity.bot_signature,
+                activity.confidence_score,
+                activity.approved_by_user,
+                &activity.auto_pilot_session_id,
+                &activity.metadata,
+            ),
+        )?;
+        Ok(())
+    }
+    
+    pub fn get_activity_log(&self, user_id: &str, limit: i64, offset: i64) -> Result<Vec<ActivityLog>> {
+        let mut stmt = self.conn.prepare(
+            "SELECT id, user_id, timestamp, mode, action_type, platform, recipient, recipient_hash,
+                    subject, content_preview, content_hash, bot_signature, confidence_score,
+                    approved_by_user, auto_pilot_session_id, metadata
+             FROM activity_log 
+             WHERE user_id = ?1
+             ORDER BY timestamp DESC
+             LIMIT ?2 OFFSET ?3"
+        )?;
+        
+        let activities = stmt.query_map([user_id, limit, offset], |row| {
+            Ok(ActivityLog {
+                id: row.get(0)?,
+                user_id: row.get(1)?,
+                timestamp: row.get(2)?,
+                mode: row.get(3)?,
+                action_type: row.get(4)?,
+                platform: row.get(5)?,
+                recipient: row.get(6)?,
+                recipient_hash: row.get(7)?,
+                subject: row.get(8)?,
+                content_preview: row.get(9)?,
+                content_hash: row.get(10)?,
+                bot_signature: row.get(11)?,
+                confidence_score: row.get(12)?,
+                approved_by_user: row.get(13)?,
+                auto_pilot_session_id: row.get(14)?,
+                metadata: row.get(15)?,
+            })
+        })?.collect::<Result<Vec<_>>>()?;
+        
+        Ok(activities)
+    }
+    
+    pub fn get_activity_by_hash(&self, content_hash: &str) -> Result<Option<ActivityLog>> {
+        let mut stmt = self.conn.prepare(
+            "SELECT id, user_id, timestamp, mode, action_type, platform, recipient, recipient_hash,
+                    subject, content_preview, content_hash, bot_signature, confidence_score,
+                    approved_by_user, auto_pilot_session_id, metadata
+             FROM activity_log 
+             WHERE content_hash = ?1
+             LIMIT 1"
+        )?;
+        
+        let activity = stmt.query_row([content_hash], |row| {
+            Ok(ActivityLog {
+                id: row.get(0)?,
+                user_id: row.get(1)?,
+                timestamp: row.get(2)?,
+                mode: row.get(3)?,
+                action_type: row.get(4)?,
+                platform: row.get(5)?,
+                recipient: row.get(6)?,
+                recipient_hash: row.get(7)?,
+                subject: row.get(8)?,
+                content_preview: row.get(9)?,
+                content_hash: row.get(10)?,
+                bot_signature: row.get(11)?,
+                confidence_score: row.get(12)?,
+                approved_by_user: row.get(13)?,
+                auto_pilot_session_id: row.get(14)?,
+                metadata: row.get(15)?,
+            })
+        });
+        
+        match activity {
+            Ok(a) => Ok(Some(a)),
+            Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
+    
+    pub fn get_activity_stats(&self, user_id: &str) -> Result<serde_json::Value> {
+        let total: i64 = self.conn.query_row(
+            "SELECT COUNT(*) FROM activity_log WHERE user_id = ?1",
+            [user_id],
+            |row| row.get(0),
+        )?;
+        
+        let auto_pilot_count: i64 = self.conn.query_row(
+            "SELECT COUNT(*) FROM activity_log WHERE user_id = ?1 AND mode = 'auto-pilot'",
+            [user_id],
+            |row| row.get(0),
+        )?;
+        
+        let last_24h: i64 = self.conn.query_row(
+            "SELECT COUNT(*) FROM activity_log WHERE user_id = ?1 AND timestamp > ?2",
+            [user_id, chrono::Utc::now().timestamp() - 86400],
+            |row| row.get(0),
+        )?;
+        
+        Ok(serde_json::json!({
+            "total_actions": total,
+            "auto_pilot_actions": auto_pilot_count,
+            "last_24h": last_24h,
+        }))
+    }
+    
+    // ==================== AUTO-PILOT SESSION OPERATIONS ====================
+    
+    pub fn create_auto_pilot_session(&self, session: &AutoPilotSession) -> Result<()> {
+        self.conn.execute(
+            "INSERT INTO auto_pilot_sessions 
+             (id, user_id, started_at, expires_at, ended_at, status, rules, action_count)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+            (
+                &session.id,
+                &session.user_id,
+                session.started_at,
+                session.expires_at,
+                session.ended_at,
+                &session.status,
+                &session.rules,
+                session.action_count,
+            ),
+        )?;
+        Ok(())
+    }
+    
+    pub fn get_active_auto_pilot_session(&self, user_id: &str) -> Result<Option<AutoPilotSession>> {
+        let mut stmt = self.conn.prepare(
+            "SELECT id, user_id, started_at, expires_at, ended_at, status, rules, action_count
+             FROM auto_pilot_sessions 
+             WHERE user_id = ?1 AND status = 'active'
+             ORDER BY started_at DESC
+             LIMIT 1"
+        )?;
+        
+        let session = stmt.query_row([user_id], |row| {
+            Ok(AutoPilotSession {
+                id: row.get(0)?,
+                user_id: row.get(1)?,
+                started_at: row.get(2)?,
+                expires_at: row.get(3)?,
+                ended_at: row.get(4)?,
+                status: row.get(5)?,
+                rules: row.get(6)?,
+                action_count: row.get(7)?,
+            })
+        });
+        
+        match session {
+            Ok(s) => Ok(Some(s)),
+            Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
+    
+    pub fn update_session_action_count(&self, session_id: &str) -> Result<()> {
+        self.conn.execute(
+            "UPDATE auto_pilot_sessions SET action_count = action_count + 1 WHERE id = ?1",
+            [session_id],
+        )?;
+        Ok(())
+    }
+    
+    pub fn end_auto_pilot_session(&self, session_id: &str, status: &str) -> Result<()> {
+        self.conn.execute(
+            "UPDATE auto_pilot_sessions SET status = ?1, ended_at = ?2 WHERE id = ?3",
+            [status, chrono::Utc::now().timestamp(), session_id],
+        )?;
+        Ok(())
     }
 }
 
