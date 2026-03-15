@@ -1,4 +1,4 @@
-name: Build Release
+name: Build
 
 on:
   push:
@@ -6,132 +6,78 @@ on:
       - 'v*'
 
 jobs:
-  build-linux:
-    runs-on: ubuntu-latest
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'ubuntu-22.04'
+            args: ''
+          - platform: 'macos-latest'
+            args: '--target aarch64-apple-darwin'
+          - platform: 'windows-latest'
+            args: ''
+
+    runs-on: ${{ matrix.platform }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      
-      - name: Setup Node
+      - uses: actions/checkout@v4
+
+      - name: setup node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-      
-      - name: Setup Rust
+          node-version: lts/*
+
+      - name: install Rust stable
         uses: dtolnay/rust-action@stable
-      
-      - name: Install deps
+
+      - name: install dependencies (ubuntu only)
+        if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
-      
-      - name: Install npm deps
-        run: npm install
-      
-      - name: Build
-        run: npm run tauri build
-      
-      - name: Package
-        run: |
-          cd src-tauri/target/release
-          tar -czf openego-linux-x86_64.tar.gz openego
-          mv openego-linux-x86_64.tar.gz ../../../
-      
-      - name: Upload
-        uses: actions/upload-artifact@v4
-        with:
-          name: linux
-          path: openego-linux-*.tar.gz
 
-  build-macos:
-    runs-on: macos-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      
-      - name: Setup Rust
-        uses: dtolnay/rust-action@stable
-      
-      - name: Install npm deps
+      - name: install npm deps
         run: npm install
-      
-      - name: Build Intel
-        run: npm run tauri build -- --target x86_64-apple-darwin
-      
-      - name: Build ARM
-        run: npm run tauri build -- --target aarch64-apple-darwin
-      
-      - name: Package Intel
-        run: |
-          cd src-tauri/target/x86_64-apple-darwin/release
-          tar -czf openego-macos-x86_64.tar.gz openego
-          mv openego-macos-x86_64.tar.gz ../../../
-      
-      - name: Package ARM
-        run: |
-          cd src-tauri/target/aarch64-apple-darwin/release
-          tar -czf openego-macos-aarch64.tar.gz openego
-          mv openego-macos-aarch64.tar.gz ../../../
-      
-      - name: Upload Intel
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-intel
-          path: openego-macos-x86_64.tar.gz
-      
-      - name: Upload ARM
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-arm
-          path: openego-macos-aarch64.tar.gz
 
-  build-windows:
-    runs-on: windows-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      
-      - name: Setup Rust
-        uses: dtolnay/rust-action@stable
-      
-      - name: Install npm deps
-        run: npm install
-      
-      - name: Build
-        run: npm run tauri build
-      
-      - name: Package
-        run: |
-          cd src-tauri/target/release
-          7z a openego-windows-x86_64.zip openego.exe
-          mv openego-windows-x86_64.zip ../../..
-      
-      - name: Upload
+      - name: build
+        run: npm run tauri build ${{ matrix.args }}
+
+      - name: upload linux
+        if: matrix.platform == 'ubuntu-22.04'
         uses: actions/upload-artifact@v4
         with:
-          name: windows
-          path: openego-windows-*.zip
+          name: openego-linux
+          path: src-tauri/target/release/openego
+
+      - name: upload macos
+        if: matrix.platform == 'macos-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: openego-macos
+          path: src-tauri/target/aarch64-apple-darwin/release/openego
+
+      - name: upload windows
+        if: matrix.platform == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: openego-windows
+          path: src-tauri/target/release/openego.exe
 
   release:
-    needs: [build-linux, build-macos, build-windows]
+    needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Download all
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
       
-      - name: Create Release
+      - name: package
+        run: |
+          tar -czf openego-linux-x86_64.tar.gz openego-linux/openego
+          tar -czf openego-macos-aarch64.tar.gz openego-macos/openego
+          zip openego-windows-x86_64.zip openego-windows/openego.exe
+      
+      - name: release
         uses: softprops/action-gh-release@v1
         with:
-          files: '**/*'
+          files: '*.tar.gz,*.zip'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
