@@ -1,155 +1,137 @@
-name: Build and Release
+name: Build Release
 
 on:
   push:
-    branches: [main]
-    tags: ['v*']
-
-env:
-  CARGO_TERM_COLOR: always
+    tags:
+      - 'v*'
 
 jobs:
-  # Build for Linux
   build-linux:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        target: [x86_64-unknown-linux-gnu]
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
       
-      - name: Install Rust
-        uses: dtolnay/rust-action@stable
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          targets: ${{ matrix.target }}
+          node-version: '20'
       
-      - name: Install dependencies
+      - name: Setup Rust
+        uses: dtolnay/rust-action@stable
+      
+      - name: Install deps
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
       
-      - name: Install Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      
-      - name: Install dependencies
+      - name: Install npm deps
         run: npm install
       
-      - name: Build Tauri
-        run: npm run tauri build -- --target ${{ matrix.target }}
+      - name: Build
+        run: npm run tauri build
       
-      - name: Package binary
+      - name: Package
         run: |
-          cd src-tauri/target/${{ matrix.target }}/release
+          cd src-tauri/target/release
           tar -czf openego-linux-x86_64.tar.gz openego
-          mv openego-linux-*.tar.gz ../../../..
+          mv openego-linux-x86_64.tar.gz ../../../
       
-      - name: Upload artifact
+      - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: openego-linux-x86_64
+          name: linux
           path: openego-linux-*.tar.gz
 
-  # Build for macOS
   build-macos:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
       
-      - name: Install Rust
-        uses: dtolnay/rust-action@stable
-        with:
-          targets: x86_64-apple-darwin,aarch64-apple-darwin
-      
-      - name: Install Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '20'
       
-      - name: Install dependencies
+      - name: Setup Rust
+        uses: dtolnay/rust-action@stable
+      
+      - name: Install npm deps
         run: npm install
       
-      - name: Build for Intel Mac
+      - name: Build Intel
         run: npm run tauri build -- --target x86_64-apple-darwin
       
-      - name: Build for Apple Silicon
+      - name: Build ARM
         run: npm run tauri build -- --target aarch64-apple-darwin
       
-      - name: Package Intel binary
+      - name: Package Intel
         run: |
           cd src-tauri/target/x86_64-apple-darwin/release
           tar -czf openego-macos-x86_64.tar.gz openego
-          mv openego-macos-*.tar.gz ../../../..
+          mv openego-macos-x86_64.tar.gz ../../../
       
-      - name: Package ARM binary
+      - name: Package ARM
         run: |
           cd src-tauri/target/aarch64-apple-darwin/release
           tar -czf openego-macos-aarch64.tar.gz openego
-          mv openego-macos-*.tar.gz ../../../..
+          mv openego-macos-aarch64.tar.gz ../../../
       
-      - name: Upload Intel artifact
+      - name: Upload Intel
         uses: actions/upload-artifact@v4
         with:
-          name: openego-macos-x86_64
+          name: macos-intel
           path: openego-macos-x86_64.tar.gz
       
-      - name: Upload ARM artifact
+      - name: Upload ARM
         uses: actions/upload-artifact@v4
         with:
-          name: openego-macos-aarch64
+          name: macos-arm
           path: openego-macos-aarch64.tar.gz
 
-  # Build for Windows
   build-windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
       
-      - name: Install Rust
-        uses: dtolnay/rust-action@stable
-      
-      - name: Install Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '20'
       
-      - name: Install dependencies
+      - name: Setup Rust
+        uses: dtolnay/rust-action@stable
+      
+      - name: Install npm deps
         run: npm install
       
-      - name: Build Tauri
+      - name: Build
         run: npm run tauri build
       
-      - name: Package binary
+      - name: Package
         run: |
           cd src-tauri/target/release
           7z a openego-windows-x86_64.zip openego.exe
           mv openego-windows-x86_64.zip ../../..
       
-      - name: Upload artifact
+      - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: openego-windows-x86_64
+          name: windows
           path: openego-windows-*.zip
 
-  # Create GitHub Release
   release:
     needs: [build-linux, build-macos, build-windows]
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Download all artifacts
+      - name: Download all
         uses: actions/download-artifact@v4
-        with:
-          path: artifacts
       
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: artifacts/**/*
-          generate_release_notes: true
-          prerelease: ${{ contains(github.ref, 'beta') || contains(github.ref, 'alpha') }}
+          files: '**/*'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
