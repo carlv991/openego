@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenEgo - Your Personal Digital Twin</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">🧠 OpenEgo</div>
+            <div class="step-indicator" id="stepIndicator">Step 1 of 5</div>
+        </header>
+
+        <!-- Progress Bar -->
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 20%"></div>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            
+            <!-- STEP 1: Create Account -->
+            <div class="step active" id="step1">
+                <div class="step-content">
+                    <div class="icon-large">👋</div>
+                    <h1>Welcome to OpenEgo</h1>
+                    <p class="subtitle">Your personal digital twin that learns how you communicate</p>
+                    
+                    <div class="form-container">
+                        <div class="input-group">
+                            <label for="userName">What should I call you?</label>
+                            <input type="text" id="userName" placeholder="Your name" autofocus>
+                        </div>
+                        
+                        <div class="features-preview">
+                            <div class="feature-item">
+                                <span class="feature-icon">🧠</span>
+                                <span>Learns your communication style</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">🔒</span>
+                                <span>Everything stays on your device</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">⚡</span>
+                                <span>Responds when you're busy</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn-primary" onclick="nextStep(2)" id="btnStep1">
+                        Get Started →
+                    </button>
+                </div>
+            </div>
+
+            <!-- STEP 2: Select Permissions -->
+            <div class="step" id="step2">
+                <div class="step-content">
+                    <div class="icon-large">🔐</div>
+                    <h1>Select Permissions</h1>
+                    <p class="subtitle">Choose what AI Self can access to learn from</p>
+                    
+                    <div class="permissions-container">
+                        <div class="permission-category">
+                            <h3>📧 Email</h3>
+                            <div class="permission-options">
+                                <label class="permission-item">
+                                    <input type="checkbox" id="permGmail" checked>
+                                    <span class="checkmark"></span>
+                                    <div class="permission-info">
+                                        <strong>Gmail</strong>
+                                        <small>Read emails and learn your style</small>
+                                    </div>
+                                </label>
+                                <label class="permission-item">
+                                    <input type="checkbox" id="permOutlook">
+                                    <span class="checkmark"></span>
+                                    <div class="permission-info">
+                                        <strong>Outlook</strong>
+                                        <small>Read emails and learn your style</small>
+                                    </div>
+                                </label>
+                                <label class="permission-item">
+                                    <input type="checkbox" id="permAppleMail">
+                                    <span class="checkmark"></span>
+                                    <div class="permission-info">
+                                        <strong>Apple Mail</strong>
+                                        <small>Read emails and learn your style</small>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="permission-category">
+                            <h3>💬 Messaging</h3>
+                            <div class="permission-options">
+                                <label class="permission-item">
+                                    <input type="checkbox" id="permTelegram" checked>
+                                    <span class="checkmark"></span>
+                                    <div class="permission-info">
+                                        <strong>Telegram</strong>
+                                        <small>Read messages and respond</small>
+                                    </div>
+                                </label>
+                                <label class="permission-item">
+                                    <input type="checkbox" id="permSlack">
+                                    <span class="checkmark"></span>
+                                    <div class="permission-info">
+                                        <strong>Slack</strong>
+                                        <small>Read work messages</small>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="permission-category">
+                            <h3>📁 Files & Documents</h3>
+                            <div class="permission-options">
+                                <label class="permission-item">
+                                    <input type="checkbox" id="permDocuments" checked>
+                                    <span class="checkmark"></span>
+                                    <div class="permission-info">
+                                        <strong>Documents</strong>
+                                        <small>Learn from your writing style</small>
+                                    </div>
+                                </label>
+                                <label class="permission-item">
+                                    <input type="checkbox" id="permCalendar" checked>
+                                    <span class="checkmark"></span>
+                                    <div class="permission-info">
+                                        <strong>Calendar</strong>
+                                        <small>Understand your schedule</small>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="privacy-note">
+                        <span class="privacy-icon">🔒</span>
+                        <small>All data stays on your device. Nothing is sent to the cloud.</small>
+                    </div>
+                    
+                    <div class="button-group">
+                        <button class="btn-secondary" onclick="prevStep(1)">← Back</button>
+                        <button class="btn-primary" onclick="nextStep(3)" id="btnStep2">
+                            Continue →
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 3: Choose GPT Model -->
+            <div class="step" id="step3">
+                <div class="step-content">
+                    <div class="icon-large">🧠</div>
+                    <h1>Choose Your AI Model</h1>
+                    <p class="subtitle">Select the brain that powers your digital twin</p>
+                    
+                    <div class="models-container">
+                        <div class="model-card recommended" onclick="selectModel('llama3')">
+                            <div class="model-header">
+                                <h3>Llama 3 8B</h3>
+                                <span class="badge-recommended">Recommended</span>
+                            </div>
+                            <p class="model-desc">Best balance of quality and speed. Runs smoothly on most modern computers.</p>
+                            <div class="model-specs">
+                                <span class="spec">⚡ Fast</span>
+                                <span class="spec">💾 8GB RAM</span>
+                                <span class="spec">🔒 Private</span>
+                            </div>
+                            <div class="model-radio">
+                                <input type="radio" name="model" value="llama3" id="modelLlama3" checked>
+                                <label for="modelLlama3">Select</label>
+                            </div>
+                        </div>
+
+                        <div class="model-card" onclick="selectModel('mistral')">
+                            <div class="model-header">
+                                <h3>Mistral 7B</h3>
+                                <span class="badge">Alternative</span>
+                            </div>
+                            <p class="model-desc">Excellent reasoning capabilities. Great for complex professional communication.</p>
+                            <div class="model-specs">
+                                <span class="spec">🧠 Smart</span>
+                                <span class="spec">💾 7GB RAM</span>
+                                <span class="spec">🔒 Private</span>
+                            </div>
+                            <div class="model-radio">
+                                <input type="radio" name="model" value="mistral" id="modelMistral">
+                                <label for="modelMistral">Select</label>
+                            </div>
+                        </div>
+
+                        <div class="model-card" onclick="selectModel('phi3')">
+                            <div class="model-header">
+                                <h3>Phi-3 Mini</h3>
+                                <span class="badge">Lightweight</span>
+                            </div>
+                            <p class="model-desc">Smallest and fastest. Perfect for older computers or when battery life matters.</p>
+                            <div class="model-specs">
+                                <span class="spec">🏎️ Fastest</span>
+                                <span class="spec">💾 4GB RAM</span>
+                                <span class="spec">🔒 Private</span>
+                            </div>
+                            <div class="model-radio">
+                                <input type="radio" name="model" value="phi3" id="modelPhi3">
+                                <label for="modelPhi3">Select</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tutorial-section">
+                        <h4>📚 New to AI Models?</h4>
+                        <p>Don't worry! You can change this later. Here's what you need to know:</p>
+                        <ul class="tutorial-list">
+                            <li><strong>All models run locally</strong> - No internet needed after download</li>
+                            <li><strong>Bigger isn't always better</strong> - Larger models are slower</li>
+                            <li><strong>You can switch anytime</strong> - Go to Settings → AI Model</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="button-group">
+                        <button class="btn-secondary" onclick="prevStep(2)">← Back</button>
+                        <button class="btn-primary" onclick="nextStep(4)" id="btnStep3">
+                            Continue →
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 4: Start Learning -->
+            <div class="step" id="step4">
+                <div class="step-content">
+                    <div class="learning-animation">
+                        <div class="brain-icon">🧠</div>
+                        <div class="pulse-ring"></div>
+                        <div class="pulse-ring delay-1"></div>
+                        <div class="pulse-ring delay-2"></div>
+                    </div>
+                    
+                    <h1>Learning About You</h1>
+                    <p class="subtitle">AI Self is analyzing your data to understand how you communicate</p>
+                    
+                    <div class="learning-status" id="learningStatus">
+                        <div class="status-item active" id="status1">
+                            <span class="status-icon">📧</span>
+                            <span class="status-text">Scanning emails...</span>
+                            <span class="status-progress" id="emailProgress">0/0</span>
+                        </div>
+                        <div class="status-item" id="status2">
+                            <span class="status-icon">💬</span>
+                            <span class="status-text">Reading messages...</span>
+                            <span class="status-progress" id="msgProgress">0/0</span>
+                        </div>
+                        <div class="status-item" id="status3">
+                            <span class="status-icon">📄</span>
+                            <span class="status-text">Analyzing documents...</span>
+                            <span class="status-progress" id="docProgress">0/0</span>
+                        </div>
+                        <div class="status-item" id="status4">
+                            <span class="status-icon">🧠</span>
+                            <span class="status-text">Building your AI model...</span>
+                            <span class="status-progress" id="aiProgress">0%</span>
+                        </div>
+                    </div>
+
+                    <div class="progress-detail">
+                        <div class="progress-bar-large">
+                            <div class="progress-fill-large" id="learningProgressBar" style="width: 0%"></div>
+                        </div>
+                        <p class="progress-text" id="progressText">Starting up...</p>
+                        <p class="time-estimate" id="timeEstimate">This may take 1-2 hours depending on your data</p>
+                    </div>
+
+                    <div class="learning-info">
+                        <div class="info-box">
+                            <span class="info-icon">💡</span>
+                            <p>You can close this window. Learning continues in the background.</p>
+                        </div>
+                    </div>
+                    
+                    <button class="btn-primary hidden" onclick="nextStep(5)" id="btnStep4">
+                        I'm Ready! →
+                    </button>
+                </div>
+            </div>
+
+            <!-- STEP 5: I Am Alive! -->
+            <div class="step" id="step5">
+                <div class="step-content">
+                    <div class="awakening-animation">
+                        <div class="eye-container">
+                            <div class="eye">
+                                <div class="pupil"></div>
+                            </div>
+                        </div>
+                        <div class="awakened-text">I AM ALIVE</div>
+                    </div>
+                    
+                    <h1>Your OpenEgo is Ready!</h1>
+                    <p class="subtitle">Before going full Auto-Pilot, let's test how well I know you</p>
+
+                    <div class="test-intro">
+                        <div class="test-icon">🧪</div>
+                        <h3>Training Test</h3>
+                        <p>I'll show you 5 real scenarios from your past communications. Approve if I got it right, or teach me the correct response.</p>
+                    </div>
+
+                    <div class="test-scenarios" id="testScenarios">
+                        <!-- Test scenarios will be populated here -->
+                        <div class="scenario-card" id="scenario1">
+                            <div class="scenario-header">
+                                <span class="scenario-date">2024-03-10 14:23:15</span>
+                                <span class="scenario-platform">📧 Email</span>
+                            </div>
+                            <div class="scenario-message">
+                                <strong>From:</strong> john@company.com<br>
+                                <strong>Subject:</strong> Project Timeline Update<br><br>
+                                "Hi, can we move the deadline to next Friday? The team needs more time."
+                            </div>
+                            <div class="scenario-answer">
+                                <strong>AI Self would respond:</strong>
+                                <div class="proposed-response">
+                                    "Hi John, Friday works for me. Let's sync on Wednesday to make sure we're on track. 👍"
+                                </div>
+                            </div>
+                            <div class="scenario-actions">
+                                <button class="btn-approve" onclick="approveScenario(1)">✓ That's Right</button>
+                                <button class="btn-edit" onclick="editScenario(1)">✏️ Edit Response</button>
+                                <button class="btn-reject" onclick="rejectScenario(1)">✗ Wrong</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="test-progress">
+                        <div class="test-stats" id="testStats">
+                            <span>Approved: <strong id="approvedCount">0</strong>/5</span>
+                            <span>Need Work: <strong id="needsWorkCount">0</strong>/5</span>
+                        </div>
+                    </div>
+
+                    <div class="mode-selection hidden" id="modeSelection">
+                        <h3>🎉 Congratulations! You're Ready</h3>
+                        <p>You've approved enough responses. Choose your mode:</p>
+                        
+                        <div class="mode-options">
+                            <div class="mode-card" onclick="setMode('copilot')">
+                                <div class="mode-icon">👀</div>
+                                <h4>Co-Pilot</h4>
+                                <p>I observe and suggest, you approve everything</p>
+                                <div class="mode-radio">
+                                    <input type="radio" name="mode" value="copilot" id="modeCopilot" checked>
+                                    <label for="modeCopilot">Select</label>
+                                </div>
+                            </div>
+                            
+                            <div class="mode-card locked" id="autoPilotCard">
+                                <div class="mode-icon">🤖</div>
+                                <h4>Auto-Pilot</h4>
+                                <p>I handle routine responses automatically</p>
+                                <div class="lock-message">🔒 Complete all tests to unlock</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="button-group" id="step5Buttons">
+                        <button class="btn-secondary" onclick="prevStep(4)">← Back to Learning</button>
+                        <button class="btn-primary hidden" onclick="finishOnboarding()" id="btnFinish">
+                            Start Using AI Self →
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>🔒 All data stays on your device • OpenEgo respects your privacy</p>
+        </footer>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>

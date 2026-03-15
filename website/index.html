@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenEgo - Your Personal Digital Twin</title>
+    <meta name="description" content="OpenEgo learns how you communicate and responds on your behalf. 100% local, privacy-first AI.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --black: #0a0a0a;
+            --black-light: #111111;
+            --black-lighter: #1a1a1a;
+            --green: #00d084;
+            --green-dark: #00b371;
+            --green-light: #00e694;
+            --green-glow: rgba(0, 208, 132, 0.3);
+            --gray: #888888;
+            --gray-light: #aaaaaa;
+            --white: #ffffff;
+            --font-mono: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--black);
+            color: var(--white);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 20px 40px;
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 208, 132, 0.1);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--white);
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--green) 0%, var(--green-dark) 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            box-shadow: 0 0 20px var(--green-glow);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--gray-light);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--green);
+        }
+
+        .btn-nav {
+            background: var(--green);
+            color: var(--black);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-nav:hover {
+            background: var(--green-light);
+            box-shadow: 0 0 30px var(--green-glow);
+            color: var(--black);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 120px 40px 80px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, var(--green-glow) 0%, transparent 70%);
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .hero-content {
+            text-align: center;
+            max-width: 900px;
+            z-index: 1;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 208, 132, 0.1);
+            border: 1px solid rgba(0, 208, 132, 0.3);
+            padding: 8px 16px;
+            border-radius: 100px;
+            font-size: 0.875rem;
+            color: var(--green);
+            margin-bottom: 32px;
+        }
+
+        .badge-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--green);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        h1 {
+            font-size: clamp(3rem, 8vw, 5.5rem);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            letter-spacing: -0.02em;
+        }
+
+        h1 .gradient {
+            background: linear-gradient(135deg, var(--green) 0%, var(--green-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--gray-light);
+            max-width: 600px;
+            margin: 0 auto 48px;
+            line-height: 1.7;
+        }
+
+        .install-box {
+            background: var(--black-light);
+            border: 1px solid var(--black-lighter);
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto 32px;
+        }
+
+        .install-label {
+            font-size: 0.75rem;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 12px;
+        }
+
+        .install-command {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--black);
+            padding: 16px 20px;
+            border-radius: 8px;
+            font-family: var(--font-mono);
+            font-size: 0.95rem;
+            color: var(--green);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .install-command:hover {
+            background: rgba(0, 208, 132, 0.05);
+            border: 1px solid var(--green);
+        }
+
+        .install-command code {
+            flex: 1;
+            overflow-x: auto;
+        }
+
+        .copy-icon {
+            color: var(--gray);
+            transition: color 0.3s ease;
+        }
+
+        .install-command:hover .copy-icon {
+            color: var(--green);
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            background: var(--green);
+            color: var(--black);
+            padding: 16px 32px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary:hover {
+            background: var(--green-light);
+            box-shadow: 0 0 40px var(--green-glow);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--white);
+            padding: 16px 32px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            border: 1px solid var(--black-lighter);
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--green);
+            color: var(--green);
+        }
+
+        /* Features Section */
+        .features {
+            padding: 120px 40px;
+            background: var(--black-light);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+
+        .section-header h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .section-header p {
+            color: var(--gray-light);
+            font-size: 1.125rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+        }
+
+        .feature-card {
+            background: var(--black);
+            border: 1px solid var(--black-lighter);
+            border-radius: 16px;
+            padding: 32px;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            border-color: rgba(0, 208, 132, 0.3);
+            transform: translateY(-4px);
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(0, 208, 132, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .feature-card p {
+            color: var(--gray-light);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* How It Works */
+        .how-it-works {
+            padding: 120px 40px;
+        }
+
+        .steps {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .step {
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+        }
+
+        .step-number {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--green) 0%, var(--green-dark) 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--black);
+            flex-shrink: 0;
+        }
+
+        .step-content h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .step-content p {
+            color: var(--gray-light);
+            font-size: 0.95rem;
+        }
+
+        /* Privacy Section */
+        .privacy {
+            padding: 120px 40px;
+            background: var(--black-light);
+        }
+
+        .privacy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-top: 60px;
+        }
+
+        .privacy-item {
+            text-align: center;
+            padding: 32px;
+        }
+
+        .privacy-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+        }
+
+        .privacy-item h4 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .privacy-item p {
+            color: var(--gray-light);
+            font-size: 0.9rem;
+        }
+
+        /* Download Section */
+        .download {
+            padding: 120px 40px;
+            text-align: center;
+        }
+
+        .platforms {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 48px;
+        }
+
+        .platform-card {
+            background: var(--black-light);
+            border: 1px solid var(--black-lighter);
+            border-radius: 16px;
+            padding: 32px 48px;
+            min-width: 200px;
+            transition: all 0.3s ease;
+        }
+
+        .platform-card:hover {
+            border-color: var(--green);
+            transform: translateY(-4px);
+        }
+
+        .platform-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+        }
+
+        .platform-card h4 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .platform-card p {
+            color: var(--gray);
+            font-size: 0.875rem;
+        }
+
+        /* Footer */
+        footer {
+            padding: 60px 40px;
+            background: var(--black);
+            border-top: 1px solid var(--black-lighter);
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 24px;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 32px;
+        }
+
+        .footer-links a {
+            color: var(--gray);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--green);
+        }
+
+        .footer-copy {
+            color: var(--gray);
+            font-size: 0.875rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn-primary, .btn-secondary {
+                width: 100%;
+                max-width: 300px;
+                justify-content: center;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .step {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeInUp 0.8s ease forwards;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <a href="#" class="logo">
+                <div class="logo-icon">🧠</div>
+                <span>OpenEgo</span>
+            </a>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#how-it-works">How It Works</a>
+                <a href="#privacy">Privacy</a>
+                <a href="https://docs.openego.ai" target="_blank">Docs</a>
+                <a href="https://github.com/openego/openego" target="_blank" class="btn-nav">GitHub</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="badge">
+                <span class="badge-dot"></span>
+                <span>Now in Beta</span>
+            </div>
+            <h1>
+                Your Personal<br>
+                <span class="gradient">Digital Twin</span>
+            </h1>
+            <p class="hero-subtitle">
+                OpenEgo learns how you communicate and responds on your behalf when you're busy. 
+                Everything stays on your device.
+            </p>
+
+            <div class="install-box">
+                <div class="install-label">Install with one command</div>
+                <div class="install-command" onclick="copyCommand()">
+                    <code>curl -sSL openego.ai/install | sh</code>
+                    <span class="copy-icon">📋</span>
+                </div>
+            </div>
+
+            <div class="hero-buttons">
+                <a href="#download" class="btn-primary">
+                    <span>⬇️</span> Download Now
+                </a>
+                <a href="https://docs.openego.ai" class="btn-secondary">
+                    Read Documentation
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header">
+                <h2>Learn. Adapt. Respond.</h2>
+                <p>OpenEgo observes your communication patterns and becomes your digital proxy.</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🧠</div>
+                    <h3>Learns Your Style</h3>
+                    <p>Analyzes years of emails, messages, and documents to understand how you write, your tone, vocabulary, and timing patterns.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Lightning Fast</h3>
+                    <p>Runs entirely on your device with local AI models. No cloud, no lag, no waiting.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🎮</div>
+                    <h3>Three Modes</h3>
+                    <p>Co-Pilot suggests responses. Auto-Pilot handles routine messages. Off mode for complete privacy.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3>Multi-Platform</h3>
+                    <p>Works with Gmail, Telegram, Slack, Outlook, and more. One AI, all your communication.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">✓</div>
+                    <h3>Smart To-Do</h3>
+                    <p>Automatically creates tasks from emails with priority levels. "Overdue bill" → Critical. Never miss anything.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Full Transparency</h3>
+                    <p>Real-time logs show exactly what your AI is doing. Watch it work, review every action.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works" id="how-it-works">
+        <div class="container">
+            <div class="section-header">
+                <h2>How It Works</h2>
+                <p>From installation to your digital twin in 5 simple steps.</p>
+            </div>
+
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Create Your Account</h3>
+                        <p>Install OpenEgo locally and set up your profile. No email required, no cloud signup.</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Select Permissions</h3>
+                        <p>Choose which platforms to connect - Gmail, Telegram, Slack, and local files. You're in complete control.</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Pick Your AI Model</h3>
+                        <p>Select from local models like Llama 3, Mistral, or Phi-3. All run on your device, no API calls.</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>Learn & Build</h3>
+                        <p>OpenEgo scans your historical data and builds your communication model. Takes 1-2 days depending on data size.</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">5</div>
+                    <div class="step-content">
+                        <h3>Test & Activate</h3>
+                        <p>Pass validation tests to prove accuracy. Then choose Co-Pilot or Auto-Pilot mode. You're ready!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Privacy Section -->
+    <section class="privacy" id="privacy">
+        <div class="container">
+            <div class="section-header">
+                <h2>Privacy First. Always.</h2>
+                <p>Your data never leaves your device. Period.</p>
+            </div>
+
+            <div class="privacy-grid">
+                <div class="privacy-item">
+                    <div class="privacy-icon">🔒</div>
+                    <h4>Local Only</h4>
+                    <p>All processing happens on your device. No cloud servers, no data transmission.</p>
+                </div>
+
+                <div class="privacy-item">
+                    <div class="privacy-icon">🚫</div>
+                    <h4>No Tracking</h4>
+                    <p>We don't collect usage analytics, crash reports, or any personal data.</p>
+                </div>
+
+                <div class="privacy-item">
+                    <div class="privacy-icon">🔑</div>
+                    <h4>You Own Everything</h4>
+                    <p>Export your AI model, delete all data, or migrate to another device anytime.</p>
+                </div>
+
+                <div class="privacy-item">
+                    <div class="privacy-icon">👁️</div>
+                    <h4>Full Transparency</h4>
+                    <p>Open source code. Audit every line. Verify what we claim.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download Section -->
+    <section class="download" id="download">
+        <div class="container">
+            <div class="section-header">
+                <h2>Download OpenEgo</h2>
+                <p>Available for macOS and Windows. Linux coming soon.</p>
+            </div>
+
+            <div class="platforms">
+                <div class="platform-card">
+                    <div class="platform-icon">🍎</div>
+                    <h4>macOS</h4>
+                    <p>macOS 12+</p>
+                </div>
+
+                <div class="platform-card">
+                    <div class="platform-icon">🪟</div>
+                    <h4>Windows</h4>
+                    <p>Windows 10+</p>
+                </div>
+
+                <div class="platform-card">
+                    <div class="platform-icon">🐧</div>
+                    <h4>Linux</h4>
+                    <p>Coming Soon</p>
+                </div>
+            </div>
+
+            <div style="margin-top: 48px;">
+                <p style="color: var(--gray);">Or install from source:</p>
+                <code style="display: inline-block; background: var(--black-light); padding: 16px 24px; border-radius: 8px; margin-top: 16px; font-family: var(--font-mono); color: var(--green);">
+                    git clone https://github.com/openego/openego.git && cd openego && cargo build --release
+                </code>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="https://docs.openego.ai">Documentation</a>
+                <a href="https://github.com/openego/openego">GitHub</a>
+                <a href="https://discord.gg/openego">Discord</a>
+                <a href="mailto:hello@openego.ai">Contact</a>
+            </div>
+            <div class="footer-copy">
+                © 2026 OpenEgo. Open source under AGPL-3.0.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function copyCommand() {
+            const command = 'curl -sSL openego.ai/install | sh';
+            navigator.clipboard.writeText(command).then(() => {
+                const btn = document.querySelector('.install-command');
+                const original = btn.innerHTML;
+                btn.innerHTML = '<code>Copied!</code><span>✓</span>';
+                setTimeout(() => {
+                    btn.innerHTML = original;
+                }, 2000);
+            });
+        }
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
