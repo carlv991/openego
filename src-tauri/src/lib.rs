@@ -5,6 +5,7 @@ pub mod database;
 pub mod gmail;
 pub mod patterns;
 pub mod bot_tracking;
+pub mod updater;
 
 use commands::AppState;
 use database::Database;
@@ -29,6 +30,10 @@ pub fn run() {
                     eprintln!("❌ Failed to initialize database: {}", e);
                 }
             }
+            
+            // Initialize auto-updater
+            updater::init_updater(app.handle());
+            
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -80,6 +85,11 @@ pub fn run() {
             commands::detect_tasks_from_email,
             commands::auto_process_email,
             commands::get_suggested_response,
+            
+            // Updater commands
+            updater::check_for_updates,
+            updater::skip_update_version,
+            updater::install_update,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

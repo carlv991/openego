@@ -562,6 +562,230 @@
     margin-bottom: 20px;
 }
 
+/* ==================== UPDATE NOTIFICATION ==================== */
+
+.update-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 400px;
+    max-width: calc(100vw - 40px);
+    background: var(--bg-secondary);
+    border: 2px solid var(--accent-color);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(0, 208, 132, 0.2);
+    z-index: 10000;
+    transform: translateX(120%);
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.update-notification.show {
+    transform: translateX(0);
+}
+
+.update-content {
+    display: flex;
+    gap: 15px;
+    align-items: flex-start;
+}
+
+.update-icon {
+    font-size: 2.5rem;
+    flex-shrink: 0;
+    animation: bounce 1s infinite;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+.update-text {
+    flex: 1;
+}
+
+.update-text h4 {
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+    color: var(--accent-color);
+}
+
+.update-text p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+}
+
+.update-text small {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    display: block;
+    margin-top: 5px;
+}
+
+.update-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 15px;
+}
+
+.btn-update-install {
+    padding: 12px 20px;
+    background: var(--accent-color);
+    color: var(--bg-primary);
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-update-install:hover {
+    background: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 208, 132, 0.3);
+}
+
+.btn-update-later,
+.btn-update-skip {
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-update-later:hover {
+    border-color: var(--text-secondary);
+    color: var(--text-primary);
+}
+
+.btn-update-skip {
+    border: none;
+    text-decoration: underline;
+    font-size: 0.75rem;
+}
+
+.btn-update-skip:hover {
+    color: var(--text-primary);
+}
+
+/* Update Progress Bar */
+.update-progress {
+    width: 100%;
+    height: 4px;
+    background: var(--border-color);
+    border-radius: 2px;
+    margin-top: 10px;
+    overflow: hidden;
+}
+
+.update-progress-bar {
+    width: 30%;
+    height: 100%;
+    background: var(--accent-color);
+    border-radius: 2px;
+    animation: progress-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes progress-pulse {
+    0% { width: 0%; opacity: 0.5; }
+    50% { width: 70%; opacity: 1; }
+    100% { width: 100%; opacity: 0.5; }
+}
+
+/* Toast Notifications */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 15px 25px;
+    border-radius: 10px;
+    font-weight: 500;
+    z-index: 10001;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.toast.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.toast-success {
+    background: rgba(34, 197, 94, 0.9);
+    color: white;
+}
+
+.toast-error {
+    background: rgba(239, 68, 68, 0.9);
+    color: white;
+}
+
+.toast-info {
+    background: rgba(59, 130, 246, 0.9);
+    color: white;
+}
+
+/* Settings Update Section */
+.settings-update {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.settings-update:last-child {
+    border-bottom: none;
+}
+
+.update-info h4 {
+    font-size: 1rem;
+    margin-bottom: 4px;
+}
+
+.update-info p {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.update-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.version-badge {
+    padding: 4px 12px;
+    background: var(--accent-color);
+    color: var(--bg-primary);
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.btn-check-updates {
+    padding: 8px 16px;
+    background: var(--bg-hover);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-check-updates:hover {
+    background: var(--accent-color);
+    color: var(--bg-primary);
+}
+
 .settings-section h3 {
     margin-bottom: 20px;
     font-size: 1.1rem;
