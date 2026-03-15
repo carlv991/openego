@@ -4,8 +4,6 @@ on:
   push:
     branches: [main]
     tags: ['v*']
-  pull_request:
-    branches: [main]
 
 env:
   CARGO_TERM_COLOR: always
@@ -16,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        target: [x86_64-unknown-linux-gnu, aarch64-unknown-linux-gnu]
+        target: [x86_64-unknown-linux-gnu]
     steps:
       - uses: actions/checkout@v4
       
@@ -40,35 +38,29 @@ jobs:
       
       - name: Build Tauri
         run: npm run tauri build -- --target ${{ matrix.target }}
-        env:
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
       
       - name: Package binary
         run: |
           cd src-tauri/target/${{ matrix.target }}/release
-          tar -czf openego-linux-${{ matrix.target == 'x86_64-unknown-linux-gnu' && 'x86_64' || 'aarch64' }}.tar.gz openego
+          tar -czf openego-linux-x86_64.tar.gz openego
           mv openego-linux-*.tar.gz ../../../..
       
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: openego-linux-${{ matrix.target == 'x86_64-unknown-linux-gnu' && 'x86_64' || 'aarch64' }}
+          name: openego-linux-x86_64
           path: openego-linux-*.tar.gz
 
   # Build for macOS
   build-macos:
     runs-on: macos-latest
-    strategy:
-      matrix:
-        target: [x86_64-apple-darwin, aarch64-apple-darwin]
     steps:
       - uses: actions/checkout@v4
       
       - name: Install Rust
         uses: dtolnay/rust-action@stable
         with:
-          targets: ${{ matrix.target }}
+          targets: x86_64-apple-darwin,aarch64-apple-darwin
       
       - name: Install Node.js
         uses: actions/setup-node@v4
@@ -78,23 +70,35 @@ jobs:
       - name: Install dependencies
         run: npm install
       
-      - name: Build Tauri
-        run: npm run tauri build -- --target ${{ matrix.target }}
-        env:
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+      - name: Build for Intel Mac
+        run: npm run tauri build -- --target x86_64-apple-darwin
       
-      - name: Package binary
+      - name: Build for Apple Silicon
+        run: npm run tauri build -- --target aarch64-apple-darwin
+      
+      - name: Package Intel binary
         run: |
-          cd src-tauri/target/${{ matrix.target }}/release
-          tar -czf openego-macos-${{ matrix.target == 'x86_64-apple-darwin' && 'x86_64' || 'aarch64' }}.tar.gz openego
+          cd src-tauri/target/x86_64-apple-darwin/release
+          tar -czf openego-macos-x86_64.tar.gz openego
           mv openego-macos-*.tar.gz ../../../..
       
-      - name: Upload artifact
+      - name: Package ARM binary
+        run: |
+          cd src-tauri/target/aarch64-apple-darwin/release
+          tar -czf openego-macos-aarch64.tar.gz openego
+          mv openego-macos-*.tar.gz ../../../..
+      
+      - name: Upload Intel artifact
         uses: actions/upload-artifact@v4
         with:
-          name: openego-macos-${{ matrix.target == 'x86_64-apple-darwin' && 'x86_64' || 'aarch64' }}
-          path: openego-macos-*.tar.gz
+          name: openego-macos-x86_64
+          path: openego-macos-x86_64.tar.gz
+      
+      - name: Upload ARM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openego-macos-aarch64
+          path: openego-macos-aarch64.tar.gz
 
   # Build for Windows
   build-windows:
@@ -115,9 +119,6 @@ jobs:
       
       - name: Build Tauri
         run: npm run tauri build
-        env:
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
       
       - name: Package binary
         run: |
@@ -144,38 +145,11 @@ jobs:
         with:
           path: artifacts
       
-      - name: Generate version info
-        run: |
-          echo "{\"version\": \"${GITHUB_REF#refs/tags/v}\", \"notes\": \"$(git log -1 --pretty=%B)\"}" > version.json
-      
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            artifacts/**/*
-            version.json
+          files: artifacts/**/*
           generate_release_notes: true
           prerelease: ${{ contains(github.ref, 'beta') || contains(github.ref, 'alpha') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  # Deploy to website
-  deploy:
-    needs: release
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-      
-      - name: Deploy to server
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "artifacts/**/openego-*"
-          target: "/var/www/openego.ai/"
-          strip_components: 1
