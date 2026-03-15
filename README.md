@@ -2,127 +2,197 @@
 
 Your Personal Digital Twin - Local-first AI that learns how you communicate.
 
-## Overview
+[![Version](https://img.shields.io/badge/version-0.1.0-coral)](https://github.com/carlv991/openego/releases)
+[![License](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey)]()
 
-OpenEgo creates a local, privacy-first digital twin that learns your communication style across email, messaging, and documents. It can suggest or automate responses when you're busy - all while keeping your data strictly on your device.
+## 🌐 Website
+https://openego.ai
 
-## Features
+## 📦 Installation
+
+### One-Liner Install (macOS & Linux)
+```bash
+curl -fsSL https://openego.ai/install.sh | bash
+```
+
+### Windows
+Download from [GitHub Releases](https://github.com/carlv991/openego/releases)
+
+## ✨ Features
 
 ### 🔒 Privacy-First
 - **100% Local**: All data stays on your device
 - **No Cloud**: No servers, no data leakage
 - **Encrypted**: Your data is encrypted at rest
+- **Open Source**: Full transparency, AGPL-3.0 license
 
 ### 🧠 Smart Learning
-- **Historical Analysis**: Scans years of emails, messages, and documents
-- **Pattern Recognition**: Learns your writing style, timing, and preferences
+- **Historical Analysis**: Scans emails, messages, documents
+- **Pattern Recognition**: Learns your writing style
 - **Continuous Improvement**: Gets better as you use it
 
 ### 🎮 Three Modes
 1. **Off**: Completely dormant
-2. **Co-Pilot**: Observes and suggests (you approve everything)
-3. **Auto-Pilot**: Handles routine responses automatically
+2. **Co-Pilot**: Observes and suggests
+3. **Auto-Pilot**: Handles routine responses (with full audit trail)
 
-### 📱 Cross-Platform
-- **Desktop**: macOS, Windows, Linux
-- **Mobile**: iOS, Android (companion app)
-- **Sync**: P2P sync between your devices
+### 🔄 Auto-Updater
+- **In-App Updates**: Get notified of new versions
+- **One-Click Install**: Seamless updates
+- **Multi-Platform**: Linux, macOS, Windows
 
-## Onboarding Flow
+### 🕵️ Audit Trail & Bot Fingerprinting
+- **Activity Logging**: Every bot action tracked
+- **Bot Certificates**: Prove content was AI-generated
+- **Email Headers**: `X-OpenEgo-*` headers for verification
+- **Invisible Watermarks**: Hidden markers in text
 
-The app features a modern 5-step onboarding:
+## 🚀 Quick Start
 
-1. **👋 Welcome**: Create your account
-2. **🔐 Permissions**: Select data sources (email, messaging, documents)
-3. **🧠 AI Model**: Choose your local LLM (Llama 3, Mistral, or Phi-3)
-4. **📚 Learning**: Background processing of your data
-5. **🧪 Testing**: Validate AI responses before going live
+1. **Install**: `curl -fsSL https://openego.ai/install.sh | bash`
+2. **Launch**: OpenEgo from Applications menu
+3. **Onboard**: 5-step setup process
+4. **Activate**: Start with Co-Pilot mode
+5. **Go Auto**: Enable Auto-Pilot when confident
 
-## Tech Stack
+## 📸 Screenshots
+
+### Onboarding
+Modern 5-step onboarding with toggle switches for permissions
+
+### Activity Log
+Track every bot action with timestamps and signatures
+
+### Settings
+Easy-to-navigate settings with real-time toggle feedback
+
+## 🛠️ Tech Stack
 
 - **Frontend**: HTML5, CSS3, JavaScript (Vanilla)
-- **Desktop Framework**: Tauri (Rust + Web)
-- **Local LLM**: Llama.cpp, Mistral, or Phi-3
-- **Database**: SQLite + ChromaDB (vector embeddings)
-- **Sync**: libp2p (P2P protocol)
+- **Desktop**: Tauri (Rust + Web)
+- **Database**: SQLite
+- **Local LLM**: Llama 3, Mistral, or Phi-3
+- **CI/CD**: GitHub Actions
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 openego/
 ├── src/                    # Frontend code
-│   ├── index.html         # Main onboarding UI
-│   ├── styles.css         # Modern dark theme styles
-│   └── main.js            # Onboarding logic
+│   ├── index.html         # Onboarding UI
+│   ├── styles.css         # Coral theme styles
+│   ├── main.js            # App logic
+│   └── updater.js         # Auto-updater
 ├── src-tauri/             # Rust backend
-│   ├── src/               # Rust source code
-│   ├── Cargo.toml         # Rust dependencies
-│   └── tauri.conf.json    # App configuration
-├── database/              # Database schemas
-├── docs/                  # Documentation
-└── README.md             # This file
+│   ├── src/
+│   │   ├── commands/      # API handlers
+│   │   ├── database/      # SQLite layer
+│   │   ├── bot_tracking.rs # Audit/fingerprinting
+│   │   └── updater.rs     # Update system
+│   └── Cargo.toml
+├── .github/workflows/      # CI/CD
+├── docs/                   # Documentation
+└── README.md
 ```
 
-## Development
+## 🏗️ Development
 
 ### Prerequisites
 - Rust (latest stable)
 - Node.js 18+
 - Tauri CLI
 
-### Install Dependencies
+### Setup
 ```bash
+git clone https://github.com/carlv991/openego.git
+cd openego
 npm install
-cd src-tauri && cargo build
-```
-
-### Run Development Server
-```bash
 npm run tauri dev
 ```
 
-### Build for Production
+### Build
 ```bash
 npm run tauri build
 ```
 
-## Roadmap
+## 📊 Roadmap Status
 
-### Phase 1: Foundation (Weeks 1-4)
+### Phase 1: Foundation ✅ COMPLETE
 - [x] Project setup & scaffolding
-- [x] Onboarding UI
+- [x] Onboarding UI with 5 steps
 - [x] To-Do system with priority levels
-- [ ] Gmail API integration
+- [x] Toggle switch permissions
 - [x] Local SQLite database
-- [ ] Basic data ingestion
+- [x] Activity logging
+- [x] Bot fingerprinting
+- [x] Auto-updater
 
-### Phase 2: Intelligence (Weeks 5-8)
-- [ ] Email pattern detection
+### Phase 2: Intelligence 🔄 IN PROGRESS
+- [ ] Gmail OAuth integration
 - [ ] Local LLM integration
-- [ ] Vector embeddings (ChromaDB)
+- [ ] Vector embeddings
 - [ ] Confidence scoring
 - [ ] Response generation
 
-### Phase 3: Automation (Weeks 9-12)
-- [ ] Auto-pilot mode
+### Phase 3: Automation 📋 PLANNED
+- [ ] Full Auto-Pilot mode
 - [ ] Multi-platform support
-- [ ] Mobile app
+- [ ] Mobile companion app
 - [ ] P2P sync
 
-### Phase 4: Polish (Weeks 13-16)
+### Phase 4: Polish 📋 PLANNED
 - [ ] Security audit
 - [ ] Performance optimization
 - [ ] Documentation
-- [ ] Public release
+- [ ] v1.0 Release
 
-## License
+## 🔐 Security & Privacy
 
-AGPL-3.0
+### Bot Fingerprinting
+All bot-generated content includes:
+- **Email Headers**: Cryptographically signed `X-OpenEgo-*` headers
+- **Invisible Watermarks**: Zero-width character encoding
+- **Activity Certificates**: Provable evidence of AI origin
 
-## Disclaimer
+### Data Storage
+- ✅ Local SQLite database only
+- ✅ Optional encryption at rest
+- ✅ User controls all permissions
+- ✅ Configurable retention policies
+
+## 🐛 Troubleshooting
+
+### macOS: "App is damaged"
+```bash
+xattr -cr /Applications/OpenEgo.app
+```
+
+### Linux: Permission denied
+```bash
+chmod +x ~/.local/bin/openego
+```
+
+### Windows: SmartScreen
+Click "More info" → "Run anyway"
+
+## 📞 Support
+
+- 📚 **Docs**: https://docs.openego.ai
+- 💬 **Discord**: https://discord.gg/openego
+- 🐛 **Issues**: [GitHub Issues](https://github.com/carlv991/openego/issues)
+- 📧 **Email**: hello@openego.ai
+
+## 📜 License
+
+AGPL-3.0 - See [LICENSE](LICENSE) for details.
+
+## ⚠️ Disclaimer
 
 This is experimental software. Use at your own risk. The developers are not responsible for any damages, losses, or harms resulting from the use of this software.
 
 ---
 
 Built with ❤️ for privacy-conscious users.
+
+**Color Scheme**: Coral (#DE6D51) | Cream (#EEEBE3) | Charcoal (#141414)
