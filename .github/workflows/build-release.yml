@@ -32,10 +32,37 @@ jobs:
           source $HOME/.cargo/env
           npm run tauri build
       
+      - name: Debug - List build outputs
+        run: |
+          echo "=== Release directory ==="
+          ls -la src-tauri/target/release/ || echo "No release dir"
+          echo ""
+          echo "=== Bundle directory ==="
+          ls -la src-tauri/target/release/bundle/ || echo "No bundle dir"
+          echo ""
+          echo "=== macOS app bundle ==="
+          ls -la src-tauri/target/release/bundle/macos/ || echo "No macos dir"
+          echo ""
+          echo "=== DMG files ==="
+          ls -la src-tauri/target/release/bundle/dmg/ || echo "No dmg dir"
+          find src-tauri/target/release/bundle -type f -name "*.app" 2>/dev/null || echo "No .app found"
+          find src-tauri/target/release/bundle -type f -name "*.dmg" 2>/dev/null || echo "No .dmg found"
+      
+      - name: Upload all artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-build-files
+          path: |
+            src-tauri/target/release/bundle/**/*
+            src-tauri/target/release/openego
+          if-no-files-found: warn
+      
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: src-tauri/target/release/bundle/macos/*.app
+          files: |
+            src-tauri/target/release/bundle/**/*
+            src-tauri/target/release/openego
           draft: false
           prerelease: false
           generate_release_notes: true
