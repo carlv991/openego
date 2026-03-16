@@ -32,7 +32,7 @@ pub fn run() {
             }
             
             // Initialize auto-updater
-            updater::init_updater(app.handle());
+            updater::init_updater(app.handle().clone());
             
             Ok(())
         })

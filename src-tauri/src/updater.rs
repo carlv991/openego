@@ -311,7 +311,7 @@ impl Updater {
                     Ok(update_check) => {
                         if update_check.has_update {
                             // Emit event to frontend
-                            app_handle.emit_all("update-available", &update_check)
+                            app_handle.emit("update-available", &update_check)
                                 .ok();
                         }
                     }
@@ -375,7 +375,7 @@ impl UpdateSettingsExt for Database {
             "SELECT value FROM settings WHERE key = ?1"
         )?;
         
-        let result = stmt.query_row([key], |row| {
+        let result = stmt.query_row([key], |row: &rusqlite::Row| {
             row.get::<_, String>(0)
         });
         

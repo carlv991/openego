@@ -101,7 +101,7 @@ pub struct AutoPilotSession {
 }
 
 pub struct Database {
-    conn: Connection,
+    pub conn: Connection,
 }
 
 impl Database {
@@ -669,7 +669,7 @@ impl Database {
              LIMIT ?2 OFFSET ?3"
         )?;
         
-        let activities = stmt.query_map([user_id, limit, offset], |row| {
+        let activities = stmt.query_map([user_id, limit.to_string(), offset.to_string()], |row| {
             Ok(ActivityLog {
                 id: row.get(0)?,
                 user_id: row.get(1)?,
@@ -746,7 +746,7 @@ impl Database {
         
         let last_24h: i64 = self.conn.query_row(
             "SELECT COUNT(*) FROM activity_log WHERE user_id = ?1 AND timestamp > ?2",
-            [user_id, chrono::Utc::now().timestamp() - 86400],
+            [user_id, (chrono::Utc::now().timestamp() - 86400).to_string()],
             |row| row.get(0),
         )?;
         
@@ -818,7 +818,7 @@ impl Database {
     pub fn end_auto_pilot_session(&self, session_id: &str, status: &str) -> Result<()> {
         self.conn.execute(
             "UPDATE auto_pilot_sessions SET status = ?1, ended_at = ?2 WHERE id = ?3",
-            [status, chrono::Utc::now().timestamp(), session_id],
+            [status, chrono::Utc::now().timestamp().to_string(), session_id],
         )?;
         Ok(())
     }
