@@ -1,4 +1,4 @@
-name: Release
+name: 'publish'
 
 on:
   push:
@@ -6,64 +6,57 @@ on:
       - 'v*'
 
 jobs:
-  build-macos:
-    runs-on: macos-latest
+  publish-tauri:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'macos-latest' # for Arm based macs (M1 and above).
+            args: '--target aarch64-apple-darwin'
+          - platform: 'macos-latest' # for Intel based macs.
+            args: '--target x86_64-apple-darwin'
+          - platform: 'ubuntu-22.04'
+            args: ''
+          - platform: 'windows-latest'
+            args: ''
+
+    runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Setup Node.js
+
+      - name: install dependencies (ubuntu only)
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: setup node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-      
-      - name: Install Rust
-        shell: bash
-        run: |
-          curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable
-          source $HOME/.cargo/env
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-          cargo --version
-      
-      - name: Install Dependencies
-        run: npm ci
-      
-      - name: Build Tauri App
-        shell: bash
-        run: |
-          source $HOME/.cargo/env
-          npm run tauri build 2>&1 | tee build.log
-        continue-on-error: true
-      
-      - name: Debug Output
-        run: |
-          echo "=== Build Log Last 50 Lines ==="
-          tail -50 build.log 2>/dev/null || echo "No build log"
-          echo ""
-          echo "=== Release Directory ==="
-          ls -la src-tauri/target/release/ 2>/dev/null || echo "No release dir"
-          echo ""
-          echo "=== Looking for Binary ==="
-          find src-tauri/target -name "openego" -type f 2>/dev/null | head -5 || echo "Binary not found"
-      
-      - name: Upload Binary if Exists
-        if: hashFiles('src-tauri/target/release/openego') != ''
-        uses: actions/upload-artifact@v4
+          node-version: lts/*
+
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@stable
         with:
-          name: openego-macos
-          path: src-tauri/target/release/openego
-      
-      - name: Create Release
-        if: hashFiles('src-tauri/target/release/openego') != ''
-        uses: softprops/action-gh-release@v1
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
         with:
-          files: src-tauri/target/release/openego
-          name: "OpenEgo v0.1.0"
-          generate_release_notes: true
+          workspaces: './src-tauri -> target'
+
+      - name: install frontend dependencies
+        run: npm install
+
+      - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Fail if Binary Not Found
-        if: hashFiles('src-tauri/target/release/openego') == ''
-        run: |
-          echo "ERROR: Binary not built!"
-          exit 1
+        with:
+          tagName: v__VERSION__
+          releaseName: 'OpenEgo v__VERSION__'
+          releaseBody: 'See the assets to download and install this version.'
+          releaseDraft: false
+          prerelease: false
+          args: ${{ matrix.args }}
