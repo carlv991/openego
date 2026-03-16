@@ -16,81 +16,51 @@ jobs:
         with:
           node-version: '20'
       
-      - name: Check Environment
-        run: |
-          echo "Node: $(node --version)"
-          echo "NPM: $(npm --version)"
-          echo "PWD: $(pwd)"
-          ls -la
-      
       - name: Install Rust
         shell: bash
         run: |
           curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable
           source $HOME/.cargo/env
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-          cargo --version
-          rustc --version
       
       - name: Install Dependencies
-        run: |
-          npm ci
-          echo "Tauri CLI location:"
-          ls -la node_modules/.bin/tauri 2>/dev/null || echo "Not in node_modules/.bin"
-          npx tauri --version || echo "Tauri CLI not found via npx"
+        run: npm ci
       
-      - name: Build with Verbose Logging
+      - name: Build Tauri App
         shell: bash
         run: |
           source $HOME/.cargo/env
-          echo "Starting Tauri build..."
-          npm run tauri build -- --verbose 2>&1 | tee build.log || EXIT_CODE=$?
-          echo "Build exit code: ${EXIT_CODE:-0}"
-          exit ${EXIT_CODE:-0}
-        continue-on-error: true
+          npm run tauri build
       
-      - name: Debug - Check Build Outputs
+      - name: Find Binary
+        id: find-binary
         run: |
-          echo "=== Current Directory ==="
-          pwd
-          echo ""
-          echo "=== Src-Tauri Structure ==="
-          ls -la src-tauri/
-          echo ""
-          echo "=== Target Directory ==="
-          ls -la src-tauri/target/ 2>/dev/null || echo "No target dir"
-          echo ""
-          echo "=== Release Directory ==="
-          ls -la src-tauri/target/release/ 2>/dev/null || echo "No release dir"
-          echo ""
-          echo "=== Bundle Directory ==="
-          ls -laR src-tauri/target/release/bundle/ 2>/dev/null || echo "No bundle dir"
-          echo ""
-          echo "=== Build Log Tail ==="
-          tail -100 build.log 2>/dev/null || echo "No build.log"
+          echo "Looking for binary..."
+          find src-tauri/target -name "openego" -type f -executable 2>/dev/null | head -5
+          find src-tauri/target -name "OpenEgo" -type f 2>/dev/null | head -5
+          ls -la src-tauri/target/release/ 2>/dev/null || true
+          
+          # Check for binary
+          if [ -f "src-tauri/target/release/openego" ]; then
+            echo "found=true" >> $GITHUB_OUTPUT
+            echo "path=src-tauri/target/release/openego" >> $GITHUB_OUTPUT
+          else
+            echo "found=false" >> $GITHUB_OUTPUT
+          fi
       
-      - name: Upload Debug Artifacts
-        if: always()
+      - name: Upload Binary
+        if: steps.find-binary.outputs.found == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: debug-output
-          path: |
-            build.log
-            src-tauri/target/release/build/**/output
-            src-tauri/target/release/build/**/stderr
-      
-      - name: Upload Binary if Exists
-        if: success() && hashFiles('src-tauri/target/release/openego') != ''
-        uses: actions/upload-artifact@v4
-        with:
-          name: openego-macos
+          name: openego-macos-binary
           path: src-tauri/target/release/openego
       
       - name: Create Release
-        if: success() && hashFiles('src-tauri/target/release/openego') != ''
+        if: steps.find-binary.outputs.found == 'true'
         uses: softprops/action-gh-release@v1
         with:
           files: src-tauri/target/release/openego
+          name: "OpenEgo v0.1.0"
           draft: false
           prerelease: false
           generate_release_notes: true
