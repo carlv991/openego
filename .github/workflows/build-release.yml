@@ -32,98 +32,10 @@ jobs:
           source $HOME/.cargo/env
           npm run tauri build
       
-      - name: Upload macOS app
-        uses: actions/upload-artifact@v4
-        with:
-          name: OpenEgo-macOS
-          path: src-tauri/target/release/bundle/macos/*.app
-          if-no-files-found: warn
-
-  build-linux:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev
-      
-      - name: Install Rust
-        shell: bash
-        run: |
-          curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable
-          source $HOME/.cargo/env
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-      
-      - name: Install dependencies
-        run: npm ci
-      
-      - name: Build Tauri app
-        shell: bash
-        run: |
-          source $HOME/.cargo/env
-          npm run tauri build
-      
-      - name: Upload Linux binary
-        uses: actions/upload-artifact@v4
-        with:
-          name: OpenEgo-Linux
-          path: src-tauri/target/release/openego
-          if-no-files-found: warn
-
-  build-windows:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      
-      - name: Install Rust
-        shell: pwsh
-        run: |
-          Invoke-WebRequest -Uri https://win.rustup.rs/x86_64 -OutFile rustup-init.exe
-          .\rustup-init.exe -y --default-toolchain stable
-          "$env:USERPROFILE\.cargo\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-      
-      - name: Install dependencies
-        run: npm ci
-      
-      - name: Build Tauri app
-        shell: pwsh
-        run: |
-          $env:PATH = "$env:USERPROFILE\.cargo\bin;$env:PATH"
-          npm run tauri build
-      
-      - name: Upload Windows binary
-        uses: actions/upload-artifact@v4
-        with:
-          name: OpenEgo-Windows
-          path: src-tauri/target/release/openego.exe
-          if-no-files-found: warn
-
-  create-release:
-    needs: [build-macos, build-linux, build-windows]
-    runs-on: ubuntu-latest
-    if: always() && needs.build-macos.result == 'success'
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-      
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: artifacts/**/*
+          files: src-tauri/target/release/bundle/macos/*.app
           draft: false
           prerelease: false
           generate_release_notes: true
