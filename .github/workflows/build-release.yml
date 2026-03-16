@@ -16,53 +16,81 @@ jobs:
         with:
           node-version: '20'
       
+      - name: Check Environment
+        run: |
+          echo "Node: $(node --version)"
+          echo "NPM: $(npm --version)"
+          echo "PWD: $(pwd)"
+          ls -la
+      
       - name: Install Rust
         shell: bash
         run: |
           curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable
           source $HOME/.cargo/env
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+          cargo --version
+          rustc --version
       
-      - name: Install dependencies
-        run: npm ci
+      - name: Install Dependencies
+        run: |
+          npm ci
+          echo "Tauri CLI location:"
+          ls -la node_modules/.bin/tauri 2>/dev/null || echo "Not in node_modules/.bin"
+          npx tauri --version || echo "Tauri CLI not found via npx"
       
-      - name: Build Tauri app
+      - name: Build with Verbose Logging
         shell: bash
         run: |
           source $HOME/.cargo/env
-          npm run tauri build
+          echo "Starting Tauri build..."
+          npm run tauri build -- --verbose 2>&1 | tee build.log || EXIT_CODE=$?
+          echo "Build exit code: ${EXIT_CODE:-0}"
+          exit ${EXIT_CODE:-0}
+        continue-on-error: true
       
-      - name: Debug - List build outputs
+      - name: Debug - Check Build Outputs
         run: |
-          echo "=== Release directory ==="
-          ls -la src-tauri/target/release/ || echo "No release dir"
+          echo "=== Current Directory ==="
+          pwd
           echo ""
-          echo "=== Bundle directory ==="
-          ls -la src-tauri/target/release/bundle/ || echo "No bundle dir"
+          echo "=== Src-Tauri Structure ==="
+          ls -la src-tauri/
           echo ""
-          echo "=== macOS app bundle ==="
-          ls -la src-tauri/target/release/bundle/macos/ || echo "No macos dir"
+          echo "=== Target Directory ==="
+          ls -la src-tauri/target/ 2>/dev/null || echo "No target dir"
           echo ""
-          echo "=== DMG files ==="
-          ls -la src-tauri/target/release/bundle/dmg/ || echo "No dmg dir"
-          find src-tauri/target/release/bundle -type f -name "*.app" 2>/dev/null || echo "No .app found"
-          find src-tauri/target/release/bundle -type f -name "*.dmg" 2>/dev/null || echo "No .dmg found"
+          echo "=== Release Directory ==="
+          ls -la src-tauri/target/release/ 2>/dev/null || echo "No release dir"
+          echo ""
+          echo "=== Bundle Directory ==="
+          ls -laR src-tauri/target/release/bundle/ 2>/dev/null || echo "No bundle dir"
+          echo ""
+          echo "=== Build Log Tail ==="
+          tail -100 build.log 2>/dev/null || echo "No build.log"
       
-      - name: Upload all artifacts
+      - name: Upload Debug Artifacts
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: macos-build-files
+          name: debug-output
           path: |
-            src-tauri/target/release/bundle/**/*
-            src-tauri/target/release/openego
-          if-no-files-found: warn
+            build.log
+            src-tauri/target/release/build/**/output
+            src-tauri/target/release/build/**/stderr
+      
+      - name: Upload Binary if Exists
+        if: success() && hashFiles('src-tauri/target/release/openego') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: openego-macos
+          path: src-tauri/target/release/openego
       
       - name: Create Release
+        if: success() && hashFiles('src-tauri/target/release/openego') != ''
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            src-tauri/target/release/bundle/**/*
-            src-tauri/target/release/openego
+          files: src-tauri/target/release/openego
           draft: false
           prerelease: false
           generate_release_notes: true
