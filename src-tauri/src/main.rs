@@ -6,10 +6,14 @@ use tauri::{
     tray::TrayIconBuilder,
     Manager,
 };
+use std::sync::Mutex;
 
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_notification::init())
+        .manage(openego_lib::commands::AppState {
+            db: Mutex::new(None),
+        })
         .setup(|app| {
             // Initialize database on startup
             let app_handle = app.handle().clone();
