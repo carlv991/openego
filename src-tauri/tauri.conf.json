@@ -26,11 +26,7 @@
       "csp": null
     }
   },
-  "plugins": {
-    "notification": {
-      "active": true
-    }
-  },
+  "plugins": {},
   "bundle": {
     "active": true,
     "targets": ["app", "appimage", "dmg", "msi"],
