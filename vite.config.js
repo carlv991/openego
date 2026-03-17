@@ -6,9 +6,13 @@ export default defineConfig({
   build: {
     outDir: '../dist',
     emptyOutDir: true,
+    cssCodeSplit: false,
     rollupOptions: {
       input: './src/index.html'
     }
+  },
+  css: {
+    devSourcemap: true
   },
   server: {
     port: 1420,

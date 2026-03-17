@@ -1,5 +1,7 @@
 
 
+import './styles.css';
+
 // ==================== TOGGLE SWITCH FUNCTIONS ====================
 
 function updateToggleStatus(checkboxId) {
