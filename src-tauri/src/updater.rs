@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::time::{SystemTime, UNIX_EPOCH};
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Manager, Emitter};
 use crate::database::Database;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
