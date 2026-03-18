@@ -1692,6 +1692,13 @@
                             </div>
                             <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.85rem; background: rgba(239, 68, 68, 0.2); color: #EF4444;">Delete</button>
                         </div>
+                        <div class="settings-item">
+                            <div>
+                                <div>Reset Onboarding</div>
+                                <div style="color: var(--text-secondary); font-size: 0.9rem;">Start setup process again</div>
+                            </div>
+                            <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.85rem;" onclick="resetOnboarding()">Reset</button>
+                        </div>
                     </div>
                     
                     <div class="settings-section">
@@ -1737,7 +1744,70 @@
             }
         }
         
+        // Check if returning user
+        function checkReturningUser() {
+            const hasCompletedOnboarding = localStorage.getItem('openego_onboarding_complete');
+            const hasUserName = localStorage.getItem('openego_user_name');
+            const hasDiskAccess = localStorage.getItem('openego_disk_access');
+            
+            if (hasCompletedOnboarding && hasUserName && hasDiskAccess) {
+                // User has completed onboarding before - skip to dashboard
+                console.log('Returning user detected - loading dashboard');
+                
+                // Hide all steps
+                document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+                
+                // Show dashboard (step 7)
+                const dashboard = document.getElementById('step7');
+                if (dashboard) {
+                    dashboard.classList.add('active');
+                    
+                    // Hide stars background for dashboard
+                    const stars = document.querySelector('.stars');
+                    if (stars) stars.style.display = 'none';
+                    
+                    // Hide gear icon
+                    const gear = document.querySelector('.gear-icon');
+                    if (gear) gear.style.display = 'none';
+                    
+                    // Load saved mode
+                    const mode = localStorage.getItem('openego_mode') || 'copilot';
+                    const modeEl = document.getElementById('currentMode');
+                    if (modeEl) {
+                        modeEl.textContent = mode === 'autopilot' ? '🤖 Auto-Pilot' : '👀 Co-Pilot';
+                    }
+                    
+                    // Update user name in dashboard if exists
+                    const userName = localStorage.getItem('openego_user_name');
+                    console.log(`Welcome back, ${userName}!`);
+                }
+                
+                return true;
+            }
+            
+            // Check if partially through onboarding
+            const savedStep = localStorage.getItem('openego_current_step');
+            if (savedStep && parseInt(savedStep) > 1) {
+                const stepNum = parseInt(savedStep);
+                if (stepNum >= 2 && stepNum <= 6) {
+                    console.log(`Returning to step ${stepNum}`);
+                    currentStep = stepNum;
+                    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+                    document.getElementById(`step${stepNum}`).classList.add('active');
+                    updateProgress();
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+        
         initUser();
+        
+        // Check for returning user on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(checkReturningUser, 100);
+        });
         
         let currentStep = 1;
         const totalSteps = 5;
@@ -1752,6 +1822,23 @@
             document.getElementById(`step${step}`).classList.add('active');
             currentStep = step;
             updateProgress();
+            
+            // Save current step for resuming later
+            localStorage.setItem('openego_current_step', step);
+            
+            // Save user name when leaving step 1
+            if (step === 2) {
+                const userName = document.getElementById('userName')?.value;
+                if (userName) {
+                    localStorage.setItem('openego_user_name', userName);
+                }
+            }
+            
+            // Mark onboarding complete when reaching dashboard (step 7)
+            if (step === 7) {
+                localStorage.setItem('openego_onboarding_complete', 'true');
+                localStorage.setItem('openego_current_step', '7');
+            }
             
             // Start data analysis when reaching step 4
             if (step === 4) {
@@ -2121,11 +2208,59 @@
             // Get selected sources
             const sources = JSON.parse(localStorage.getItem('openego_sources') || '{}');
             
+            // Show that we're actually doing something
+            const btn = document.querySelector('#permissionRequest button');
+            const originalText = btn.textContent;
+            btn.textContent = 'Opening System Preferences...';
+            btn.disabled = true;
+            
             // Check if running in Electron
+            if (typeof require !== 'undefined') {
+                const { ipcRenderer, shell } = require('electron');
+                
+                // Actually open System Preferences
+                shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles');
+                
+                // Show instructions
+                setTimeout(() => {
+                    btn.textContent = 'Check Permission Status →';
+                    btn.disabled = false;
+                    btn.onclick = checkPermissionStatus;
+                    
+                    alert('📋 System Preferences opened!\n\nTo grant access:\n1. Click the lock icon (bottom left)\n2. Enter your password\n3. Click the + button\n4. Find and select OpenEgo\n5. Check the box\n6. Restart OpenEgo\n\nThen click "Check Permission Status"');
+                }, 1000);
+            } else {
+                // Web/simulation mode - simulate granting
+                setTimeout(() => {
+                    localStorage.setItem('openego_disk_access', 'granted');
+                    document.getElementById('permissionRequest').style.display = 'none';
+                    document.getElementById('permissionGranted').style.display = 'block';
+                    
+                    // Show what would be scanned
+                    let scanList = [];
+                    if (sources.mail) scanList.push('📧 Apple Mail');
+                    if (sources.messages) scanList.push('💬 Messages');
+                    if (sources.telegram) scanList.push('✈️ Telegram');
+                    if (sources.whatsapp) scanList.push('📱 WhatsApp');
+                    if (sources.viber) scanList.push('💬 Viber');
+                    if (sources.documents) scanList.push('📄 Documents');
+                    
+                    alert('✅ Full Disk Access granted (Demo Mode)\n\nWould scan:\n' + scanList.join('\n'));
+                    
+                    setTimeout(() => nextStep(3), 1500);
+                }, 1500);
+            }
+        }
+        
+        async function checkPermissionStatus() {
+            const btn = document.querySelector('#permissionRequest button');
+            btn.textContent = 'Checking...';
+            btn.disabled = true;
+            
             if (typeof require !== 'undefined') {
                 const { ipcRenderer } = require('electron');
                 
-                // Check current access
+                // Check if access was granted
                 const checkResult = await ipcRenderer.invoke('check-full-disk-access');
                 
                 if (checkResult.granted) {
@@ -2133,29 +2268,15 @@
                     document.getElementById('permissionRequest').style.display = 'none';
                     document.getElementById('permissionGranted').style.display = 'block';
                     
-                    // Start scanning selected data sources
-                    await scanSelectedData(sources);
+                    alert('✅ Full Disk Access granted!\n\nOpenEgo can now access your data.');
                     
                     // Auto-continue after 2 seconds
                     setTimeout(() => nextStep(3), 2000);
                 } else {
-                    // Request access
-                    await ipcRenderer.invoke('request-full-disk-access');
-                    alert('📋 Please follow the instructions in System Preferences to grant access.\n\nAfter granting, click Continue.');
-                    
-                    // Change button to check again
-                    document.querySelector('#permissionRequest button').textContent = 'Check Again →';
-                    document.querySelector('#permissionRequest button').onclick = requestFullDiskAccess;
+                    btn.textContent = 'Check Again →';
+                    btn.disabled = false;
+                    alert('❌ Permission not detected yet.\n\nMake sure you:\n1. Added OpenEgo to Full Disk Access\n2. Checked the box next to OpenEgo\n3. Restarted OpenEgo\n\nThen click "Check Again"');
                 }
-            } else {
-                // Web/simulation mode
-                localStorage.setItem('openego_disk_access', 'granted');
-                document.getElementById('permissionRequest').style.display = 'none';
-                document.getElementById('permissionGranted').style.display = 'block';
-                
-                alert('✅ Full Disk Access granted (Demo Mode)\n\nIn the full app, this would scan:\n• Apple Mail: ' + (sources.mail ? 'YES' : 'NO') + '\n• Messages: ' + (sources.messages ? 'YES' : 'NO') + '\n• Documents: ' + (sources.documents ? 'YES' : 'NO') + '\n• Calendar: ' + (sources.calendar ? 'YES' : 'NO'));
-                
-                setTimeout(() => nextStep(3), 1500);
             }
         }
         
@@ -2500,6 +2621,19 @@
             // Load saved mode
             const mode = localStorage.getItem('openego_mode') || 'copilot';
             document.getElementById('currentMode').textContent = mode === 'autopilot' ? '🤖 Auto-Pilot' : '👀 Co-Pilot';
+        }
+        
+        // Reset onboarding to start over
+        function resetOnboarding() {
+            if (confirm('Are you sure you want to reset? This will keep your data but restart the setup process.')) {
+                // Keep user data but reset onboarding flags
+                localStorage.removeItem('openego_onboarding_complete');
+                localStorage.removeItem('openego_current_step');
+                localStorage.setItem('openego_current_step', '1');
+                
+                // Reload page to show step 1
+                location.reload();
+            }
         }
         
         updateProgress();
