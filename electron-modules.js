@@ -20,6 +20,27 @@ function setupFullDiskAccessHandlers() {
     }
   });
   
+  // Check if OpenEgo is already in the Full Disk Access list (even if not checked)
+  ipcMain.handle('check-openego-in-list', async () => {
+    if (process.platform !== 'darwin') {
+      return { inList: false, platform: process.platform };
+    }
+    
+    try {
+      // Read the TCC database (requires Full Disk Access itself, so this may fail)
+      const tccPath = path.join(os.homedir(), 'Library/Application Support/com.apple.TCC/TCC.db');
+      
+      // Try to check if we can at least see if OpenEgo is in the database
+      // This is a simplified check - in reality, we'd need SQLite access
+      return { 
+        inList: false, 
+        note: 'Cannot check without Full Disk Access. If you previously added OpenEgo, just check the box next to it.'
+      };
+    } catch (e) {
+      return { inList: false, error: e.message };
+    }
+  });
+  
   ipcMain.handle('request-full-disk-access', async () => {
     if (process.platform !== 'darwin') {
       return { granted: true };
