@@ -2565,8 +2565,36 @@
         }
         
         function showSettings() {
-            switchTab('settings');
-            document.getElementById('step7').classList.add('active');
+            // Hide all steps first
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            
+            // Show dashboard (step 7)
+            const step7 = document.getElementById('step7');
+            if (step7) {
+                step7.classList.add('active');
+                
+                // Hide stars background for dashboard
+                const stars = document.querySelector('.stars');
+                if (stars) stars.style.display = 'none';
+                
+                // Hide gear icon since we're now in dashboard
+                const gear = document.querySelector('.gear-icon');
+                if (gear) gear.style.display = 'none';
+                
+                // Switch to settings tab
+                setTimeout(() => {
+                    const settingsTab = document.getElementById('settingsTab');
+                    const settingsNav = document.querySelector('.nav-item:nth-child(3)');
+                    
+                    if (settingsTab && settingsNav) {
+                        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                        
+                        settingsTab.classList.add('active');
+                        settingsNav.classList.add('active');
+                    }
+                }, 100);
+            }
         }
         
         // Dashboard Functions
