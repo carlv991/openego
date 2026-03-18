@@ -1588,19 +1588,19 @@
                 <div class="sidebar-logo">🧠 OpenEgo</div>
                 <nav class="sidebar-nav">
                     <button class="nav-item active" onclick="switchTab('inbox')">
-                        <span>📥</span> Inbox
+                        <span class="nav-icon">[In]</span> Inbox
                         <span class="nav-badge" id="inboxBadge">3</span>
                     </button>
                     <button class="nav-item" onclick="switchTab('stats')">
-                        <span>📊</span> Stats
+                        <span class="nav-icon">[St]</span> Stats
                     </button>
                     <button class="nav-item" onclick="switchTab('settings')">
-                        <span>⚙️</span> Settings
+                        <span class="nav-icon">[Se]</span> Settings
                     </button>
                 </nav>
                 <div class="mode-switcher">
                     <div class="mode-label">Current Mode</div>
-                    <div class="mode-value" id="currentMode">👀 Co-Pilot</div>
+                    <div class="mode-value" id="currentMode">[CP] Co-Pilot</div>
                     <button class="btn btn-primary" style="width: 100%; margin-top: 10px; padding: 10px; font-size: 0.9rem;" onclick="toggleMode()">Switch Mode</button>
                 </div>
             </aside>
@@ -1640,8 +1640,15 @@
                 </div>
                 <div class="tab-content" id="settingsTab">
                     <div class="dashboard-header">
-                        <h2>⚙️ Settings</h2>
-                        <p style="color: var(--text-secondary);">Manage your OpenEgo configuration</p>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h2>[Se] Settings</h2>
+                                <p style="color: var(--text-secondary);">Manage your OpenEgo configuration</p>
+                            </div>
+                            <button class="btn btn-secondary" onclick="closeSettings()">
+                                ← Back to Dashboard
+                            </button>
+                        </div>
                     </div>
                     
                     <div class="settings-section">
@@ -1663,30 +1670,30 @@
                     </div>
                     
                     <div class="settings-section">
-                        <h3>📧 Connected Accounts</h3>
+                        <h3>[M] Connected Accounts</h3>
                         <div class="settings-item">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <span style="font-size: 1.5rem;">📧</span>
+                                <span class="icon-mail" style="font-size: 1.2rem;">[M]</span>
                                 <div>
                                     <div>Gmail</div>
                                     <div style="color: var(--text-secondary); font-size: 0.85rem;">john@gmail.com</div>
                                 </div>
                             </div>
-                            <span style="color: #10B981;">✓ Connected</span>
+                            <span style="color: #10B981;">[OK] Connected</span>
                         </div>
                         <div class="settings-item">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <span style="font-size: 1.5rem;">✈️</span>
+                                <span class="icon-telegram" style="font-size: 1.2rem;">[T]</span>
                                 <div>
                                     <div>Telegram</div>
                                     <div style="color: var(--text-secondary); font-size: 0.85rem;">@johndoe</div>
                                 </div>
                             </div>
-                            <span style="color: #10B981;">✓ Connected</span>
+                            <span style="color: #10B981;">[OK] Connected</span>
                         </div>
                         <div class="settings-item">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <span style="font-size: 1.5rem;">💬</span>
+                                <span class="icon-slack" style="font-size: 1.2rem;">[S]</span>
                                 <div>
                                     <div>Slack</div>
                                     <div style="color: var(--text-secondary); font-size: 0.85rem;">Not connected</div>
@@ -1697,13 +1704,13 @@
                     </div>
                     
                     <div class="settings-section">
-                        <h3>🔒 Privacy & Data</h3>
+                        <h3>[L] Privacy & Data</h3>
                         <div class="settings-item">
                             <div>
                                 <div>Data Storage</div>
                                 <div style="color: var(--text-secondary); font-size: 0.9rem;">All data stored locally on your device</div>
                             </div>
-                            <span style="color: #10B981;">🔒 Secure</span>
+                            <span style="color: #10B981;">[L] Secure</span>
                         </div>
                         <div class="settings-item">
                             <div>
@@ -1729,7 +1736,7 @@
                     </div>
                     
                     <div class="settings-section">
-                        <h3>ℹ️ About</h3>
+                        <h3>[i] About</h3>
                         <div class="settings-item">
                             <div>Version</div>
                             <span style="color: var(--text-secondary);">v0.1.0 Beta</span>
@@ -2784,6 +2791,16 @@
                 // Reload page to show step 1
                 location.reload();
             }
+        }
+        
+        // Close settings and go back to main dashboard view
+        function closeSettings() {
+            // Switch to inbox tab (default dashboard view)
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            document.getElementById('inboxTab').classList.add('active');
+            document.querySelector('.nav-item').classList.add('active');
         }
         
         updateProgress();
