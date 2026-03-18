@@ -2,7 +2,14 @@ const { ipcMain } = require('electron');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const sqlite3 = require('sqlite3').verbose();
+
+// sqlite3 is optional (only for backend API)
+let sqlite3;
+try {
+  sqlite3 = require('sqlite3').verbose();
+} catch (e) {
+  console.log('sqlite3 not available - Messages scanning limited');
+}
 
 // Generic Communication Scanner - handles ALL channels
 class CommunicationScanner {
