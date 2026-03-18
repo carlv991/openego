@@ -318,6 +318,117 @@
         }
         
         .hidden { display: none !important; }
+        
+        /* Connector Styles */
+        .connector-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .connector-card {
+            background: var(--bg-primary);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .connector-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+        
+        .connector-card.connected {
+            border-color: var(--accent);
+            background: rgba(217, 119, 6, 0.05);
+        }
+        
+        .connector-card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .connector-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .connector-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        
+        .connector-icon.gmail { background: #EA4335; }
+        .connector-icon.outlook { background: #0078D4; }
+        .connector-icon.apple { background: #000; }
+        .connector-icon.imap { background: #6B7280; }
+        .connector-icon.telegram { background: #0088CC; }
+        .connector-icon.slack { background: #4A154B; }
+        .connector-icon.whatsapp { background: #25D366; }
+        .connector-icon.calendar { background: #4285F4; }
+        .connector-icon.files { background: #F59E0B; }
+        
+        .connector-name {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        
+        .connector-status {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .connector-status.connected {
+            color: #10B981;
+        }
+        
+        .connector-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        
+        .oauth-button {
+            width: 100%;
+            margin-top: 15px;
+            padding: 10px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        
+        .oauth-button:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+        
+        .category-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 30px 0 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
     </style>
 </head>
 <body>
@@ -365,56 +476,179 @@
             </div>
         </div>
         
-        <!-- STEP 2: Permissions -->
+        <!-- STEP 2: Connect Data Sources -->
         <div class="step" id="step2">
-            <h1 style="text-align: center;">Select Permissions</h1>
-            <p class="subtitle">Choose what OpenEgo can access to learn from</p>
+            <h1 style="text-align: center;">Connect Your Data</h1>
+            <p class="subtitle">Link the accounts OpenEgo will learn from</p>
             
             <div class="card">
-                <h3 style="margin-bottom: 20px;">📧 Email Access</h3>
-                <div class="permission-item">
-                    <div class="permission-info">
-                        <strong>Gmail <span style="color: var(--accent);">ON</span></strong>
-                        <small>Read emails to learn your style</small>
+                <div class="category-label">📧 Email Accounts</div>
+                <div class="connector-grid">
+                    <div class="connector-card" id="gmail-connector" onclick="toggleConnector('gmail')">
+                        <div class="connector-header">
+                            <div class="connector-icon gmail">📧</div>
+                            <div>
+                                <div class="connector-name">Gmail</div>
+                                <div class="connector-status" id="gmail-status">Not connected</div>
+                            </div>
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem;">Access emails and learn your communication style</p>
+                        <label class="toggle-switch connector-toggle">
+                            <input type="checkbox" id="gmail-toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <button class="oauth-button" id="gmail-oauth" onclick="connectOAuth('gmail', event)" style="display: none;">
+                            <span>🔗</span> Connect Gmail
+                        </button>
                     </div>
-                    <label class="toggle-switch">
-                        <input type="checkbox" checked>
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-                <div class="permission-item">
-                    <div class="permission-info">
-                        <strong>Outlook <span style="color: var(--text-secondary);">OFF</span></strong>
-                        <small>Read emails to learn your style</small>
+                    
+                    <div class="connector-card" id="outlook-connector" onclick="toggleConnector('outlook')">
+                        <div class="connector-header">
+                            <div class="connector-icon outlook">📧</div>
+                            <div>
+                                <div class="connector-name">Outlook</div>
+                                <div class="connector-status" id="outlook-status">Not connected</div>
+                            </div>
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem;">Microsoft 365 and Outlook.com accounts</p>
+                        <label class="toggle-switch connector-toggle">
+                            <input type="checkbox" id="outlook-toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <button class="oauth-button" id="outlook-oauth" onclick="connectOAuth('outlook', event)" style="display: none;">
+                            <span>🔗</span> Connect Outlook
+                        </button>
                     </div>
-                    <label class="toggle-switch">
-                        <input type="checkbox">
-                        <span class="toggle-slider"></span>
-                    </label>
+                    
+                    <div class="connector-card" id="apple-connector" onclick="toggleConnector('apple')">
+                        <div class="connector-header">
+                            <div class="connector-icon apple">🍎</div>
+                            <div>
+                                <div class="connector-name">Apple Mail</div>
+                                <div class="connector-status" id="apple-status">Not connected</div>
+                            </div>
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem;">iCloud and Apple Mail local access</p>
+                        <label class="toggle-switch connector-toggle">
+                            <input type="checkbox" id="apple-toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <button class="oauth-button" id="apple-oauth" onclick="connectOAuth('apple', event)" style="display: none;">
+                            <span>🔗</span> Grant Access
+                        </button>
+                    </div>
+                    
+                    <div class="connector-card" id="imap-connector" onclick="toggleConnector('imap')">
+                        <div class="connector-header">
+                            <div class="connector-icon imap">⚙️</div>
+                            <div>
+                                <div class="connector-name">IMAP/SMTP</div>
+                                <div class="connector-status" id="imap-status">Not connected</div>
+                            </div>
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem;">Generic email server configuration</p>
+                        <label class="toggle-switch connector-toggle">
+                            <input type="checkbox" id="imap-toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <button class="oauth-button" id="imap-oauth" onclick="connectOAuth('imap', event)" style="display: none;">
+                            <span>⚙️</span> Configure
+                        </button>
+                    </div>
                 </div>
             </div>
             
             <div class="card">
-                <h3 style="margin-bottom: 20px;">💬 Messaging</h3>
-                <div class="permission-item">
-                    <div class="permission-info">
-                        <strong>Telegram <span style="color: var(--accent);">ON</span></strong>
-                        <small>Read messages and respond</small>
+                <div class="category-label">💬 Messaging</div>
+                <div class="connector-grid">
+                    <div class="connector-card" id="telegram-connector" onclick="toggleConnector('telegram')">
+                        <div class="connector-header">
+                            <div class="connector-icon telegram">✈️</div>
+                            <div>
+                                <div class="connector-name">Telegram</div>
+                                <div class="connector-status" id="telegram-status">Not connected</div>
+                            </div>
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem;">Read messages and respond on your behalf</p>
+                        <label class="toggle-switch connector-toggle">
+                            <input type="checkbox" id="telegram-toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <button class="oauth-button" id="telegram-oauth" onclick="connectOAuth('telegram', event)" style="display: none;">
+                            <span>🔗</span> Connect Telegram
+                        </button>
                     </div>
-                    <label class="toggle-switch">
-                        <input type="checkbox" checked>
-                        <span class="toggle-slider"></span>
-                    </label>
+                    
+                    <div class="connector-card" id="slack-connector" onclick="toggleConnector('slack')">
+                        <div class="connector-header">
+                            <div class="connector-icon slack">💬</div>
+                            <div>
+                                <div class="connector-name">Slack</div>
+                                <div class="connector-status" id="slack-status">Not connected</div>
+                            </div>
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem;">Work messages and team communications</p>
+                        <label class="toggle-switch connector-toggle">
+                            <input type="checkbox" id="slack-toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <button class="oauth-button" id="slack-oauth" onclick="connectOAuth('slack', event)" style="display: none;">
+                            <span>🔗</span> Connect Slack
+                        </button>
+                    </div>
+                    
+                    <div class="connector-card disabled" id="whatsapp-connector">
+                        <div class="connector-header">
+                            <div class="connector-icon whatsapp">📱</div>
+                            <div>
+                                <div class="connector-name">WhatsApp</div>
+                                <div class="connector-status">Coming soon</div>
+                            </div>
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem;">End-to-end encrypted messaging</p>
+                        <span style="position: absolute; top: 20px; right: 20px; font-size: 0.8rem; color: var(--text-secondary);">🔒 Locked</span>
+                    </div>
                 </div>
-                <div class="permission-item">
-                    <div class="permission-info">
-                        <strong>Slack <span style="color: var(--text-secondary);">OFF</span></strong>
-                        <small>Read work messages</small>
+            </div>
+            
+            <div class="card">
+                <div class="category-label">📁 Files & Calendar</div>
+                <div class="connector-grid">
+                    <div class="connector-card" id="files-connector" onclick="toggleConnector('files')">
+                        <div class="connector-header">
+                            <div class="connector-icon files">📄</div>
+                            <div>
+                                <div class="connector-name">Documents</div>
+                                <div class="connector-status" id="files-status">Not connected</div>
+                            </div>
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem;">Access documents to learn your writing style</p>
+                        <label class="toggle-switch connector-toggle">
+                            <input type="checkbox" id="files-toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <button class="oauth-button" id="files-oauth" onclick="connectOAuth('files', event)" style="display: none;">
+                            <span>📂</span> Choose Folder
+                        </button>
                     </div>
-                    <label class="toggle-switch">
-                        <input type="checkbox">
-                        <span class="toggle-slider"></span>
-                    </label>
+                    
+                    <div class="connector-card" id="calendar-connector" onclick="toggleConnector('calendar')">
+                        <div class="connector-header">
+                            <div class="connector-icon calendar">📅</div>
+                            <div>
+                                <div class="connector-name">Calendar</div>
+                                <div class="connector-status" id="calendar-status">Not connected</div>
+                            </div>
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem;">Understand your schedule and availability</p>
+                        <label class="toggle-switch connector-toggle">
+                            <input type="checkbox" id="calendar-toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <button class="oauth-button" id="calendar-oauth" onclick="connectOAuth('calendar', event)" style="display: none;">
+                            <span>🔗</span> Connect Calendar
+                        </button>
+                    </div>
                 </div>
             </div>
             
@@ -664,6 +898,54 @@
         
         function startTraining() {
             alert('Training module coming in next update!\n\nThis will show 5 scenarios from your communications to test and improve OpenEgo\'s responses.');
+        }
+        
+        // Connector Functions
+        function toggleConnector(id) {
+            const card = document.getElementById(id + '-connector');
+            const toggle = document.getElementById(id + '-toggle');
+            const oauthBtn = document.getElementById(id + '-oauth');
+            const status = document.getElementById(id + '-status');
+            
+            if (card.classList.contains('disabled')) return;
+            
+            toggle.checked = !toggle.checked;
+            
+            if (toggle.checked) {
+                card.classList.add('connected');
+                oauthBtn.style.display = 'flex';
+                status.textContent = 'Connection required';
+                status.style.color = 'var(--accent)';
+            } else {
+                card.classList.remove('connected');
+                oauthBtn.style.display = 'none';
+                status.textContent = 'Not connected';
+                status.style.color = 'var(--text-secondary)';
+            }
+        }
+        
+        function connectOAuth(provider, event) {
+            event.stopPropagation();
+            const status = document.getElementById(provider + '-status');
+            
+            // Simulate OAuth connection
+            const messages = {
+                'gmail': 'Opening Gmail authentication...',
+                'outlook': 'Opening Microsoft authentication...',
+                'apple': 'Requesting Apple Mail access...',
+                'imap': 'Opening IMAP configuration...',
+                'telegram': 'Opening Telegram Bot setup...',
+                'slack': 'Opening Slack OAuth...',
+                'files': 'Opening file picker...',
+                'calendar': 'Opening calendar selection...'
+            };
+            
+            alert(messages[provider] || 'Connecting...\n\nThis will open the actual OAuth flow in the full implementation.');
+            
+            // Simulate successful connection
+            status.textContent = '✓ Connected';
+            status.style.color = '#10B981';
+            document.getElementById(provider + '-oauth').style.display = 'none';
         }
         
         function showSettings() {
