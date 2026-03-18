@@ -1123,32 +1123,42 @@
             <p class="subtitle">OpenEgo is analyzing your data to understand how you communicate</p>
             
             <div class="card">
-                <div class="status-item">
+                <div class="status-item" id="mailStatus">
                     <span style="font-size: 1.5rem;">📧</span>
                     <div style="flex: 1;">
                         <div>Scanning emails...</div>
-                        <div style="color: var(--text-secondary); font-size: 0.9rem;">0/0 processed</div>
+                        <div style="color: var(--text-secondary); font-size: 0.9rem;" id="mailCount">0 emails found</div>
                     </div>
+                    <span id="mailCheck" style="color: var(--text-secondary);">⏳</span>
                 </div>
-                <div class="status-item">
-                    <span style="font-size: 1.5rem;">💬</span>
+                <div class="status-item" id="docsStatus">
+                    <span style="font-size: 1.5rem;">📄</span>
                     <div style="flex: 1;">
-                        <div>Reading messages...</div>
-                        <div style="color: var(--text-secondary); font-size: 0.9rem;">0/0 processed</div>
+                        <div>Reading documents...</div>
+                        <div style="color: var(--text-secondary); font-size: 0.9rem;" id="docsCount">0 documents found</div>
                     </div>
+                    <span id="docsCheck" style="color: var(--text-secondary);">⏳</span>
                 </div>
-                <div class="status-item">
+                <div class="status-item" id="analysisStatus">
                     <span style="font-size: 1.5rem;">🧠</span>
                     <div style="flex: 1;">
-                        <div>Building AI model...</div>
-                        <div style="color: var(--text-secondary); font-size: 0.9rem;">0% complete</div>
+                        <div>Analyzing patterns...</div>
+                        <div style="color: var(--text-secondary); font-size: 0.9rem;" id="analysisProgress">Identifying your style</div>
                     </div>
+                    <span id="analysisCheck" style="color: var(--text-secondary);">⏳</span>
+                </div>
+            </div>
+            
+            <div class="card" style="margin-top: 20px;">
+                <h4 style="margin-bottom: 15px;">📊 What we found:</h4>
+                <div id="patternsFound" style="color: var(--text-secondary);">
+                    <p>Scanning your data... This may take a minute.</p>
                 </div>
             </div>
             
             <div class="button-group">
                 <button class="btn btn-secondary" onclick="prevStep(3)">← Back</button>
-                <button class="btn btn-primary" onclick="nextStep(5)">I'm Ready! →</button>
+                <button class="btn btn-primary" id="continueBtn" onclick="nextStep(5)" disabled>Processing... →</button>
             </div>
         </div>
         
@@ -1584,6 +1594,67 @@
             document.getElementById(`step${step}`).classList.add('active');
             currentStep = step;
             updateProgress();
+            
+            // Start data analysis when reaching step 4
+            if (step === 4) {
+                startDataAnalysis();
+            }
+        }
+        
+        // Data analysis for step 4
+        async function startDataAnalysis() {
+            const mailCount = localStorage.getItem('openego_mail_count') || 0;
+            const docsCount = localStorage.getItem('openego_docs_count') || 0;
+            
+            // Update UI
+            document.getElementById('mailCount').textContent = `${mailCount} emails found`;
+            document.getElementById('docsCount').textContent = `${docsCount} documents found`;
+            
+            if (mailCount > 0) {
+                document.getElementById('mailCheck').textContent = '✅';
+                document.getElementById('mailCheck').style.color = '#10B981';
+            }
+            
+            if (docsCount > 0) {
+                document.getElementById('docsCheck').textContent = '✅';
+                document.getElementById('docsCheck').style.color = '#10B981';
+            }
+            
+            // Analyze patterns
+            setTimeout(() => {
+                analyzeCommunicationPatterns();
+            }, 1500);
+        }
+        
+        function analyzeCommunicationPatterns() {
+            // Load analyzer
+            const emails = JSON.parse(localStorage.getItem('openego_emails') || '[]');
+            
+            // Simple pattern detection
+            const patterns = {
+                formal: emails.filter(e => /(Dear|Sincerely|Regards)/i.test(e.preview)).length,
+                informal: emails.filter(e => /(Hey|Hi there|Cheers)/i.test(e.preview)).length,
+                emoji: emails.filter(e => /[\u{1F600}-\u{1F64F}]/u.test(e.preview)).length
+            };
+            
+            let style = 'balanced';
+            if (patterns.formal > patterns.informal) style = 'professional';
+            if (patterns.informal > patterns.formal) style = 'casual and friendly';
+            
+            const patternHTML = `
+                <p>✅ <strong>Communication Style:</strong> ${style}</p>
+                <p>✅ <strong>Emojis:</strong> ${patterns.emoji > 0 ? 'Uses emojis' : 'No emojis'}</p>
+                <p>✅ <strong>Sample Size:</strong> ${emails.length} emails analyzed</p>
+            `;
+            
+            document.getElementById('patternsFound').innerHTML = patternHTML;
+            document.getElementById('analysisCheck').textContent = '✅';
+            document.getElementById('analysisCheck').style.color = '#10B981';
+            document.getElementById('analysisProgress').textContent = 'Analysis complete!';
+            
+            // Enable continue button
+            document.getElementById('continueBtn').disabled = false;
+            document.getElementById('continueBtn').textContent = 'Continue →';
         }
         
         function prevStep(step) {
