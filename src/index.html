@@ -1829,12 +1829,21 @@
             return false;
         }
         
-        initUser();
+        // Make initUser available globally
+        window.initUser = initUser;
+        
+        // Initialize user safely
+        initUser().catch(e => console.log('Init error:', e));
         
         // Check for returning user on page load
-        document.addEventListener('DOMContentLoaded', () => {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(checkReturningUser, 100);
+            });
+        } else {
+            // DOM already loaded
             setTimeout(checkReturningUser, 100);
-        });
+        }
         
         let currentStep = 1;
         const totalSteps = 5;
@@ -2778,6 +2787,32 @@
         }
         
         updateProgress();
+        
+        // Ensure all functions are available globally for HTML onclick handlers
+        window.nextStep = nextStep;
+        window.prevStep = prevStep;
+        window.showSettings = showSettings;
+        window.requestFullDiskAccess = requestFullDiskAccess;
+        window.checkPermissionStatus = checkPermissionStatus;
+        window.showPermissionRequest = showPermissionRequest;
+        window.toggleConnector = toggleConnector;
+        window.connectOAuth = connectOAuth;
+        window.selectModel = selectModel;
+        window.saveAIModel = saveAIModel;
+        window.startTraining = startTraining;
+        window.approveResponse = approveResponse;
+        window.editResponse = editResponse;
+        window.rejectResponse = rejectResponse;
+        window.enableAutoPilot = enableAutoPilot;
+        window.startDashboard = startDashboard;
+        window.switchTab = switchTab;
+        window.approveMessage = approveMessage;
+        window.editMessage = editMessage;
+        window.rejectMessage = rejectMessage;
+        window.toggleMode = toggleMode;
+        window.resetOnboarding = resetOnboarding;
+        
+        console.log('OpenEgo initialized successfully');
     </script>
 </body>
 </html>
