@@ -30,7 +30,7 @@ function createWindow() {
 
   // Setup IPC handlers
   setupFullDiskAccessHandlers();
-  setupScanningHandlers();
+  setupScanningHandlers(mainWindow);
   setupLocalAIHandlers();
 
   // Setup tray

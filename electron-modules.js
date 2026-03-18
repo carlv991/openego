@@ -43,7 +43,90 @@ function setupFullDiskAccessHandlers() {
   });
 }
 
-// Scan Mail app data
+// Scan Mail app data - ALL emails with progress
+async function scanAllMailData(window) {
+  const mailPath = path.join(os.homedir(), 'Library/Mail');
+  const emails = [];
+  let processedCount = 0;
+  
+  try {
+    if (!fs.existsSync(mailPath)) {
+      return { error: 'Mail folder not found', emails: [] };
+    }
+    
+    // Get all email files first
+    const allFiles = [];
+    
+    function collectFiles(dir) {
+      const items = fs.readdirSync(dir);
+      
+      for (const item of items) {
+        const fullPath = path.join(dir, item);
+        const stat = fs.statSync(fullPath);
+        
+        if (stat.isDirectory()) {
+          collectFiles(fullPath);
+        } else if (item.endsWith('.emlx') || item.endsWith('.eml')) {
+          allFiles.push(fullPath);
+        }
+      }
+    }
+    
+    collectFiles(mailPath);
+    const totalFiles = allFiles.length;
+    
+    // Process in batches to avoid blocking
+    for (let i = 0; i < allFiles.length; i++) {
+      const filePath = allFiles[i];
+      
+      try {
+        const content = fs.readFileSync(filePath, 'utf8');
+        const from = content.match(/From: (.+)/)?.[1] || 'Unknown';
+        const subject = content.match(/Subject: (.+)/)?.[1] || 'No Subject';
+        const date = content.match(/Date: (.+)/)?.[1] || '';
+        const to = content.match(/To: (.+)/)?.[1] || '';
+        
+        emails.push({
+          from,
+          to,
+          subject,
+          date,
+          preview: content.substring(0, 1000),
+          path: filePath
+        });
+        
+        processedCount++;
+        
+        // Send progress update every 50 files
+        if (processedCount % 50 === 0 && window) {
+          window.webContents.send('scan-progress', {
+            type: 'mail',
+            processed: processedCount,
+            total: totalFiles,
+            percent: Math.round((processedCount / totalFiles) * 100)
+          });
+        }
+        
+        // Small delay to prevent UI freezing
+        if (processedCount % 100 === 0) {
+          await new Promise(resolve => setTimeout(resolve, 10));
+        }
+      } catch (e) {
+        // Skip files we can't read
+      }
+    }
+    
+    return {
+      count: emails.length,
+      emails: emails,
+      complete: true
+    };
+  } catch (e) {
+    return { error: e.message, emails: emails };
+  }
+}
+
+// Legacy function for quick scan
 function scanMailData() {
   const mailPath = path.join(os.homedir(), 'Library/Mail');
   const emails = [];
@@ -53,11 +136,15 @@ function scanMailData() {
       return { error: 'Mail folder not found' };
     }
     
-    // Recursively find .emlx files (Apple Mail format)
+    // Quick scan - first 100 only
     function scanDirectory(dir) {
+      if (emails.length >= 100) return;
+      
       const items = fs.readdirSync(dir);
       
       for (const item of items) {
+        if (emails.length >= 100) return;
+        
         const fullPath = path.join(dir, item);
         const stat = fs.statSync(fullPath);
         
@@ -66,7 +153,6 @@ function scanMailData() {
         } else if (item.endsWith('.emlx') || item.endsWith('.eml')) {
           try {
             const content = fs.readFileSync(fullPath, 'utf8');
-            // Extract basic email data (simplified parsing)
             const from = content.match(/From: (.+)/)?.[1] || 'Unknown';
             const subject = content.match(/Subject: (.+)/)?.[1] || 'No Subject';
             const date = content.match(/Date: (.+)/)?.[1] || '';
@@ -88,7 +174,7 @@ function scanMailData() {
     
     return {
       count: emails.length,
-      emails: emails.slice(0, 100) // Limit to first 100
+      emails: emails
     };
   } catch (e) {
     return { error: e.message };
@@ -175,9 +261,15 @@ function scanDocuments() {
 }
 
 // IPC handlers for scanning
-function setupScanningHandlers() {
+function setupScanningHandlers(mainWindow) {
+  // Quick scan for initial check
   ipcMain.handle('scan-mail', async () => {
     return scanMailData();
+  });
+  
+  // Full background scan with progress
+  ipcMain.handle('scan-all-mail', async () => {
+    return scanAllMailData(mainWindow);
   });
   
   ipcMain.handle('scan-messages', async () => {
@@ -235,5 +327,6 @@ module.exports = {
   setupLocalAIHandlers,
   scanMailData,
   scanMessagesData,
-  scanDocuments
+  scanDocuments,
+  scanAllMailData
 };
