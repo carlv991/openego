@@ -581,6 +581,33 @@
             border-color: var(--border);
         }
         
+        /* Loading Spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Button States */
+        .btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+        }
+        
         /* Training Styles */
         .training-container {
             max-width: 900px;
@@ -2211,71 +2238,157 @@
             // Show that we're actually doing something
             const btn = document.querySelector('#permissionRequest button');
             const originalText = btn.textContent;
-            btn.textContent = 'Opening System Preferences...';
+            btn.innerHTML = '<span class="loading-spinner"></span> Opening System Preferences...';
             btn.disabled = true;
+            btn.style.opacity = '0.7';
+            
+            // Visual feedback - change status text
+            const statusDiv = document.querySelector('#permissionRequest p');
+            if (statusDiv) {
+                statusDiv.innerHTML = '<strong style="color: var(--accent);">Opening System Preferences...</strong>';
+            }
             
             // Check if running in Electron
             if (typeof require !== 'undefined') {
-                const { ipcRenderer, shell } = require('electron');
-                
-                // Actually open System Preferences
-                shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles');
-                
-                // Show instructions
-                setTimeout(() => {
-                    btn.textContent = 'Check Permission Status →';
+                try {
+                    const { shell } = require('electron');
+                    
+                    // Actually open System Preferences
+                    shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles');
+                    
+                    // Show clear visual confirmation
+                    setTimeout(() => {
+                        btn.innerHTML = '✓ System Preferences Opened - Check Permission Status →';
+                        btn.disabled = false;
+                        btn.style.opacity = '1';
+                        btn.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
+                        btn.onclick = checkPermissionStatus;
+                        
+                        // Show inline instructions instead of alert
+                        const instructionsDiv = document.createElement('div');
+                        instructionsDiv.innerHTML = `
+                            <div style="background: var(--bg-primary); border-radius: 12px; padding: 20px; margin-top: 20px; text-align: left; border: 1px solid var(--border);">
+                                <h4 style="color: var(--accent); margin-bottom: 15px;">📋 Next Steps:</h4>
+                                <ol style="color: var(--text-secondary); padding-left: 20px; line-height: 1.8;">
+                                    <li>System Preferences should now be open</li>
+                                    <li>Click the <strong>lock icon</strong> (bottom left)</li>
+                                    <li>Enter your password</li>
+                                    <li>Click the <strong>+ button</strong></li>
+                                    <li>Find and select <strong>OpenEgo</strong></li>
+                                    <li>Check the box next to OpenEgo</li>
+                                    <li>Restart OpenEgo</li>
+                                    <li>Click the button above to verify</li>
+                                </ol>
+                            </div>
+                        `;
+                        
+                        const existingInstructions = document.querySelector('#permissionRequest .instructions');
+                        if (!existingInstructions) {
+                            instructionsDiv.className = 'instructions';
+                            document.getElementById('permissionRequest').appendChild(instructionsDiv);
+                        }
+                    }, 1500);
+                    
+                } catch (e) {
+                    console.error('Error opening System Preferences:', e);
+                    btn.innerHTML = '❌ Error - Try Again →';
                     btn.disabled = false;
-                    btn.onclick = checkPermissionStatus;
-                    
-                    alert('📋 System Preferences opened!\n\nTo grant access:\n1. Click the lock icon (bottom left)\n2. Enter your password\n3. Click the + button\n4. Find and select OpenEgo\n5. Check the box\n6. Restart OpenEgo\n\nThen click "Check Permission Status"');
-                }, 1000);
+                    btn.style.opacity = '1';
+                    alert('Could not open System Preferences automatically.\n\nPlease open manually:\nSystem Preferences → Security & Privacy → Privacy → Full Disk Access');
+                }
             } else {
-                // Web/simulation mode - simulate granting
+                // Web/simulation mode - simulate granting with clear feedback
                 setTimeout(() => {
-                    localStorage.setItem('openego_disk_access', 'granted');
-                    document.getElementById('permissionRequest').style.display = 'none';
-                    document.getElementById('permissionGranted').style.display = 'block';
+                    btn.innerHTML = '✓ Processing...';
                     
-                    // Show what would be scanned
-                    let scanList = [];
-                    if (sources.mail) scanList.push('📧 Apple Mail');
-                    if (sources.messages) scanList.push('💬 Messages');
-                    if (sources.telegram) scanList.push('✈️ Telegram');
-                    if (sources.whatsapp) scanList.push('📱 WhatsApp');
-                    if (sources.viber) scanList.push('💬 Viber');
-                    if (sources.documents) scanList.push('📄 Documents');
-                    
-                    alert('✅ Full Disk Access granted (Demo Mode)\n\nWould scan:\n' + scanList.join('\n'));
-                    
-                    setTimeout(() => nextStep(3), 1500);
+                    setTimeout(() => {
+                        localStorage.setItem('openego_disk_access', 'granted');
+                        document.getElementById('permissionRequest').style.display = 'none';
+                        document.getElementById('permissionGranted').style.display = 'block';
+                        
+                        // Show what would be scanned
+                        let scanList = [];
+                        if (sources.mail) scanList.push('📧 Apple Mail');
+                        if (sources.messages) scanList.push('💬 Messages');
+                        if (sources.telegram) scanList.push('✈️ Telegram');
+                        if (sources.whatsapp) scanList.push('📱 WhatsApp');
+                        if (sources.viber) scanList.push('💬 Viber');
+                        if (sources.documents) scanList.push('📄 Documents');
+                        
+                        alert('✅ Full Disk Access granted (Demo Mode)\n\nWould scan:\n' + scanList.join('\n'));
+                        
+                        setTimeout(() => nextStep(3), 1500);
+                    }, 1000);
                 }, 1500);
             }
         }
         
         async function checkPermissionStatus() {
             const btn = document.querySelector('#permissionRequest button');
-            btn.textContent = 'Checking...';
+            btn.innerHTML = '<span class="loading-spinner"></span> Checking permission...';
             btn.disabled = true;
+            btn.style.opacity = '0.7';
             
             if (typeof require !== 'undefined') {
-                const { ipcRenderer } = require('electron');
-                
-                // Check if access was granted
-                const checkResult = await ipcRenderer.invoke('check-full-disk-access');
-                
-                if (checkResult.granted) {
-                    localStorage.setItem('openego_disk_access', 'granted');
-                    document.getElementById('permissionRequest').style.display = 'none';
-                    document.getElementById('permissionGranted').style.display = 'block';
+                try {
+                    const { ipcRenderer } = require('electron');
                     
-                    alert('✅ Full Disk Access granted!\n\nOpenEgo can now access your data.');
+                    // Check if access was granted
+                    const checkResult = await ipcRenderer.invoke('check-full-disk-access');
                     
-                    // Auto-continue after 2 seconds
-                    setTimeout(() => nextStep(3), 2000);
-                } else {
-                    btn.textContent = 'Check Again →';
+                    if (checkResult.granted) {
+                        localStorage.setItem('openego_disk_access', 'granted');
+                        
+                        // Show success state
+                        btn.innerHTML = '✅ Access Granted!';
+                        btn.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
+                        btn.style.opacity = '1';
+                        
+                        // Hide instructions
+                        const instructions = document.querySelector('#permissionRequest .instructions');
+                        if (instructions) instructions.style.display = 'none';
+                        
+                        // Show granted state
+                        setTimeout(() => {
+                            document.getElementById('permissionRequest').style.display = 'none';
+                            document.getElementById('permissionGranted').style.display = 'block';
+                            
+                            // Auto-continue after 2 seconds
+                            setTimeout(() => nextStep(3), 2000);
+                        }, 1000);
+                    } else {
+                        // Show error state
+                        btn.innerHTML = '❌ Not Detected - Check Again →';
+                        btn.disabled = false;
+                        btn.style.opacity = '1';
+                        btn.style.background = 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)';
+                        
+                        // Add error message inline
+                        const errorDiv = document.createElement('div');
+                        errorDiv.innerHTML = `
+                            <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid #EF4444; border-radius: 12px; padding: 15px; margin-top: 20px; text-align: left;">
+                                <p style="color: #EF4444; margin-bottom: 10px;"><strong>Permission not detected yet.</strong></p>
+                                <p style="color: var(--text-secondary); font-size: 0.9rem;">Make sure you:</p>
+                                <ol style="color: var(--text-secondary); font-size: 0.9rem; padding-left: 20px; margin-top: 8px;">
+                                    <li>Added OpenEgo to Full Disk Access</li>
+                                    <li>Checked the box next to OpenEgo</li>
+                                    <li>Restarted OpenEgo</li>
+                                </ol>
+                            </div>
+                        `;
+                        errorDiv.className = 'error-message';
+                        
+                        // Remove old error if exists
+                        const oldError = document.querySelector('#permissionRequest .error-message');
+                        if (oldError) oldError.remove();
+                        
+                        document.getElementById('permissionRequest').appendChild(errorDiv);
+                    }
+                } catch (e) {
+                    console.error('Error checking permission:', e);
+                    btn.innerHTML = '❌ Error - Try Again →';
                     btn.disabled = false;
-                    alert('❌ Permission not detected yet.\n\nMake sure you:\n1. Added OpenEgo to Full Disk Access\n2. Checked the box next to OpenEgo\n3. Restarted OpenEgo\n\nThen click "Check Again"');
+                    btn.style.opacity = '1';
                 }
             }
         }
