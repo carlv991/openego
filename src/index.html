@@ -1565,11 +1565,98 @@
                     </div>
                 </div>
                 <div class="tab-content" id="settingsTab">
-                    <div class="dashboard-header"><h2>⚙️ Settings</h2></div>
+                    <div class="dashboard-header">
+                        <h2>⚙️ Settings</h2>
+                        <p style="color: var(--text-secondary);">Manage your OpenEgo configuration</p>
+                    </div>
+                    
                     <div class="settings-section">
-                        <h3>Connected Accounts</h3>
-                        <div class="settings-item"><span>📧 Gmail</span><span style="color: #10B981;">✓ Connected</span></div>
-                        <div class="settings-item"><span>✈️ Telegram</span><span style="color: #10B981;">✓ Connected</span></div>
+                        <h3>🤖 AI Model</h3>
+                        <div class="settings-item">
+                            <div>
+                                <div>Current Model</div>
+                                <div style="color: var(--text-secondary); font-size: 0.9rem;">GPT-4o via OpenAI API</div>
+                            </div>
+                            <button class="btn btn-secondary" onclick="alert('Model selection coming in next update')">Change</button>
+                        </div>
+                        <div class="settings-item">
+                            <div>
+                                <div>API Key</div>
+                                <div style="color: var(--text-secondary); font-size: 0.9rem;">sk-••••••••••••••••••••</div>
+                            </div>
+                            <button class="btn btn-secondary">Update</button>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h3>📧 Connected Accounts</h3>
+                        <div class="settings-item">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-size: 1.5rem;">📧</span>
+                                <div>
+                                    <div>Gmail</div>
+                                    <div style="color: var(--text-secondary); font-size: 0.85rem;">john@gmail.com</div>
+                                </div>
+                            </div>
+                            <span style="color: #10B981;">✓ Connected</span>
+                        </div>
+                        <div class="settings-item">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-size: 1.5rem;">✈️</span>
+                                <div>
+                                    <div>Telegram</div>
+                                    <div style="color: var(--text-secondary); font-size: 0.85rem;">@johndoe</div>
+                                </div>
+                            </div>
+                            <span style="color: #10B981;">✓ Connected</span>
+                        </div>
+                        <div class="settings-item">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-size: 1.5rem;">💬</span>
+                                <div>
+                                    <div>Slack</div>
+                                    <div style="color: var(--text-secondary); font-size: 0.85rem;">Not connected</div>
+                                </div>
+                            </div>
+                            <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.85rem;">Connect</button>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h3>🔒 Privacy & Data</h3>
+                        <div class="settings-item">
+                            <div>
+                                <div>Data Storage</div>
+                                <div style="color: var(--text-secondary); font-size: 0.9rem;">All data stored locally on your device</div>
+                            </div>
+                            <span style="color: #10B981;">🔒 Secure</span>
+                        </div>
+                        <div class="settings-item">
+                            <div>
+                                <div>Export My Data</div>
+                                <div style="color: var(--text-secondary); font-size: 0.9rem;">Download all your data as JSON</div>
+                            </div>
+                            <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.85rem;">Export</button>
+                        </div>
+                        <div class="settings-item">
+                            <div>
+                                <div>Clear All Data</div>
+                                <div style="color: var(--text-secondary); font-size: 0.9rem;">Delete all learned patterns and history</div>
+                            </div>
+                            <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.85rem; background: rgba(239, 68, 68, 0.2); color: #EF4444;">Delete</button>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h3>ℹ️ About</h3>
+                        <div class="settings-item">
+                            <div>Version</div>
+                            <span style="color: var(--text-secondary);">v0.1.0 Beta</span>
+                        </div>
+                        <div class="settings-item">
+                            <div>Check for Updates</div>
+                            <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.85rem;">Check</button>
+                        </div>
                     </div>
                 </div>
             </main>
