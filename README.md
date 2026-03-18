@@ -73,14 +73,22 @@ To make AI responses work, you need:
 2. Get API key
 3. Add to backend/.env: `ANTHROPIC_API_KEY=your_key_here`
 
-## ⚠️ What's NOT Working Yet
+## ✅ Simple Setup - What's Working
 
-- ❌ Gmail OAuth (requires Google Cloud Console setup)
-- ❌ Outlook OAuth (requires Azure app registration)
-- ❌ Apple Mail (requires Apple Developer account)
-- ❌ Slack OAuth (requires Slack app)
-- ❌ WhatsApp (not implemented)
-- ❌ Real email analysis (needs Gmail API working first)
+### Works Out of the Box:
+- ✅ **Telegram** - Just enter your username (@johndoe)
+- ✅ **AI Responses** - Add OpenAI API key → instant AI replies
+- ✅ **Training** - 5 built-in scenarios, tracks your accuracy
+- ✅ **Auto-Pilot Unlock** - Reaches 80% → unlocks automatically
+- ✅ **Dashboard** - Full UI for managing everything
+
+### Requires API Keys (Optional):
+- ⚠️ **Gmail** - Needs Google OAuth credentials
+- ⚠️ **Outlook** - Needs Microsoft Azure app
+- ⚠️ **Slack** - Needs Slack app registration
+- ❌ **WhatsApp** - Not yet implemented
+
+**The app works great with just Telegram + OpenAI!**
 
 ## 🚀 Quick Start
 
