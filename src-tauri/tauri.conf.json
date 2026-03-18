@@ -39,6 +39,9 @@
     ],
     "category": "Productivity",
     "shortDescription": "Your personal digital twin that learns how you communicate",
-    "longDescription": "OpenEgo creates a local, privacy-first digital twin that learns your communication style and can respond on your behalf when you're busy."
+    "longDescription": "OpenEgo creates a local, privacy-first digital twin that learns your communication style and can respond on your behalf when you're busy.",
+    "resources": [
+      "../dist/**/*"
+    ]
   }
 }
