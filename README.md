@@ -1,198 +1,154 @@
-# OpenEgo 🧠
+# 🧠 OpenEgo - AI Digital Twin
 
-Your Personal Digital Twin - Local-first AI that learns how you communicate.
+**Your personal AI that learns how you communicate and responds on your behalf.**
 
-[![Version](https://img.shields.io/badge/version-0.1.0-coral)](https://github.com/carlv991/openego/releases)
-[![License](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey)]()
+## ✅ What's Working Now
 
-## 🌐 Website
-https://openego.ai
+### Frontend (Electron App)
+- ✅ Beautiful multi-step onboarding UI
+- ✅ 5-step flow: Welcome → Connect Data → AI Model → Training → Dashboard
+- ✅ Support for 9 AI models (GPT-4o, Claude, Gemini, Llama, Mistral)
+- ✅ Dashboard with Inbox, Stats, Settings tabs
+- ✅ Mode switcher (Co-Pilot ↔ Auto-Pilot)
+- ✅ Training system with 5 scenarios
+- ✅ Auto-Pilot unlocks at 80% accuracy
 
-## 📦 Installation
+### Backend API
+- ✅ REST API server (Node.js/Express)
+- ✅ SQLite database for users, messages, training data
+- ✅ Telegram Bot integration (working)
+- ✅ AI response generation (OpenAI/Anthropic)
+- ✅ API key storage with encryption
+- ✅ Admin dashboard with stats
 
-### One-Liner Install (macOS & Linux)
+### Admin Dashboard
+- ✅ User growth metrics
+- ✅ Active users tracking
+- ✅ Messages handled counter
+- ✅ MRR tracking
+- ✅ Recent users table
+
+## 🔧 How to Run
+
+### 1. Frontend (Electron App)
 ```bash
-curl -fsSL https://openego.ai/install.sh | bash
+cd /Users/vicf/Documents/openego
+git pull
+npm install
+npm run build:mac
+open dist-electron/OpenEgo-0.1.0-arm64.dmg
 ```
 
-### Windows
-Download from [GitHub Releases](https://github.com/carlv991/openego/releases)
+### 2. Backend API
+```bash
+cd /Users/vicf/Documents/openego/backend
+npm install
 
-## ✨ Features
+# Copy and edit environment file
+cp .env.example .env
+# Add your API keys to .env
 
-### 🔒 Privacy-First
-- **100% Local**: All data stays on your device
-- **No Cloud**: No servers, no data leakage
-- **Encrypted**: Your data is encrypted at rest
-- **Open Source**: Full transparency, AGPL-3.0 license
+npm start
+```
 
-### 🧠 Smart Learning
-- **Historical Analysis**: Scans emails, messages, documents
-- **Pattern Recognition**: Learns your writing style
-- **Continuous Improvement**: Gets better as you use it
+### 3. Telegram Bot (Working!)
+1. Message @BotFather on Telegram
+2. Create a new bot
+3. Copy the bot token
+4. In OpenEgo app, go to Step 2 (Connect Data)
+5. Toggle Telegram ON
+6. Paste your bot token
+7. Bot will now receive and store your messages!
 
-### 🎮 Three Modes
-1. **Off**: Completely dormant
-2. **Co-Pilot**: Observes and suggests
-3. **Auto-Pilot**: Handles routine responses (with full audit trail)
+## 🔑 Required API Keys
 
-### 🔄 Auto-Updater
-- **In-App Updates**: Get notified of new versions
-- **One-Click Install**: Seamless updates
-- **Multi-Platform**: Linux, macOS, Windows
+To make AI responses work, you need:
 
-### 🕵️ Audit Trail & Bot Fingerprinting
-- **Activity Logging**: Every bot action tracked
-- **Bot Certificates**: Prove content was AI-generated
-- **Email Headers**: `X-OpenEgo-*` headers for verification
-- **Invisible Watermarks**: Hidden markers in text
+### OpenAI (for GPT-4o, GPT-4o-mini)
+1. Go to https://platform.openai.com/api-keys
+2. Create new secret key
+3. Add to backend/.env: `OPENAI_API_KEY=your_key_here`
+
+### Anthropic (for Claude)
+1. Go to https://console.anthropic.com/
+2. Get API key
+3. Add to backend/.env: `ANTHROPIC_API_KEY=your_key_here`
+
+## ⚠️ What's NOT Working Yet
+
+- ❌ Gmail OAuth (requires Google Cloud Console setup)
+- ❌ Outlook OAuth (requires Azure app registration)
+- ❌ Apple Mail (requires Apple Developer account)
+- ❌ Slack OAuth (requires Slack app)
+- ❌ WhatsApp (not implemented)
+- ❌ Real email analysis (needs Gmail API working first)
 
 ## 🚀 Quick Start
 
-1. **Install**: `curl -fsSL https://openego.ai/install.sh | bash`
-2. **Launch**: OpenEgo from Applications menu
-3. **Onboard**: 5-step setup process
-4. **Activate**: Start with Co-Pilot mode
-5. **Go Auto**: Enable Auto-Pilot when confident
+### For Testing (Minimal Setup)
+1. Build and run the Electron app
+2. Start the backend: `cd backend && npm start`
+3. Set up Telegram bot (only working connector currently)
+4. Add OpenAI API key in backend/.env
+5. In the app, select GPT-4o and enter your API key
+6. Complete training to unlock Auto-Pilot
+7. Use the dashboard to approve/reject AI responses
 
-## 📸 Screenshots
+### For Production
+1. Set up all OAuth credentials (Google, Microsoft, Slack)
+2. Deploy backend to a server (Heroku, Railway, VPS)
+3. Update API_BASE in frontend to point to your server
+4. Deploy admin.html to your website
+5. Sign Electron app with Apple Developer ID
 
-### Onboarding
-Modern 5-step onboarding with toggle switches for permissions
+## 📊 Admin Dashboard
 
-### Activity Log
-Track every bot action with timestamps and signatures
+Access at: `https://your-domain.com/admin.html`
 
-### Settings
-Easy-to-navigate settings with real-time toggle feedback
+Or run locally:
+```bash
+cd backend
+npm start
+# Then open: http://localhost:3000/admin.html
+```
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: HTML5, CSS3, JavaScript (Vanilla)
-- **Desktop**: Tauri (Rust + Web)
-- **Database**: SQLite
-- **Local LLM**: Llama 3, Mistral, or Phi-3
-- **CI/CD**: GitHub Actions
+- **Frontend:** HTML/CSS/JS, Electron
+- **Backend:** Node.js, Express, SQLite
+- **AI:** OpenAI GPT-4, Anthropic Claude
+- **Integrations:** Telegram Bot API, Gmail API (partial)
 
 ## 📁 Project Structure
 
 ```
 openego/
-├── src/                    # Frontend code
-│   ├── index.html         # Onboarding UI
-│   ├── styles.css         # Coral theme styles
-│   ├── main.js            # App logic
-│   └── updater.js         # Auto-updater
-├── src-tauri/             # Rust backend
-│   ├── src/
-│   │   ├── commands/      # API handlers
-│   │   ├── database/      # SQLite layer
-│   │   ├── bot_tracking.rs # Audit/fingerprinting
-│   │   └── updater.rs     # Update system
-│   └── Cargo.toml
-├── .github/workflows/      # CI/CD
-├── docs/                   # Documentation
-└── README.md
+├── src/
+│   └── index.html          # Main Electron app UI
+├── backend/
+│   ├── server.js           # API server
+│   ├── package.json        # Backend dependencies
+│   └── .env.example        # Environment template
+├── admin.html              # Admin dashboard
+└── deploy.sh               # Deployment script
 ```
 
-## 🏗️ Development
+## 🎯 Next Steps to Complete
 
-### Prerequisites
-- Rust (latest stable)
-- Node.js 18+
-- Tauri CLI
+1. **Add Gmail OAuth flow** (biggest impact)
+2. **Add real email parsing** (extract communication patterns)
+3. **Improve AI prompts** (better personalized responses)
+4. **Add message sync** (continuously learn from new messages)
+5. **Build response approval queue** (dashboard inbox)
+6. **Add local AI model support** (Llama via Ollama)
 
-### Setup
-```bash
-git clone https://github.com/carlv991/openego.git
-cd openego
-npm install
-npm run tauri dev
-```
+## 🤝 Support
 
-### Build
-```bash
-npm run tauri build
-```
-
-## 📊 Roadmap Status
-
-### Phase 1: Foundation ✅ COMPLETE
-- [x] Project setup & scaffolding
-- [x] Onboarding UI with 5 steps
-- [x] To-Do system with priority levels
-- [x] Toggle switch permissions
-- [x] Local SQLite database
-- [x] Activity logging
-- [x] Bot fingerprinting
-- [x] Auto-updater
-
-### Phase 2: Intelligence 🔄 IN PROGRESS
-- [ ] Gmail OAuth integration
-- [ ] Local LLM integration
-- [ ] Vector embeddings
-- [ ] Confidence scoring
-- [ ] Response generation
-
-### Phase 3: Automation 📋 PLANNED
-- [ ] Full Auto-Pilot mode
-- [ ] Multi-platform support
-- [ ] Mobile companion app
-- [ ] P2P sync
-
-### Phase 4: Polish 📋 PLANNED
-- [ ] Security audit
-- [ ] Performance optimization
-- [ ] Documentation
-- [ ] v1.0 Release
-
-## 🔐 Security & Privacy
-
-### Bot Fingerprinting
-All bot-generated content includes:
-- **Email Headers**: Cryptographically signed `X-OpenEgo-*` headers
-- **Invisible Watermarks**: Zero-width character encoding
-- **Activity Certificates**: Provable evidence of AI origin
-
-### Data Storage
-- ✅ Local SQLite database only
-- ✅ Optional encryption at rest
-- ✅ User controls all permissions
-- ✅ Configurable retention policies
-
-## 🐛 Troubleshooting
-
-### macOS: "App is damaged"
-```bash
-xattr -cr /Applications/OpenEgo.app
-```
-
-### Linux: Permission denied
-```bash
-chmod +x ~/.local/bin/openego
-```
-
-### Windows: SmartScreen
-Click "More info" → "Run anyway"
-
-## 📞 Support
-
-- 📚 **Docs**: https://docs.openego.ai
-- 💬 **Discord**: https://discord.gg/openego
-- 🐛 **Issues**: [GitHub Issues](https://github.com/carlv991/openego/issues)
-- 📧 **Email**: hello@openego.ai
-
-## 📜 License
-
-AGPL-3.0 - See [LICENSE](LICENSE) for details.
-
-## ⚠️ Disclaimer
-
-This is experimental software. Use at your own risk. The developers are not responsible for any damages, losses, or harms resulting from the use of this software.
+For issues or questions, check:
+- Backend logs: `cd backend && npm start` shows all API calls
+- Browser DevTools in Electron: Cmd+Option+I
+- Database: `backend/openego.db` (SQLite)
 
 ---
 
-Built with ❤️ for privacy-conscious users.
-
-**Color Scheme**: Coral (#DE6D51) | Cream (#EEEBE3) | Charcoal (#141414)
+**Status:** Beta - Core functionality working, needs OAuth integrations for full email support.
