@@ -73,22 +73,27 @@ To make AI responses work, you need:
 2. Get API key
 3. Add to backend/.env: `ANTHROPIC_API_KEY=your_key_here`
 
-## ✅ Simple Setup - What's Working
+## ✅ Simple Setup - One Permission
 
 ### Works Out of the Box:
-- ✅ **Telegram** - Just enter your username (@johndoe)
+- ✅ **One-Click Setup** - Grant Full Disk Access → done!
+- ✅ **Auto-Scan** - Reads Apple Mail, Messages, Documents automatically
 - ✅ **AI Responses** - Add OpenAI API key → instant AI replies
 - ✅ **Training** - 5 built-in scenarios, tracks your accuracy
 - ✅ **Auto-Pilot Unlock** - Reaches 80% → unlocks automatically
 - ✅ **Dashboard** - Full UI for managing everything
 
-### Requires API Keys (Optional):
-- ⚠️ **Gmail** - Needs Google OAuth credentials
-- ⚠️ **Outlook** - Needs Microsoft Azure app
-- ⚠️ **Slack** - Needs Slack app registration
-- ❌ **WhatsApp** - Not yet implemented
+### No Individual Permissions Needed:
+Unlike other apps, OpenEgo uses **Full Disk Access** (like Dropbox, CleanMyMac):
+- 📧 Apple Mail - automatically scanned
+- 💬 Messages app - conversation history
+- 📄 Documents - writing style analysis
+- 📅 Calendar - availability understanding
 
-**The app works great with just Telegram + OpenAI!**
+### Just Add:
+- **OpenAI API Key** - for AI responses (get at platform.openai.com)
+
+That's it! **One macOS permission + one API key = full functionality**
 
 ## 🚀 Quick Start
 

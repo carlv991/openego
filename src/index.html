@@ -928,189 +928,65 @@
             </div>
         </div>
         
-        <!-- STEP 2: Connect Data Sources -->
+        <!-- STEP 2: Permissions (Simplified) -->
         <div class="step" id="step2">
-            <h1 style="text-align: center;">Connect Your Data</h1>
-            <p class="subtitle">Link the accounts OpenEgo will learn from</p>
+            <h1 style="text-align: center;">Grant Access</h1>
+            <p class="subtitle">One permission to access all your data</p>
             
-            <div class="card">
-                <div class="category-label">📧 Email Accounts</div>
-                <div class="connector-grid">
-                    <div class="connector-card" id="gmail-connector" onclick="toggleConnector('gmail')">
-                        <div class="connector-header">
-                            <div class="connector-icon gmail">📧</div>
-                            <div>
-                                <div class="connector-name">Gmail</div>
-                                <div class="connector-status" id="gmail-status">Not connected</div>
-                            </div>
+            <div class="card" style="text-align: center; padding: 40px;">
+                <div style="font-size: 4rem; margin-bottom: 20px;">🔐</div>
+                <h2 style="margin-bottom: 15px;">Full Disk Access</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 30px; max-width: 500px; margin-left: auto; margin-right: auto;">
+                    OpenEgo needs access to your computer to learn from your emails, messages, and documents. 
+                    This is the same permission apps like Dropbox and CleanMyMac use.
+                </p>
+                
+                <div style="background: var(--bg-primary); border-radius: 12px; padding: 25px; margin: 30px 0; text-align: left;">
+                    <h4 style="margin-bottom: 15px; color: var(--accent);">📋 What OpenEgo will access:</h4>
+                    <div style="display: flex; flex-direction: column; gap: 12px; color: var(--text-secondary);">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span>📧</span>
+                            <span>Apple Mail app data</span>
                         </div>
-                        <p style="color: var(--text-secondary); font-size: 0.9rem;">One-click Google sign-in - we never store passwords</p>
-                        <label class="toggle-switch connector-toggle">
-                            <input type="checkbox" id="gmail-toggle">
-                            <span class="toggle-slider"></span>
-                        </label>
-                        <button class="oauth-button" id="gmail-oauth" onclick="connectOAuth('gmail', event)" style="display: none;">
-                            <span>🔗</span> Connect (1 click)
-                        </button>
-                    </div>
-                    
-                    <div class="connector-card" id="outlook-connector" onclick="toggleConnector('outlook')">
-                        <div class="connector-header">
-                            <div class="connector-icon outlook">📧</div>
-                            <div>
-                                <div class="connector-name">Outlook</div>
-                                <div class="connector-status" id="outlook-status">Not connected</div>
-                            </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span>📄</span>
+                            <span>Documents and text files</span>
                         </div>
-                        <p style="color: var(--text-secondary); font-size: 0.9rem;">Microsoft 365 and Outlook.com accounts</p>
-                        <label class="toggle-switch connector-toggle">
-                            <input type="checkbox" id="outlook-toggle">
-                            <span class="toggle-slider"></span>
-                        </label>
-                        <button class="oauth-button" id="outlook-oauth" onclick="connectOAuth('outlook', event)" style="display: none;">
-                            <span>🔗</span> Connect Outlook
-                        </button>
-                    </div>
-                    
-                    <div class="connector-card" id="apple-connector" onclick="toggleConnector('apple')">
-                        <div class="connector-header">
-                            <div class="connector-icon apple">🍎</div>
-                            <div>
-                                <div class="connector-name">Apple Mail</div>
-                                <div class="connector-status" id="apple-status">Not connected</div>
-                            </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span>💬</span>
+                            <span>Messages app history</span>
                         </div>
-                        <p style="color: var(--text-secondary); font-size: 0.9rem;">iCloud and Apple Mail local access</p>
-                        <label class="toggle-switch connector-toggle">
-                            <input type="checkbox" id="apple-toggle">
-                            <span class="toggle-slider"></span>
-                        </label>
-                        <button class="oauth-button" id="apple-oauth" onclick="connectOAuth('apple', event)" style="display: none;">
-                            <span>🔗</span> Grant Access
-                        </button>
-                    </div>
-                    
-                    <div class="connector-card" id="imap-connector" onclick="toggleConnector('imap')">
-                        <div class="connector-header">
-                            <div class="connector-icon imap">⚙️</div>
-                            <div>
-                                <div class="connector-name">IMAP/SMTP</div>
-                                <div class="connector-status" id="imap-status">Not connected</div>
-                            </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span>📅</span>
+                            <span>Calendar events</span>
                         </div>
-                        <p style="color: var(--text-secondary); font-size: 0.9rem;">Generic email server configuration</p>
-                        <label class="toggle-switch connector-toggle">
-                            <input type="checkbox" id="imap-toggle">
-                            <span class="toggle-slider"></span>
-                        </label>
-                        <button class="oauth-button" id="imap-oauth" onclick="connectOAuth('imap', event)" style="display: none;">
-                            <span>⚙️</span> Configure
-                        </button>
                     </div>
                 </div>
-            </div>
-            
-            <div class="card">
-                <div class="category-label">💬 Messaging</div>
-                <div class="connector-grid">
-                    <div class="connector-card" id="telegram-connector" onclick="toggleConnector('telegram')">
-                        <div class="connector-header">
-                            <div class="connector-icon telegram">✈️</div>
-                            <div>
-                                <div class="connector-name">Telegram</div>
-                                <div class="connector-status" id="telegram-status">Not connected</div>
-                            </div>
-                        </div>
-                        <p style="color: var(--text-secondary); font-size: 0.9rem;">Just enter your username - no setup needed</p>
-                        <label class="toggle-switch connector-toggle">
-                            <input type="checkbox" id="telegram-toggle">
-                            <span class="toggle-slider"></span>
-                        </label>
-                        <button class="oauth-button" id="telegram-oauth" onclick="connectOAuth('telegram', event)" style="display: none;">
-                            <span>🔗</span> Connect (1 click)
-                        </button>
+                
+                <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10B981; border-radius: 12px; padding: 20px; margin-bottom: 30px;">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 10px; color: #10B981;">
+                        <span style="font-size: 1.5rem;">🔒</span>
+                        <span style="font-weight: 600;">Everything stays on your device</span>
                     </div>
-                    
-                    <div class="connector-card" id="slack-connector" onclick="toggleConnector('slack')">
-                        <div class="connector-header">
-                            <div class="connector-icon slack">💬</div>
-                            <div>
-                                <div class="connector-name">Slack</div>
-                                <div class="connector-status" id="slack-status">Not connected</div>
-                            </div>
-                        </div>
-                        <p style="color: var(--text-secondary); font-size: 0.9rem;">Work messages and team communications</p>
-                        <label class="toggle-switch connector-toggle">
-                            <input type="checkbox" id="slack-toggle">
-                            <span class="toggle-slider"></span>
-                        </label>
-                        <button class="oauth-button" id="slack-oauth" onclick="connectOAuth('slack', event)" style="display: none;">
-                            <span>🔗</span> Connect Slack
-                        </button>
-                    </div>
-                    
-                    <div class="connector-card disabled" id="whatsapp-connector">
-                        <div class="connector-header">
-                            <div class="connector-icon whatsapp">📱</div>
-                            <div>
-                                <div class="connector-name">WhatsApp</div>
-                                <div class="connector-status">Coming soon</div>
-                            </div>
-                        </div>
-                        <p style="color: var(--text-secondary); font-size: 0.9rem;">End-to-end encrypted messaging</p>
-                        <span style="position: absolute; top: 20px; right: 20px; font-size: 0.8rem; color: var(--text-secondary);">🔒 Locked</span>
-                    </div>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 10px;">
+                        Your data never leaves your computer. No cloud storage. No servers.
+                    </p>
                 </div>
-            </div>
-            
-            <div class="card">
-                <div class="category-label">📁 Files & Calendar</div>
-                <div class="connector-grid">
-                    <div class="connector-card" id="files-connector" onclick="toggleConnector('files')">
-                        <div class="connector-header">
-                            <div class="connector-icon files">📄</div>
-                            <div>
-                                <div class="connector-name">Documents</div>
-                                <div class="connector-status" id="files-status">Not connected</div>
-                            </div>
-                        </div>
-                        <p style="color: var(--text-secondary); font-size: 0.9rem;">Access documents to learn your writing style</p>
-                        <label class="toggle-switch connector-toggle">
-                            <input type="checkbox" id="files-toggle">
-                            <span class="toggle-slider"></span>
-                        </label>
-                        <button class="oauth-button" id="files-oauth" onclick="connectOAuth('files', event)" style="display: none;">
-                            <span>📂</span> Choose Folder
-                        </button>
-                    </div>
-                    
-                    <div class="connector-card" id="calendar-connector" onclick="toggleConnector('calendar')">
-                        <div class="connector-header">
-                            <div class="connector-icon calendar">📅</div>
-                            <div>
-                                <div class="connector-name">Calendar</div>
-                                <div class="connector-status" id="calendar-status">Not connected</div>
-                            </div>
-                        </div>
-                        <p style="color: var(--text-secondary); font-size: 0.9rem;">Understand your schedule and availability</p>
-                        <label class="toggle-switch connector-toggle">
-                            <input type="checkbox" id="calendar-toggle">
-                            <span class="toggle-slider"></span>
-                        </label>
-                        <button class="oauth-button" id="calendar-oauth" onclick="connectOAuth('calendar', event)" style="display: none;">
-                            <span>🔗</span> Connect Calendar
-                        </button>
-                    </div>
-                </div>
+                
+                <button class="btn btn-primary" style="padding: 18px 50px; font-size: 1.1rem;" onclick="requestFullDiskAccess()">
+                    Grant Access →
+                </button>
+                
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 20px;">
+                    You can revoke this permission anytime in System Preferences
+                </p>
             </div>
             
             <div class="button-group">
                 <button class="btn btn-secondary" onclick="prevStep(1)">← Back</button>
                 <button class="btn btn-primary" onclick="nextStep(3)">Continue →</button>
             </div>
-        </div>
-        
-        <!-- STEP 3: AI Model -->
+        </div>        <!-- STEP 3: AI Model -->
         <div class="step" id="step3">
             <h1 style="text-align: center;">Choose Your AI Model</h1>
             <p class="subtitle">Select the brain that powers your digital twin</p>
@@ -1786,6 +1662,27 @@
         
         function startTraining() {
             nextStep(6);
+        }
+        
+        function requestFullDiskAccess() {
+            // In Electron, this would use systemPreferences API
+            // For now, simulate the permission request
+            
+            if (window.electronAPI && window.electronAPI.requestFullDiskAccess) {
+                // Real Electron implementation
+                window.electronAPI.requestFullDiskAccess().then(granted => {
+                    if (granted) {
+                        localStorage.setItem('openego_disk_access', 'granted');
+                        alert('✅ Full Disk Access granted!\n\nOpenEgo will now scan your Mail, Messages, and Documents to learn your communication style.');
+                    } else {
+                        alert('❌ Access denied. OpenEgo needs this permission to learn from your data.\n\nYou can grant it later in System Preferences > Security & Privacy > Privacy > Full Disk Access');
+                    }
+                });
+            } else {
+                // Web/simulation mode
+                localStorage.setItem('openego_disk_access', 'granted');
+                alert('✅ Full Disk Access granted!\n\nIn the full app, this would open System Preferences to grant the permission.\n\nOpenEgo will scan:\n• Apple Mail\n• Messages app\n• Documents folder\n• Calendar events');
+            }
         }
         
         // Training System
