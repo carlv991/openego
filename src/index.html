@@ -319,6 +319,218 @@
         
         .hidden { display: none !important; }
         
+        /* Training Styles */
+        .training-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .scenario-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 25px;
+        }
+        
+        .scenario-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .scenario-type {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: var(--bg-primary);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .scenario-date {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .scenario-content {
+            background: var(--bg-primary);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .scenario-from {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .scenario-subject {
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+        
+        .scenario-message {
+            color: var(--text);
+            line-height: 1.6;
+        }
+        
+        .ai-response {
+            background: rgba(217, 119, 6, 0.1);
+            border: 1px solid var(--accent);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .ai-response-label {
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+                    gap: 8px;
+        }
+        
+        .response-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .response-actions .btn {
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        .training-progress {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 30px 0;
+        }
+        
+        .training-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--border);
+            transition: all 0.3s;
+        }
+        
+        .training-dot.active {
+            background: var(--accent);
+            transform: scale(1.2);
+        }
+        
+        .training-dot.completed {
+            background: #10B981;
+        }
+        
+        .accuracy-meter {
+            text-align: center;
+            padding: 30px;
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            margin: 30px 0;
+        }
+        
+        .accuracy-score {
+            font-size: 4rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+        
+        .accuracy-label {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+        
+        .accuracy-bar {
+            height: 10px;
+            background: var(--border);
+            border-radius: 5px;
+            overflow: hidden;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+        
+        .accuracy-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #EF4444, #F59E0B, #10B981);
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+        
+        .unlock-banner {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1));
+            border: 2px solid #10B981;
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            margin: 30px 0;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            50% { box-shadow: 0 0 20px 10px rgba(16, 185, 129, 0.2); }
+        }
+        
+        .edit-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .edit-modal.active {
+            display: flex;
+        }
+        
+        .edit-modal-content {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .edit-textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 15px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 1rem;
+            resize: vertical;
+            margin: 15px 0;
+        }
+        
+        .edit-textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        
         /* Connector Styles */
         .connector-grid {
             display: grid;
@@ -868,6 +1080,193 @@
         </div>
     </div>
     
+    <!-- STEP 6: Training -->
+    <div class="step" id="step6">
+        <div class="training-container">
+            <h1 style="text-align: center;">🧪 Training Test</h1>
+            <p class="subtitle">Review how OpenEgo would respond to real scenarios</p>
+            
+            <div class="training-progress" id="trainingProgress">
+                <div class="training-dot active"></div>
+                <div class="training-dot"></div>
+                <div class="training-dot"></div>
+                <div class="training-dot"></div>
+                <div class="training-dot"></div>
+            </div>
+            
+            <div id="scenarioContainer">
+                <!-- Scenario 1 -->
+                <div class="scenario-card" id="scenario1">
+                    <div class="scenario-header">
+                        <span class="scenario-type">📧 Email</span>
+                        <span class="scenario-date">2024-03-10 14:23</span>
+                    </div>
+                    
+                    <div class="scenario-content">
+                        <div class="scenario-from">From: john@company.com</div>
+                        <div class="scenario-subject">Subject: Project Timeline Update</div>
+                        <div class="scenario-message">"Hi, can we move the deadline to next Friday? The team needs more time to finish the implementation."</div>
+                    </div>
+                    
+                    <div class="ai-response">
+                        <div class="ai-response-label">🤖 OpenEgo would respond:</div>
+                        <div>"Hi John, Friday works for me. Let's sync on Wednesday to make sure we're on track. 👍"</div>
+                    </div>
+                    
+                    <div class="response-actions">
+                        <button class="btn btn-primary" onclick="approveResponse(1)">✓ That's Right</button>
+                        <button class="btn btn-secondary" onclick="editResponse(1)">✏️ Edit</button>
+                        <button class="btn btn-secondary" onclick="rejectResponse(1)" style="background: rgba(239, 68, 68, 0.2); color: #EF4444;">✗ Wrong</button>
+                    </div>
+                </div>
+                
+                <!-- Scenario 2 -->
+                <div class="scenario-card hidden" id="scenario2">
+                    <div class="scenario-header">
+                        <span class="scenario-type">💬 Telegram</span>
+                        <span class="scenario-date">2024-03-09 10:15</span>
+                    </div>
+                    
+                    <div class="scenario-content">
+                        <div class="scenario-from">From: Sarah (Client)</div>
+                        <div class="scenario-message">"Hey! Are you free for a quick call this afternoon? Need to discuss the proposal."</div>
+                    </div>
+                    
+                    <div class="ai-response">
+                        <div class="ai-response-label">🤖 OpenEgo would respond:</div>
+                        <div>"Hey Sarah! I'm open from 2-4pm today. Send over a calendar invite and I'll join. Looking forward to discussing the proposal!"</div>
+                    </div>
+                    
+                    <div class="response-actions">
+                        <button class="btn btn-primary" onclick="approveResponse(2)">✓ That's Right</button>
+                        <button class="btn btn-secondary" onclick="editResponse(2)">✏️ Edit</button>
+                        <button class="btn btn-secondary" onclick="rejectResponse(2)" style="background: rgba(239, 68, 68, 0.2); color: #EF4444;">✗ Wrong</button>
+                    </div>
+                </div>
+                
+                <!-- Scenario 3 -->
+                <div class="scenario-card hidden" id="scenario3">
+                    <div class="scenario-header">
+                        <span class="scenario-type">📧 Email</span>
+                        <span class="scenario-date">2024-03-08 16:45</span>
+                    </div>
+                    
+                    <div class="scenario-content">
+                        <div class="scenario-from">From: team@startup.com</div>
+                        <div class="scenario-subject">Subject: New Feature Request</div>
+                        <div class="scenario-message">"We'd like to add user authentication to the dashboard. What's the timeline and cost estimate?"</div>
+                    </div>
+                    
+                    <div class="ai-response">
+                        <div class="ai-response-label">🤖 OpenEgo would respond:</div>
+                        <div>"Thanks for reaching out! Auth integration typically takes 2-3 weeks and starts at $5k. I'll send a detailed breakdown by EOD. When do you need this live?"</div>
+                    </div>
+                    
+                    <div class="response-actions">
+                        <button class="btn btn-primary" onclick="approveResponse(3)">✓ That's Right</button>
+                        <button class="btn btn-secondary" onclick="editResponse(3)">✏️ Edit</button>
+                        <button class="btn btn-secondary" onclick="rejectResponse(3)" style="background: rgba(239, 68, 68, 0.2); color: #EF4444;">✗ Wrong</button>
+                    </div>
+                </div>
+                
+                <!-- Scenario 4 -->
+                <div class="scenario-card hidden" id="scenario4">
+                    <div class="scenario-header">
+                        <span class="scenario-type">💬 Slack</span>
+                        <span class="scenario-date">2024-03-07 09:30</span>
+                    </div>
+                    
+                    <div class="scenario-content">
+                        <div class="scenario-from">From: @mike (Engineering)</div>
+                        <div class="scenario-message">"The deployment failed last night. Can you check the logs and restart the service?"</div>
+                    </div>
+                    
+                    <div class="ai-response">
+                        <div class="ai-response-label">🤖 OpenEgo would respond:</div>
+                        <div>"On it. Checking logs now and will restart. Will update the channel in 10 mins with what I find."</div>
+                    </div>
+                    
+                    <div class="response-actions">
+                        <button class="btn btn-primary" onclick="approveResponse(4)">✓ That's Right</button>
+                        <button class="btn btn-secondary" onclick="editResponse(4)">✏️ Edit</button>
+                        <button class="btn btn-secondary" onclick="rejectResponse(4)" style="background: rgba(239, 68, 68, 0.2); color: #EF4444;">✗ Wrong</button>
+                    </div>
+                </div>
+                
+                <!-- Scenario 5 -->
+                <div class="scenario-card hidden" id="scenario5">
+                    <div class="scenario-header">
+                        <span class="scenario-type">📧 Email</span>
+                        <span class="scenario-date">2024-03-06 11:20</span>
+                    </div>
+                    
+                    <div class="scenario-content">
+                        <div class="scenario-from">From: investor@vc.com</div>
+                        <div class="scenario-subject">Subject: Quarterly Update Request</div>
+                        <div class="scenario-message">"Hi, can you send over your Q1 metrics and growth projections by end of week?"</div>
+                    </div>
+                    
+                    <div class="ai-response">
+                        <div class="ai-response-label">🤖 OpenEgo would respond:</div>
+                        <div>"Absolutely! I'll have the Q1 deck ready by Thursday EOD. We're seeing strong growth - excited to share the numbers. Thanks for the continued support!"</div>
+                    </div>
+                    
+                    <div class="response-actions">
+                        <button class="btn btn-primary" onclick="approveResponse(5)">✓ That's Right</button>
+                        <button class="btn btn-secondary" onclick="editResponse(5)">✏️ Edit</button>
+                        <button class="btn btn-secondary" onclick="rejectResponse(5)" style="background: rgba(239, 68, 68, 0.2); color: #EF4444;">✗ Wrong</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Training Results -->
+            <div class="hidden" id="trainingResults">
+                <div class="accuracy-meter">
+                    <div class="accuracy-score" id="accuracyScore">0%</div>
+                    <div class="accuracy-label">Training Accuracy</div>
+                    <div class="accuracy-bar">
+                        <div class="accuracy-fill" id="accuracyFill" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <div class="hidden" id="unlockBanner">
+                    <div class="unlock-banner">
+                        <div style="font-size: 3rem; margin-bottom: 15px;">🎉</div>
+                        <h2 style="color: #10B981; margin-bottom: 10px;">Auto-Pilot Unlocked!</h2>
+                        <p style="color: var(--text-secondary);">You've achieved 80%+ accuracy. OpenEgo can now handle routine responses automatically.</p>
+                        <button class="btn btn-primary" style="margin-top: 20px;" onclick="enableAutoPilot()">Enable Auto-Pilot →</button>
+                    </div>
+                </div>
+                
+                <div class="hidden" id="continueCopilot">
+                    <div class="card" style="text-align: center; padding: 30px;">
+                        <div style="font-size: 2.5rem; margin-bottom: 15px;">👀</div>
+                        <h3>Continue in Co-Pilot Mode</h3>
+                        <p style="color: var(--text-secondary); margin: 15px 0;">Keep training to unlock Auto-Pilot. You'll still get suggestions for every response.</p>
+                        <button class="btn btn-primary" onclick="startDashboard()">Continue to Dashboard →</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="button-group" id="trainingNav">
+                <button class="btn btn-secondary" onclick="prevStep(5)">← Back</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Edit Modal -->
+    <div class="edit-modal" id="editModal">
+        <div class="edit-modal-content">
+            <h3>Edit Response</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 15px;">Teach OpenEgo how you would respond:</p>
+            <textarea class="edit-textarea" id="editTextarea" placeholder="Type your preferred response..."></textarea>
+            <div class="button-group" style="margin-top: 0;">
+                <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveEdit()">Save Response</button>
+            </div>
+        </div>
+    </div>
+    
     <script>
         let currentStep = 1;
         const totalSteps = 5;
@@ -897,7 +1296,144 @@
         }
         
         function startTraining() {
-            alert('Training module coming in next update!\n\nThis will show 5 scenarios from your communications to test and improve OpenEgo\'s responses.');
+            nextStep(6);
+        }
+        
+        // Training System
+        let currentScenario = 1;
+        let totalScenarios = 5;
+        let approvedCount = 0;
+        let editedCount = 0;
+        let rejectedCount = 0;
+        let responses = {};
+        let currentEditScenario = null;
+        
+        function updateTrainingProgress() {
+            const dots = document.querySelectorAll('.training-dot');
+            dots.forEach((dot, index) => {
+                dot.classList.remove('active', 'completed');
+                if (index < currentScenario - 1) {
+                    dot.classList.add('completed');
+                } else if (index === currentScenario - 1) {
+                    dot.classList.add('active');
+                }
+            });
+        }
+        
+        function showScenario(num) {
+            // Hide all scenarios
+            for (let i = 1; i <= totalScenarios; i++) {
+                document.getElementById(`scenario${i}`).classList.add('hidden');
+            }
+            
+            // Show current or results
+            if (num <= totalScenarios) {
+                document.getElementById(`scenario${num}`).classList.remove('hidden');
+                updateTrainingProgress();
+            } else {
+                showTrainingResults();
+            }
+        }
+        
+        function approveResponse(scenario) {
+            approvedCount++;
+            responses[scenario] = { type: 'approved' };
+            
+            if (currentScenario < totalScenarios) {
+                currentScenario++;
+                showScenario(currentScenario);
+            } else {
+                showTrainingResults();
+            }
+        }
+        
+        function editResponse(scenario) {
+            currentEditScenario = scenario;
+            const modal = document.getElementById('editModal');
+            const textarea = document.getElementById('editTextarea');
+            
+            // Get current AI response text
+            const aiResponseDiv = document.querySelector(`#scenario${scenario} .ai-response div:last-child`);
+            textarea.value = aiResponseDiv.textContent;
+            
+            modal.classList.add('active');
+        }
+        
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+            currentEditScenario = null;
+        }
+        
+        function saveEdit() {
+            const textarea = document.getElementById('editTextarea');
+            const newResponse = textarea.value.trim();
+            
+            if (newResponse && currentEditScenario) {
+                editedCount++;
+                responses[currentEditScenario] = { type: 'edited', response: newResponse };
+                
+                // Update the displayed response
+                const aiResponseDiv = document.querySelector(`#scenario${currentEditScenario} .ai-response div:last-child`);
+                aiResponseDiv.textContent = newResponse;
+                
+                closeEditModal();
+                
+                // Move to next
+                setTimeout(() => {
+                    if (currentScenario < totalScenarios) {
+                        currentScenario++;
+                        showScenario(currentScenario);
+                    } else {
+                        showTrainingResults();
+                    }
+                }, 500);
+            }
+        }
+        
+        function rejectResponse(scenario) {
+            rejectedCount++;
+            responses[scenario] = { type: 'rejected' };
+            
+            if (currentScenario < totalScenarios) {
+                currentScenario++;
+                showScenario(currentScenario);
+            } else {
+                showTrainingResults();
+            }
+        }
+        
+        function showTrainingResults() {
+            // Hide scenario container and nav
+            document.getElementById('scenarioContainer').classList.add('hidden');
+            document.getElementById('trainingNav').classList.add('hidden');
+            document.querySelector('.training-progress').classList.add('hidden');
+            
+            // Show results
+            document.getElementById('trainingResults').classList.remove('hidden');
+            
+            // Calculate accuracy
+            const accuracy = Math.round((approvedCount / totalScenarios) * 100);
+            document.getElementById('accuracyScore').textContent = accuracy + '%';
+            document.getElementById('accuracyFill').style.width = accuracy + '%';
+            
+            // Show appropriate result
+            if (accuracy >= 80) {
+                document.getElementById('unlockBanner').classList.remove('hidden');
+            } else {
+                document.getElementById('continueCopilot').classList.remove('hidden');
+            }
+        }
+        
+        function enableAutoPilot() {
+            localStorage.setItem('openego_mode', 'autopilot');
+            localStorage.setItem('openego_training_complete', 'true');
+            alert('🎉 Auto-Pilot enabled!\n\nOpenEgo will now handle routine responses automatically.\n\nDashboard coming next!');
+        }
+        
+        function startDashboard() {
+            localStorage.setItem('openego_mode', 'copilot');
+            localStorage.setItem('openego_training_complete', 'true');
+            alert('👀 Co-Pilot mode active!\n\nYou\'ll review every response before it\'s sent.\n\nDashboard coming next!');
         }
         
         // Connector Functions
