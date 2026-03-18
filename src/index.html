@@ -1664,6 +1664,34 @@
     </div>
     
     <script>
+        // API Configuration
+        const API_BASE = 'http://localhost:3000/api';
+        let userId = localStorage.getItem('openego_user_id') || generateUserId();
+        
+        function generateUserId() {
+            const id = 'user_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('openego_user_id', id);
+            return id;
+        }
+        
+        // Initialize user on load
+        async function initUser() {
+            const userName = localStorage.getItem('openego_user_name') || 'User';
+            const userEmail = localStorage.getItem('openego_user_email') || userId + '@openego.local';
+            
+            try {
+                await fetch(`${API_BASE}/auth/user`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: userId, email: userEmail, name: userName })
+                });
+            } catch (e) {
+                console.log('API not available, running in offline mode');
+            }
+        }
+        
+        initUser();
+        
         let currentStep = 1;
         const totalSteps = 5;
         
@@ -1689,6 +1717,71 @@
         function selectModel(card) {
             document.querySelectorAll('.model-card').forEach(c => c.classList.remove('selected'));
             card.classList.add('selected');
+            
+            // Save selection
+            const provider = card.dataset.provider;
+            const model = card.dataset.model;
+            localStorage.setItem('openego_provider', provider);
+            localStorage.setItem('openego_model', model);
+        }
+        
+        // Save AI model API key
+        async function saveAIModel() {
+            const selectedCard = document.querySelector('.model-card.selected');
+            if (!selectedCard) {
+                alert('Please select an AI model first');
+                return;
+            }
+            
+            const provider = selectedCard.dataset.provider;
+            const model = selectedCard.dataset.model;
+            
+            // Get API key from input if cloud model
+            let apiKey = '';
+            if (provider !== 'local') {
+                const apiInput = selectedCard.querySelector('input[type="password"]');
+                apiKey = apiInput ? apiInput.value : '';
+                
+                if (!apiKey) {
+                    alert('Please enter your API key for ' + provider);
+                    return;
+                }
+            }
+            
+            try {
+                await fetch(`${API_BASE}/ai-model`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, provider, model, apiKey })
+                });
+                
+                localStorage.setItem('openego_provider', provider);
+                localStorage.setItem('openego_model', model);
+                
+                alert('AI model saved successfully!');
+            } catch (e) {
+                // Save locally if API fails
+                localStorage.setItem('openego_provider', provider);
+                localStorage.setItem('openego_model', model);
+                localStorage.setItem('openego_api_key', apiKey);
+                console.log('Saved locally - API not available');
+            }
+        }
+        
+        // Generate AI response
+        async function generateAIResponse(message) {
+            try {
+                const response = await fetch(`${API_BASE}/generate-response`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, message })
+                });
+                
+                const data = await response.json();
+                return data.response || 'I am still learning your style.';
+            } catch (e) {
+                return 'AI response temporarily unavailable. Please check your API key in settings.';
+            }
         }
         
         function startTraining() {
@@ -1820,10 +1913,28 @@
             }
         }
         
-        function enableAutoPilot() {
+        async function enableAutoPilot() {
             localStorage.setItem('openego_mode', 'autopilot');
             localStorage.setItem('openego_training_complete', 'true');
-            alert('🎉 Auto-Pilot enabled!\n\nOpenEgo will now handle routine responses automatically.\n\nDashboard coming next!');
+            
+            // Save training data to backend
+            try {
+                await fetch(`${API_BASE}/training`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId,
+                        scenario: 'training_complete',
+                        userResponse: 'Auto-pilot unlocked',
+                        approved: true
+                    })
+                });
+            } catch (e) {
+                console.log('Training save failed, stored locally');
+            }
+            
+            alert('🎉 Auto-Pilot enabled!\n\nOpenEgo will now handle routine responses automatically.\n\nTaking you to dashboard...');
+            startDashboard();
         }
         
         function startDashboard() {
@@ -1856,28 +1967,46 @@
             }
         }
         
-        function connectOAuth(provider, event) {
+        async function connectOAuth(provider, event) {
             event.stopPropagation();
             const status = document.getElementById(provider + '-status');
             
-            // Simulate OAuth connection
-            const messages = {
-                'gmail': 'Opening Gmail authentication...',
-                'outlook': 'Opening Microsoft authentication...',
-                'apple': 'Requesting Apple Mail access...',
-                'imap': 'Opening IMAP configuration...',
-                'telegram': 'Opening Telegram Bot setup...',
-                'slack': 'Opening Slack OAuth...',
-                'files': 'Opening file picker...',
-                'calendar': 'Opening calendar selection...'
-            };
-            
-            alert(messages[provider] || 'Connecting...\n\nThis will open the actual OAuth flow in the full implementation.');
-            
-            // Simulate successful connection
-            status.textContent = '✓ Connected';
-            status.style.color = '#10B981';
-            document.getElementById(provider + '-oauth').style.display = 'none';
+            if (provider === 'telegram') {
+                const botToken = prompt('Enter your Telegram Bot Token:\n\n1. Message @BotFather on Telegram\n2. Create a new bot\n3. Paste the token here');
+                if (!botToken) return;
+                
+                try {
+                    status.textContent = 'Connecting...';
+                    const response = await fetch(`${API_BASE}/connect/telegram`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId, botToken })
+                    });
+                    
+                    const data = await response.json();
+                    if (data.success) {
+                        status.textContent = '✓ Connected';
+                        status.style.color = '#10B981';
+                        document.getElementById(provider + '-oauth').style.display = 'none';
+                        localStorage.setItem('openego_telegram_connected', 'true');
+                    }
+                } catch (e) {
+                    alert('Connection failed. Make sure the backend server is running.');
+                    status.textContent = 'Connection failed';
+                }
+            } else if (provider === 'gmail') {
+                alert('Gmail OAuth requires Google API credentials.\n\nTo enable:\n1. Go to Google Cloud Console\n2. Create OAuth 2.0 credentials\n3. Add them to backend/.env\n4. Restart the server');
+                
+                // For demo, mark as connected
+                status.textContent = '✓ Connected (Demo)';
+                status.style.color = '#10B981';
+                document.getElementById(provider + '-oauth').style.display = 'none';
+            } else {
+                alert(`${provider} integration coming soon!\n\nThis would open the ${provider} authentication flow.`);
+                status.textContent = '✓ Connected (Demo)';
+                status.style.color = '#10B981';
+                document.getElementById(provider + '-oauth').style.display = 'none';
+            }
         }
         
         function showSettings() {
