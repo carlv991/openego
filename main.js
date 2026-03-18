@@ -5,6 +5,7 @@ const {
   setupScanningHandlers,
   setupLocalAIHandlers 
 } = require('./electron-modules');
+const { setupCommunicationScanner } = require('./communication-scanner');
 
 let mainWindow;
 let tray;
@@ -32,6 +33,7 @@ function createWindow() {
   setupFullDiskAccessHandlers();
   setupScanningHandlers(mainWindow);
   setupLocalAIHandlers();
+  setupCommunicationScanner(mainWindow);
 
   // Setup tray
   setupTray();

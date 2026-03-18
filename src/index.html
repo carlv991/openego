@@ -1008,6 +1008,48 @@
                     
                     <div class="data-source-item">
                         <div style="display: flex; align-items: center; gap: 15px;">
+                            <div style="font-size: 2rem;">📱</div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600;">WhatsApp</div>
+                                <div style="color: var(--text-secondary); font-size: 0.9rem;">WhatsApp Desktop messages</div>
+                            </div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="source-whatsapp">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="data-source-item">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div style="font-size: 2rem;">✈️</div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600;">Telegram</div>
+                                <div style="color: var(--text-secondary); font-size: 0.9rem;">Telegram Desktop messages</div>
+                            </div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="source-telegram">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="data-source-item">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div style="font-size: 2rem;">💬</div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600;">Viber</div>
+                                <div style="color: var(--text-secondary); font-size: 0.9rem;">Viber Desktop messages</div>
+                            </div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="source-viber">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="data-source-item">
+                        <div style="display: flex; align-items: center; gap: 15px;">
                             <div style="font-size: 2rem;">📅</div>
                             <div style="flex: 1;">
                                 <div style="font-weight: 600;">Calendar</div>
@@ -1195,7 +1237,7 @@
         <!-- STEP 4: Learning -->
         <div class="step" id="step4">
             <h1 style="text-align: center;">Learning About You</h1>
-            <p class="subtitle">OpenEgo is analyzing your data to understand how you communicate</p>
+            <p class="subtitle">OpenEgo is analyzing all your communications to understand your style</p>
             
             <div class="card">
                 <div class="status-item" id="mailStatus">
@@ -1205,6 +1247,38 @@
                         <div style="color: var(--text-secondary); font-size: 0.9rem;" id="mailCount">0 emails found</div>
                     </div>
                     <span id="mailCheck" style="color: var(--text-secondary);">⏳</span>
+                </div>
+                <div class="status-item" id="messagesStatus">
+                    <span style="font-size: 1.5rem;">💬</span>
+                    <div style="flex: 1;">
+                        <div>Scanning Messages...</div>
+                        <div style="color: var(--text-secondary); font-size: 0.9rem;" id="messagesCount">Checking access...</div>
+                    </div>
+                    <span id="messagesCheck" style="color: var(--text-secondary);">⏳</span>
+                </div>
+                <div class="status-item" id="telegramStatus">
+                    <span style="font-size: 1.5rem;">✈️</span>
+                    <div style="flex: 1;">
+                        <div>Scanning Telegram...</div>
+                        <div style="color: var(--text-secondary); font-size: 0.9rem;" id="telegramCount">Checking access...</div>
+                    </div>
+                    <span id="telegramCheck" style="color: var(--text-secondary);">⏳</span>
+                </div>
+                <div class="status-item" id="whatsappStatus">
+                    <span style="font-size: 1.5rem;">📱</span>
+                    <div style="flex: 1;">
+                        <div>Scanning WhatsApp...</div>
+                        <div style="color: var(--text-secondary); font-size: 0.9rem;" id="whatsappCount">Checking access...</div>
+                    </div>
+                    <span id="whatsappCheck" style="color: var(--text-secondary);">⏳</span>
+                </div>
+                <div class="status-item" id="viberStatus">
+                    <span style="font-size: 1.5rem;">💬</span>
+                    <div style="flex: 1;">
+                        <div>Scanning Viber...</div>
+                        <div style="color: var(--text-secondary); font-size: 0.9rem;" id="viberCount">Checking access...</div>
+                    </div>
+                    <span id="viberCheck" style="color: var(--text-secondary);">⏳</span>
                 </div>
                 <div class="status-item" id="docsStatus">
                     <span style="font-size: 1.5rem;">📄</span>
@@ -1685,57 +1759,134 @@
             }
         }
         
-        // Data analysis for step 4 - Background loading
+        // Data analysis for step 4 - Background loading ALL channels
         async function startDataAnalysis() {
             // Show loading state
-            document.getElementById('analysisProgress').textContent = 'Scanning all historical data...';
-            document.getElementById('continueBtn').textContent = 'Loading...';
+            document.getElementById('analysisProgress').textContent = 'Scanning all communications...';
+            document.getElementById('continueBtn').textContent = 'Scanning...';
             document.getElementById('continueBtn').disabled = true;
+            
+            // Get selected sources from Step 2
+            const sources = JSON.parse(localStorage.getItem('openego_sources') || '{}');
             
             if (typeof require !== 'undefined') {
                 const { ipcRenderer } = require('electron');
                 
-                // Listen for progress updates
+                // Listen for progress updates from ALL channels
                 ipcRenderer.on('scan-progress', (event, data) => {
-                    if (data.type === 'mail') {
-                        document.getElementById('mailCount').textContent = 
-                            `${data.processed} of ${data.total} emails scanned (${data.percent}%)`;
-                        
-                        // Show progress bar effect
-                        if (data.percent < 100) {
-                            document.getElementById('mailCheck').textContent = '🔄';
-                        } else {
-                            document.getElementById('mailCheck').textContent = '✅';
-                            document.getElementById('mailCheck').style.color = '#10B981';
-                            localStorage.setItem('openego_mail_count', data.processed);
-                        }
-                    }
+                    updateChannelProgress(data);
                 });
                 
-                // Start full background scan
-                const fullScanResult = await ipcRenderer.invoke('scan-all-mail');
+                // Start comprehensive scan of ALL selected channels
+                const scanResult = await ipcRenderer.invoke('scan-communications', sources);
                 
-                if (fullScanResult.emails) {
-                    localStorage.setItem('openego_mail_count', fullScanResult.count);
-                    localStorage.setItem('openego_emails', JSON.stringify(fullScanResult.emails));
-                    
-                    document.getElementById('mailCount').textContent = 
-                        `${fullScanResult.count} emails scanned`;
-                    document.getElementById('mailCheck').textContent = '✅';
-                    document.getElementById('mailCheck').style.color = '#10B981';
+                // Process results
+                if (scanResult.emails) {
+                    localStorage.setItem('openego_mail_count', scanResult.emails.length);
+                    localStorage.setItem('openego_emails', JSON.stringify(scanResult.emails));
+                    updateChannelProgress({ type: 'mail', count: scanResult.emails.length, complete: true });
                 }
+                
+                if (scanResult.messages) {
+                    localStorage.setItem('openego_messages_count', scanResult.messages.length);
+                    updateChannelProgress({ type: 'messages', count: scanResult.messages.length, complete: true });
+                }
+                
+                if (scanResult.telegram) {
+                    localStorage.setItem('openego_telegram_count', scanResult.telegram.length);
+                    updateChannelProgress({ type: 'telegram', count: scanResult.telegram.length, complete: true });
+                }
+                
+                if (scanResult.whatsapp) {
+                    localStorage.setItem('openego_whatsapp_count', scanResult.whatsapp.length);
+                    updateChannelProgress({ type: 'whatsapp', count: scanResult.whatsapp.length, complete: true });
+                }
+                
+                // Store total communications count
+                localStorage.setItem('openego_total_communications', scanResult.totalCount);
             } else {
-                // Fallback to stored data
-                const mailCount = localStorage.getItem('openego_mail_count') || 0;
-                document.getElementById('mailCount').textContent = `${mailCount} emails found`;
-                if (mailCount > 0) {
-                    document.getElementById('mailCheck').textContent = '✅';
-                    document.getElementById('mailCheck').style.color = '#10B981';
-                }
+                // Fallback - simulate scan completion
+                simulateScanCompletion(sources);
             }
             
             // Continue with pattern analysis
             analyzeCommunicationPatterns();
+        }
+        
+        // Update UI for each channel's progress
+        function updateChannelProgress(data) {
+            const channelMap = {
+                'mail': { countId: 'mailCount', checkId: 'mailCheck', label: 'emails' },
+                'messages': { countId: 'messagesCount', checkId: 'messagesCheck', label: 'messages' },
+                'telegram': { countId: 'telegramCount', checkId: 'telegramCheck', label: 'Telegram messages' },
+                'whatsapp': { countId: 'whatsappCount', checkId: 'whatsappCheck', label: 'WhatsApp messages' },
+                'viber': { countId: 'viberCount', checkId: 'viberCheck', label: 'Viber messages' },
+                'documents': { countId: 'docsCount', checkId: 'docsCheck', label: 'documents' }
+            };
+            
+            const channel = channelMap[data.type];
+            if (!channel) return;
+            
+            if (data.total > 0) {
+                // Show progress
+                document.getElementById(channel.countId).textContent = 
+                    `${data.processed} of ${data.total} ${channel.label} (${data.percent}%)`;
+                
+                if (data.complete) {
+                    document.getElementById(channel.checkId).textContent = '✅';
+                    document.getElementById(channel.checkId).style.color = '#10B981';
+                    document.getElementById(channel.countId).textContent = 
+                        `${data.count} ${channel.label} found`;
+                } else if (data.percent < 100) {
+                    document.getElementById(channel.checkId).textContent = '🔄';
+                }
+            } else if (data.complete) {
+                // Complete but no total (e.g., Telegram/WhatsApp detection)
+                document.getElementById(channel.checkId).textContent = '✅';
+                document.getElementById(channel.checkId).style.color = '#10B981';
+                document.getElementById(channel.countId).textContent = 
+                    data.count > 0 ? `${data.count} ${channel.label} found` : 'App found, data encrypted';
+            } else if (data.error) {
+                document.getElementById(channel.checkId).textContent = '⚠️';
+                document.getElementById(channel.countId).textContent = data.error;
+            }
+        }
+        
+        // Simulate scan for demo mode
+        function simulateScanCompletion(sources) {
+            const mailCount = localStorage.getItem('openego_mail_count') || 1247;
+            document.getElementById('mailCount').textContent = `${mailCount} emails found`;
+            document.getElementById('mailCheck').textContent = '✅';
+            document.getElementById('mailCheck').style.color = '#10B981';
+            
+            if (sources.messages) {
+                document.getElementById('messagesCount').textContent = '3,421 messages found';
+                document.getElementById('messagesCheck').textContent = '✅';
+                document.getElementById('messagesCheck').style.color = '#10B981';
+            }
+            
+            if (sources.telegram) {
+                document.getElementById('telegramCount').textContent = 'App found';
+                document.getElementById('telegramCheck').textContent = '✅';
+                document.getElementById('telegramCheck').style.color = '#10B981';
+            }
+            
+            if (sources.whatsapp) {
+                document.getElementById('whatsappCount').textContent = 'App found';
+                document.getElementById('whatsappCheck').textContent = '✅';
+                document.getElementById('whatsappCheck').style.color = '#10B981';
+            }
+            
+            if (sources.viber) {
+                document.getElementById('viberCount').textContent = 'App found';
+                document.getElementById('viberCheck').textContent = '✅';
+                document.getElementById('viberCheck').style.color = '#10B981';
+            }
+            
+            const docsCount = localStorage.getItem('openego_docs_count') || 89;
+            document.getElementById('docsCount').textContent = `${docsCount} documents found`;
+            document.getElementById('docsCheck').textContent = '✅';
+            document.getElementById('docsCheck').style.color = '#10B981';
         }
         
         function analyzeCommunicationPatterns() {
@@ -1949,10 +2100,13 @@
         }
         
         function showPermissionRequest() {
-            // Save selected sources
+            // Save selected sources - ALL communication channels
             const sources = {
                 mail: document.getElementById('source-mail').checked,
                 messages: document.getElementById('source-messages').checked,
+                telegram: document.getElementById('source-telegram').checked,
+                whatsapp: document.getElementById('source-whatsapp').checked,
+                viber: document.getElementById('source-viber').checked,
                 documents: document.getElementById('source-documents').checked,
                 calendar: document.getElementById('source-calendar').checked
             };
