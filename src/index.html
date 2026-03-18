@@ -429,25 +429,120 @@
             <h1 style="text-align: center;">Choose Your AI Model</h1>
             <p class="subtitle">Select the brain that powers your digital twin</p>
             
-            <div class="card model-card selected" onclick="selectModel(this)">
+            <h3 style="margin: 30px 0 15px; color: var(--text-secondary);">☁️ Cloud Models (Requires API Key)</h3>
+            
+            <div class="card model-card selected" onclick="selectModel(this)" data-provider="openai" data-model="gpt-4o">
                 <span class="badge badge-recommended">Recommended</span>
-                <h3>Llama 3 8B</h3>
-                <p style="color: var(--text-secondary); margin: 10px 0;">Best balance of quality and speed. Runs smoothly on most modern computers.</p>
+                <h3>GPT-4o</h3>
+                <p style="color: var(--text-secondary); margin: 10px 0;">Most capable model. Excellent at understanding context and nuance.</p>
                 <div class="specs">
+                    <span>🧠 Most Capable</span>
                     <span>⚡ Fast</span>
-                    <span>💾 8GB RAM</span>
-                    <span>🔒 Private</span>
+                    <span>☁️ OpenAI API</span>
+                </div>
+                <div class="api-key-input" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border);">
+                    <input type="password" placeholder="Enter OpenAI API Key" style="width: 100%; padding: 10px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 8px; color: var(--text);">
                 </div>
             </div>
             
-            <div class="card model-card" onclick="selectModel(this)">
-                <span class="badge">Alternative</span>
-                <h3>Mistral 7B</h3>
-                <p style="color: var(--text-secondary); margin: 10px 0;">Excellent reasoning. Great for complex professional communication.</p>
+            <div class="card model-card" onclick="selectModel(this)" data-provider="openai" data-model="gpt-4o-mini">
+                <span class="badge">Cost Effective</span>
+                <h3>GPT-4o Mini</h3>
+                <p style="color: var(--text-secondary); margin: 10px 0;">Smarter and cheaper than GPT-3.5. Great for most tasks.</p>
                 <div class="specs">
-                    <span>🧠 Smart</span>
+                    <span>💰 Cheapest</span>
+                    <span>⚡ Very Fast</span>
+                    <span>☁️ OpenAI API</span>
+                </div>
+                <div class="api-key-input" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border);">
+                    <input type="password" placeholder="Enter OpenAI API Key" style="width: 100%; padding: 10px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 8px; color: var(--text);">
+                </div>
+            </div>
+            
+            <div class="card model-card" onclick="selectModel(this)" data-provider="anthropic" data-model="claude-3-5-sonnet">
+                <span class="badge">Best Reasoning</span>
+                <h3>Claude 3.5 Sonnet</h3>
+                <p style="color: var(--text-secondary); margin: 10px 0;">Exceptional reasoning and writing. Great for professional communication.</p>
+                <div class="specs">
+                    <span>🧠 Best Reasoning</span>
+                    <span>✍️ Great Writing</span>
+                    <span>☁️ Anthropic API</span>
+                </div>
+                <div class="api-key-input" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border);">
+                    <input type="password" placeholder="Enter Anthropic API Key" style="width: 100%; padding: 10px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 8px; color: var(--text);">
+                </div>
+            </div>
+            
+            <div class="card model-card" onclick="selectModel(this)" data-provider="anthropic" data-model="claude-3-haiku">
+                <span class="badge">Fast & Cheap</span>
+                <h3>Claude 3 Haiku</h3>
+                <p style="color: var(--text-secondary); margin: 10px 0;">Lightning fast responses. Most affordable Anthropic option.</p>
+                <div class="specs">
+                    <span>🏎 Fastest</span>
+                    <span>💰 Affordable</span>
+                    <span>☁️ Anthropic API</span>
+                </div>
+                <div class="api-key-input" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border);">
+                    <input type="password" placeholder="Enter Anthropic API Key" style="width: 100%; padding: 10px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 8px; color: var(--text);">
+                </div>
+            </div>
+            
+            <div class="card model-card" onclick="selectModel(this)" data-provider="google" data-model="gemini-pro">
+                <span class="badge">Google AI</span>
+                <h3>Gemini Pro</h3>
+                <p style="color: var(--text-secondary); margin: 10px 0;">Google's most capable model. Strong multilingual support.</p>
+                <div class="specs">
+                    <span>🌍 Multilingual</span>
+                    <span>⚡ Fast</span>
+                    <span>☁️ Google API</span>
+                </div>
+                <div class="api-key-input" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border);">
+                    <input type="password" placeholder="Enter Google API Key" style="width: 100%; padding: 10px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 8px; color: var(--text);">
+                </div>
+            </div>
+            
+            <h3 style="margin: 30px 0 15px; color: var(--text-secondary);">💻 Local Models (Runs on Your Computer)</h3>
+            
+            <div class="card model-card" onclick="selectModel(this)" data-provider="local" data-model="llama-3.1-8b">
+                <span class="badge">Local Best</span>
+                <h3>Llama 3.1 8B</h3>
+                <p style="color: var(--text-secondary); margin: 10px 0;">Best local model balance. Requires 8GB RAM. Completely private.</p>
+                <div class="specs">
+                    <span>🔒 100% Private</span>
+                    <span>💾 8GB RAM</span>
+                    <span>⚡ Good Speed</span>
+                </div>
+            </div>
+            
+            <div class="card model-card" onclick="selectModel(this)" data-provider="local" data-model="llama-3.1-70b">
+                <span class="badge">Most Powerful Local</span>
+                <h3>Llama 3.1 70B</h3>
+                <p style="color: var(--text-secondary); margin: 10px 0;">State-of-the-art local model. Requires 40GB+ RAM. Best quality.</p>
+                <div class="specs">
+                    <span>🔒 100% Private</span>
+                    <span>💾 40GB+ RAM</span>
+                    <span>🐢 Slower</span>
+                </div>
+            </div>
+            
+            <div class="card model-card" onclick="selectModel(this)" data-provider="local" data-model="mistral-7b">
+                <h3>Mistral 7B</h3>
+                <p style="color: var(--text-secondary); margin: 10px 0;">Efficient and capable. Good for older computers.</p>
+                <div class="specs">
+                    <span>🔒 100% Private</span>
                     <span>💾 7GB RAM</span>
-                    <span>🔒 Private</span>
+                    <span>⚡ Fast</span>
+                </div>
+            </div>
+            
+            <div class="card model-card" onclick="selectModel(this)" data-provider="local" data-model="mixtral-8x7b">
+                <span class="badge">Mixture of Experts</span>
+                <h3>Mixtral 8x7B</h3>
+                <p style="color: var(--text-secondary); margin: 10px 0;">Advanced MoE architecture. Excellent reasoning.</p>
+                <div class="specs">
+                    <span>🔒 100% Private</span>
+                    <span>💾 28GB RAM</span>
+                    <span>🧠 Very Smart</span>
                 </div>
             </div>
             
@@ -492,30 +587,49 @@
             </div>
         </div>
         
-        <!-- STEP 5: Ready/Dashboard -->
+        <!-- STEP 5: Ready for Training -->
         <div class="step" id="step5">
-            <h1 style="text-align: center;">🎉 You're Ready!</h1>
-            <p class="subtitle">Your OpenEgo is trained and ready to help</p>
+            <h1 style="text-align: center;">🎉 Setup Complete!</h1>
+            <p class="subtitle">Your OpenEgo is configured and ready to learn</p>
             
             <div class="card" style="text-align: center; padding: 50px;">
                 <div style="font-size: 4rem; margin-bottom: 20px;">🧠</div>
-                <h2>I AM ALIVE</h2>
-                <p style="color: var(--text-secondary); margin: 20px 0;">Choose your mode to get started:</p>
+                <h2>Ready to Start Training</h2>
+                <p style="color: var(--text-secondary); margin: 20px 0; max-width: 500px; margin-left: auto; margin-right: auto;">
+                    Before OpenEgo can respond on your behalf, it needs to learn your communication style through a training process.
+                </p>
                 
-                <div style="display: flex; gap: 20px; margin-top: 30px;">
-                    <div style="flex: 1; padding: 30px; background: var(--bg-primary); border-radius: 12px; border: 2px solid var(--border);">
-                        <div style="font-size: 2.5rem; margin-bottom: 10px;">👀</div>
-                        <h3>Co-Pilot</h3>
-                        <p style="color: var(--text-secondary); font-size: 0.9rem;">I suggest, you approve</p>
-                        <button class="btn btn-primary" style="margin-top: 15px;" onclick="startApp('copilot')">Select</button>
-                    </div>
-                    <div style="flex: 1; padding: 30px; background: var(--bg-primary); border-radius: 12px; border: 2px solid var(--accent);">
-                        <div style="font-size: 2.5rem; margin-bottom: 10px;">🤖</div>
-                        <h3>Auto-Pilot</h3>
-                        <p style="color: var(--text-secondary); font-size: 0.9rem;">I handle routine responses</p>
-                        <button class="btn btn-primary" style="margin-top: 15px;" onclick="startApp('autopilot')">Select</button>
+                <div style="background: var(--bg-primary); border-radius: 12px; padding: 25px; margin: 30px 0; text-align: left;">
+                    <h4 style="margin-bottom: 15px;">📋 What happens next:</h4>
+                    <div style="display: flex; flex-direction: column; gap: 12px; color: var(--text-secondary);">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="color: var(--accent);">1.</span>
+                            <span>Review 5 real scenarios from your communications</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="color: var(--accent);">2.</span>
+                            <span>Approve or edit how OpenEgo would respond</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="color: var(--accent);">3.</span>
+                            <span>Reach 80% accuracy to unlock Auto-Pilot mode</span>
+                        </div>
                     </div>
                 </div>
+                
+                <div style="background: rgba(217, 119, 6, 0.1); border: 1px solid var(--accent); border-radius: 12px; padding: 20px; margin-bottom: 30px;">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--accent);">
+                        <span style="font-size: 1.5rem;">🔒</span>
+                        <span style="font-weight: 600;">Auto-Pilot unlocks after passing training</span>
+                    </div>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 10px;">
+                        For now, you'll start in Co-Pilot mode where you approve every response
+                    </p>
+                </div>
+                
+                <button class="btn btn-primary" style="padding: 15px 40px; font-size: 1.1rem;" onclick="startTraining()">
+                    Start Training →
+                </button>
             </div>
         </div>
     </div>
@@ -548,8 +662,8 @@
             card.classList.add('selected');
         }
         
-        function startApp(mode) {
-            alert(`Starting OpenEgo in ${mode} mode!\n\nDashboard coming in next update.`);
+        function startTraining() {
+            alert('Training module coming in next update!\n\nThis will show 5 scenarios from your communications to test and improve OpenEgo\'s responses.');
         }
         
         function showSettings() {
