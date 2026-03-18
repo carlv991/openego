@@ -559,6 +559,28 @@
             border-bottom: none;
         }
         
+        /* Data Source Selection */
+        .data-source-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .data-source-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            background: var(--bg-primary);
+            border-radius: 12px;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .data-source-item:hover {
+            border-color: var(--border);
+        }
+        
         /* Training Styles */
         .training-container {
             max-width: 900px;
@@ -928,63 +950,116 @@
             </div>
         </div>
         
-        <!-- STEP 2: Permissions (Simplified) -->
+        <!-- STEP 2: Select Data Sources -->
         <div class="step" id="step2">
-            <h1 style="text-align: center;">Grant Access</h1>
-            <p class="subtitle">One permission to access all your data</p>
+            <h1 style="text-align: center;">Select Data Sources</h1>
+            <p class="subtitle">Choose what OpenEgo will learn from</p>
             
-            <div class="card" style="text-align: center; padding: 40px;">
-                <div style="font-size: 4rem; margin-bottom: 20px;">🔐</div>
-                <h2 style="margin-bottom: 15px;">Full Disk Access</h2>
-                <p style="color: var(--text-secondary); margin-bottom: 30px; max-width: 500px; margin-left: auto; margin-right: auto;">
-                    OpenEgo needs access to your computer to learn from your emails, messages, and documents. 
-                    This is the same permission apps like Dropbox and CleanMyMac use.
-                </p>
-                
-                <div style="background: var(--bg-primary); border-radius: 12px; padding: 25px; margin: 30px 0; text-align: left;">
-                    <h4 style="margin-bottom: 15px; color: var(--accent);">📋 What OpenEgo will access:</h4>
-                    <div style="display: flex; flex-direction: column; gap: 12px; color: var(--text-secondary);">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span>📧</span>
-                            <span>Apple Mail app data</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span>📄</span>
-                            <span>Documents and text files</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span>💬</span>
-                            <span>Messages app history</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span>📅</span>
-                            <span>Calendar events</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10B981; border-radius: 12px; padding: 20px; margin-bottom: 30px;">
-                    <div style="display: flex; align-items: center; justify-content: center; gap: 10px; color: #10B981;">
-                        <span style="font-size: 1.5rem;">🔒</span>
-                        <span style="font-weight: 600;">Everything stays on your device</span>
-                    </div>
-                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 10px;">
-                        Your data never leaves your computer. No cloud storage. No servers.
+            <div class="card">
+                <div style="background: var(--bg-primary); border-radius: 12px; padding: 20px; margin-bottom: 25px;">
+                    <p style="color: var(--text-secondary); font-size: 0.95rem;">
+                        OpenEgo will scan these locations to learn your communication style. 
+                        Toggle off any you don't want to include.
                     </p>
                 </div>
                 
-                <button class="btn btn-primary" style="padding: 18px 50px; font-size: 1.1rem;" onclick="requestFullDiskAccess()">
-                    Grant Access →
-                </button>
+                <div class="data-source-list">
+                    <div class="data-source-item">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div style="font-size: 2rem;">📧</div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600;">Apple Mail</div>
+                                <div style="color: var(--text-secondary); font-size: 0.9rem;">Emails from Mail app</div>
+                            </div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="source-mail" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="data-source-item">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div style="font-size: 2rem;">💬</div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600;">Messages</div>
+                                <div style="color: var(--text-secondary); font-size: 0.9rem;">iMessage history</div>
+                            </div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="source-messages" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="data-source-item">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div style="font-size: 2rem;">📄</div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600;">Documents</div>
+                                <div style="color: var(--text-secondary); font-size: 0.9rem;">Text files and documents</div>
+                            </div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="source-documents" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="data-source-item">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div style="font-size: 2rem;">📅</div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600;">Calendar</div>
+                                <div style="color: var(--text-secondary); font-size: 0.9rem;">Events and availability</div>
+                            </div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="source-calendar">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
                 
-                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 20px;">
-                    You can revoke this permission anytime in System Preferences
+                <div id="permissionRequest" style="display: none; margin-top: 30px; text-align: center;">
+                    <div style="background: rgba(217, 119, 6, 0.1); border: 1px solid var(--accent); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                        <div style="font-size: 2rem; margin-bottom: 10px;">🔐</div>
+                        <h3 style="margin-bottom: 10px;">Full Disk Access Required</h3>
+                        <p style="color: var(--text-secondary);">
+                            To read your selected data sources, OpenEgo needs Full Disk Access permission.
+                            This is the same permission used by Dropbox and CleanMyMac.
+                        </p>
+                    </div>
+                    
+                    <button class="btn btn-primary" style="padding: 15px 40px; font-size: 1.1rem;" onclick="requestFullDiskAccess()">
+                        Grant Full Disk Access →
+                    </button>
+                </div>
+                
+                <div id="permissionGranted" style="display: none; margin-top: 30px; text-align: center;">
+                    <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10B981; border-radius: 12px; padding: 20px;">
+                        <div style="font-size: 2rem; margin-bottom: 10px;">✅</div>
+                        <h3 style="margin-bottom: 10px; color: #10B981;">Access Granted!</h3>
+                        <p style="color: var(--text-secondary);">
+                            OpenEgo can now scan your selected data sources.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10B981; border-radius: 12px; padding: 20px; margin: 20px 0;">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 10px; color: #10B981;">
+                    <span style="font-size: 1.5rem;">🔒</span>
+                    <span style="font-weight: 600;">All data stays on your device</span>
+                </div>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 10px; text-align: center;">
+                    Your data never leaves your computer. No cloud storage. No servers.
                 </p>
             </div>
             
             <div class="button-group">
                 <button class="btn btn-secondary" onclick="prevStep(1)">← Back</button>
-                <button class="btn btn-primary" onclick="nextStep(3)">Continue →</button>
+                <button class="btn btn-primary" id="step2Continue" onclick="showPermissionRequest()">Continue →</button>
             </div>
         </div>        <!-- STEP 3: AI Model -->
         <div class="step" id="step3">
@@ -1783,7 +1858,25 @@
             nextStep(6);
         }
         
+        function showPermissionRequest() {
+            // Save selected sources
+            const sources = {
+                mail: document.getElementById('source-mail').checked,
+                messages: document.getElementById('source-messages').checked,
+                documents: document.getElementById('source-documents').checked,
+                calendar: document.getElementById('source-calendar').checked
+            };
+            localStorage.setItem('openego_sources', JSON.stringify(sources));
+            
+            // Show permission request
+            document.getElementById('permissionRequest').style.display = 'block';
+            document.getElementById('step2Continue').style.display = 'none';
+        }
+        
         async function requestFullDiskAccess() {
+            // Get selected sources
+            const sources = JSON.parse(localStorage.getItem('openego_sources') || '{}');
+            
             // Check if running in Electron
             if (typeof require !== 'undefined') {
                 const { ipcRenderer } = require('electron');
@@ -1793,21 +1886,58 @@
                 
                 if (checkResult.granted) {
                     localStorage.setItem('openego_disk_access', 'granted');
+                    document.getElementById('permissionRequest').style.display = 'none';
+                    document.getElementById('permissionGranted').style.display = 'block';
                     
-                    // Start scanning data
-                    scanUserData();
+                    // Start scanning selected data sources
+                    await scanSelectedData(sources);
                     
-                    alert('✅ Full Disk Access already granted!\n\nScanning your data now...');
+                    // Auto-continue after 2 seconds
+                    setTimeout(() => nextStep(3), 2000);
                 } else {
                     // Request access
                     await ipcRenderer.invoke('request-full-disk-access');
-                    alert('📋 Please follow the instructions in System Preferences to grant access, then restart OpenEgo.');
+                    alert('📋 Please follow the instructions in System Preferences to grant access.\n\nAfter granting, click Continue.');
+                    
+                    // Change button to check again
+                    document.querySelector('#permissionRequest button').textContent = 'Check Again →';
+                    document.querySelector('#permissionRequest button').onclick = requestFullDiskAccess;
                 }
             } else {
                 // Web/simulation mode
                 localStorage.setItem('openego_disk_access', 'granted');
-                alert('✅ Full Disk Access granted!\n\nIn the full Electron app, this would scan your:\n• Apple Mail\n• Messages app\n• Documents folder\n• Calendar events');
+                document.getElementById('permissionRequest').style.display = 'none';
+                document.getElementById('permissionGranted').style.display = 'block';
+                
+                alert('✅ Full Disk Access granted (Demo Mode)\n\nIn the full app, this would scan:\n• Apple Mail: ' + (sources.mail ? 'YES' : 'NO') + '\n• Messages: ' + (sources.messages ? 'YES' : 'NO') + '\n• Documents: ' + (sources.documents ? 'YES' : 'NO') + '\n• Calendar: ' + (sources.calendar ? 'YES' : 'NO'));
+                
+                setTimeout(() => nextStep(3), 1500);
             }
+        }
+        
+        // Scan only selected data sources
+        async function scanSelectedData(sources) {
+            if (typeof require === 'undefined') return;
+            
+            const { ipcRenderer } = require('electron');
+            
+            if (sources.mail) {
+                const mailResult = await ipcRenderer.invoke('scan-mail');
+                if (mailResult.emails) {
+                    localStorage.setItem('openego_mail_count', mailResult.count);
+                    localStorage.setItem('openego_emails', JSON.stringify(mailResult.emails.slice(0, 10)));
+                }
+            }
+            
+            if (sources.documents) {
+                const docsResult = await ipcRenderer.invoke('scan-documents');
+                if (docsResult.documents) {
+                    localStorage.setItem('openego_docs_count', docsResult.count);
+                }
+            }
+            
+            // Messages and Calendar scanning would go here
+            console.log('Scan complete for selected sources');
         }
         
         // Scan user data
