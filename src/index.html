@@ -1063,16 +1063,19 @@
                 </div>
             </div>
             
-            <h3 style="margin: 30px 0 15px; color: var(--text-secondary);">💻 Local Models (Runs on Your Computer)</h3>
+            <h3 style="margin: 30px 0 15px; color: var(--text-secondary);">💻 Local Models (Runs on Your Computer - Free!)</h3>
             
-            <div class="card model-card" onclick="selectModel(this)" data-provider="local" data-model="llama-3.1-8b">
-                <span class="badge">Local Best</span>
-                <h3>Llama 3.1 8B</h3>
-                <p style="color: var(--text-secondary); margin: 10px 0;">Best local model balance. Requires 8GB RAM. Completely private.</p>
+            <div class="card model-card" onclick="selectModel(this)" data-provider="ollama" data-model="llama3.1">
+                <span class="badge badge-recommended">Recommended Local</span>
+                <h3>Llama 3.1 8B (via Ollama)</h3>
+                <p style="color: var(--text-secondary); margin: 10px 0;">Runs locally - no API key needed! Requires 8GB RAM.</p>
                 <div class="specs">
                     <span>🔒 100% Private</span>
                     <span>💾 8GB RAM</span>
-                    <span>⚡ Good Speed</span>
+                    <span>🆓 Free Forever</span>
+                </div>
+                <div class="ollama-status" id="ollamaStatus" style="margin-top: 15px; padding: 10px; background: var(--bg-primary); border-radius: 8px; font-size: 0.9rem; color: var(--text-secondary);">
+                    Checking Ollama...
                 </div>
             </div>
             
@@ -1601,6 +1604,35 @@
             localStorage.setItem('openego_model', model);
         }
         
+        // Check Ollama status
+        async function checkOllamaStatus() {
+            if (typeof require === 'undefined') {
+                document.getElementById('ollamaStatus').textContent = 'Install Ollama: ollama.com/download';
+                return;
+            }
+            
+            try {
+                const { ipcRenderer } = require('electron');
+                const result = await ipcRenderer.invoke('check-ollama');
+                
+                if (result.running) {
+                    const models = result.models.map(m => m.name).join(', ');
+                    document.getElementById('ollamaStatus').textContent = `✅ Ollama running! Models: ${models}`;
+                    document.getElementById('ollamaStatus').style.color = '#10B981';
+                } else {
+                    document.getElementById('ollamaStatus').textContent = '⚠️ Ollama not running. Install: ollama.com/download';
+                    document.getElementById('ollamaStatus').style.color = '#F59E0B';
+                }
+            } catch (e) {
+                document.getElementById('ollamaStatus').textContent = 'Install Ollama: ollama.com/download';
+            }
+        }
+        
+        // Check on load
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(checkOllamaStatus, 1000);
+        });
+        
         // Save AI model API key
         async function saveAIModel() {
             const selectedCard = document.querySelector('.model-card.selected');
@@ -1646,11 +1678,27 @@
         
         // Generate AI response
         async function generateAIResponse(message) {
+            const provider = localStorage.getItem('openego_provider') || 'openai';
+            const model = localStorage.getItem('openego_model') || 'gpt-4o';
+            
+            // Use local AI if selected
+            if (provider === 'ollama' && typeof require !== 'undefined') {
+                try {
+                    const { ipcRenderer } = require('electron');
+                    const prompt = `You are a helpful AI assistant drafting a response to this message. Keep it concise and natural: "${message}"`;
+                    const response = await ipcRenderer.invoke('query-local-ai', prompt, model);
+                    return response;
+                } catch (e) {
+                    return 'Local AI error. Make sure Ollama is running (ollama run llama3.1)';
+                }
+            }
+            
+            // Use cloud API
             try {
                 const response = await fetch(`${API_BASE}/generate-response`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId, message })
+                    body: JSON.stringify({ userId, message, provider, model })
                 });
                 
                 const data = await response.json();
@@ -1664,25 +1712,53 @@
             nextStep(6);
         }
         
-        function requestFullDiskAccess() {
-            // In Electron, this would use systemPreferences API
-            // For now, simulate the permission request
-            
-            if (window.electronAPI && window.electronAPI.requestFullDiskAccess) {
-                // Real Electron implementation
-                window.electronAPI.requestFullDiskAccess().then(granted => {
-                    if (granted) {
-                        localStorage.setItem('openego_disk_access', 'granted');
-                        alert('✅ Full Disk Access granted!\n\nOpenEgo will now scan your Mail, Messages, and Documents to learn your communication style.');
-                    } else {
-                        alert('❌ Access denied. OpenEgo needs this permission to learn from your data.\n\nYou can grant it later in System Preferences > Security & Privacy > Privacy > Full Disk Access');
-                    }
-                });
+        async function requestFullDiskAccess() {
+            // Check if running in Electron
+            if (typeof require !== 'undefined') {
+                const { ipcRenderer } = require('electron');
+                
+                // Check current access
+                const checkResult = await ipcRenderer.invoke('check-full-disk-access');
+                
+                if (checkResult.granted) {
+                    localStorage.setItem('openego_disk_access', 'granted');
+                    
+                    // Start scanning data
+                    scanUserData();
+                    
+                    alert('✅ Full Disk Access already granted!\n\nScanning your data now...');
+                } else {
+                    // Request access
+                    await ipcRenderer.invoke('request-full-disk-access');
+                    alert('📋 Please follow the instructions in System Preferences to grant access, then restart OpenEgo.');
+                }
             } else {
                 // Web/simulation mode
                 localStorage.setItem('openego_disk_access', 'granted');
-                alert('✅ Full Disk Access granted!\n\nIn the full app, this would open System Preferences to grant the permission.\n\nOpenEgo will scan:\n• Apple Mail\n• Messages app\n• Documents folder\n• Calendar events');
+                alert('✅ Full Disk Access granted!\n\nIn the full Electron app, this would scan your:\n• Apple Mail\n• Messages app\n• Documents folder\n• Calendar events');
             }
+        }
+        
+        // Scan user data
+        async function scanUserData() {
+            if (typeof require === 'undefined') return;
+            
+            const { ipcRenderer } = require('electron');
+            
+            // Scan Mail
+            const mailResult = await ipcRenderer.invoke('scan-mail');
+            if (mailResult.emails) {
+                localStorage.setItem('openego_mail_count', mailResult.count);
+                localStorage.setItem('openego_emails', JSON.stringify(mailResult.emails.slice(0, 10)));
+            }
+            
+            // Scan Documents
+            const docsResult = await ipcRenderer.invoke('scan-documents');
+            if (docsResult.documents) {
+                localStorage.setItem('openego_docs_count', docsResult.count);
+            }
+            
+            console.log('Scan complete:', { mail: mailResult.count, docs: docsResult.count });
         }
         
         // Training System

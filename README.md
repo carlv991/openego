@@ -90,10 +90,21 @@ Unlike other apps, OpenEgo uses **Full Disk Access** (like Dropbox, CleanMyMac):
 - 📄 Documents - writing style analysis
 - 📅 Calendar - availability understanding
 
-### Just Add:
-- **OpenAI API Key** - for AI responses (get at platform.openai.com)
+### Choose Your AI (2 options):
 
-That's it! **One macOS permission + one API key = full functionality**
+**Option 1: Cloud AI (OpenAI/Claude)**
+- Get API key at platform.openai.com
+- Fast, highly capable
+- Small cost per use (~$0.01 per message)
+
+**Option 2: Local AI (Llama via Ollama) - FREE!**
+- Download: `ollama.com/download`
+- Run: `ollama run llama3.1`
+- Completely free, runs on your Mac
+- Requires 8GB RAM
+
+### That's it!
+**One macOS permission + AI of choice = full functionality**
 
 ## 🚀 Quick Start
 

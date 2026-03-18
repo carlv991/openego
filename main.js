@@ -1,5 +1,10 @@
-const { app, BrowserWindow, Tray, Menu, nativeImage } = require('electron');
+const { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain } = require('electron');
 const path = require('path');
+const { 
+  setupFullDiskAccessHandlers, 
+  setupScanningHandlers,
+  setupLocalAIHandlers 
+} = require('./electron-modules');
 
 let mainWindow;
 let tray;
@@ -14,6 +19,7 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
+      enableRemoteModule: true,
       webSecurity: false
     },
     icon: path.join(__dirname, 'src-tauri/icons/icon.png')
@@ -21,6 +27,11 @@ function createWindow() {
 
   // Load the HTML file
   mainWindow.loadFile('src/index.html');
+
+  // Setup IPC handlers
+  setupFullDiskAccessHandlers();
+  setupScanningHandlers();
+  setupLocalAIHandlers();
 
   // Setup tray
   setupTray();
