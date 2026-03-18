@@ -17,6 +17,8 @@
     },
     "files": [
       "main.js",
+      "electron-modules.js",
+      "communication-scanner.js",
       "src/**/*",
       "node_modules/**/*"
     ],
