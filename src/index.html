@@ -319,6 +319,246 @@
         
         .hidden { display: none !important; }
         
+        /* Dashboard Styles */
+        .dashboard {
+            display: flex;
+            height: 100vh;
+            background: var(--bg-primary);
+        }
+        
+        .dashboard-sidebar {
+            width: 260px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 30px 20px;
+        }
+        
+        .sidebar-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            flex: 1;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .nav-item:hover, .nav-item.active {
+            background: rgba(217, 119, 6, 0.1);
+            color: var(--accent);
+        }
+        
+        .nav-badge {
+            position: absolute;
+            right: 15px;
+            background: var(--accent);
+            color: white;
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+        
+        .mode-switcher {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+        
+        .mode-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+        
+        .mode-value {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+        
+        .dashboard-main {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+        
+        .dashboard-header {
+            margin-bottom: 30px;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .approval-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .approval-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 25px;
+            transition: all 0.2s;
+        }
+        
+        .approval-card:hover {
+            border-color: var(--accent);
+        }
+        
+        .approval-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .approval-type {
+            color: var(--accent);
+        }
+        
+        .approval-time {
+            color: var(--text-secondary);
+        }
+        
+        .approval-from {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .approval-preview {
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+            padding: 15px;
+            background: var(--bg-primary);
+            border-radius: 8px;
+        }
+        
+        .ai-suggestion {
+            background: rgba(217, 119, 6, 0.1);
+            border-left: 3px solid var(--accent);
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 15px;
+        }
+        
+        .approval-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+        
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 25px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .activity-chart {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            height: 200px;
+            gap: 15px;
+            padding: 20px 0;
+        }
+        
+        .chart-bar {
+            flex: 1;
+            background: linear-gradient(to top, var(--accent), var(--accent-dark));
+            border-radius: 8px 8px 0 0;
+            min-height: 20px;
+            position: relative;
+            transition: all 0.3s;
+        }
+        
+        .chart-bar:hover {
+            opacity: 0.8;
+        }
+        
+        .chart-bar span {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        
+        .settings-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        
+        .settings-section h3 {
+            margin-bottom: 20px;
+            color: var(--accent);
+        }
+        
+        .settings-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .settings-item:last-child {
+            border-bottom: none;
+        }
+        
         /* Training Styles */
         .training-container {
             max-width: 900px;
@@ -1267,6 +1507,75 @@
         </div>
     </div>
     
+    <!-- STEP 7: Dashboard -->
+    <div class="step" id="step7">
+        <div class="dashboard">
+            <aside class="dashboard-sidebar">
+                <div class="sidebar-logo">🧠 OpenEgo</div>
+                <nav class="sidebar-nav">
+                    <button class="nav-item active" onclick="switchTab('inbox')">
+                        <span>📥</span> Inbox
+                        <span class="nav-badge" id="inboxBadge">3</span>
+                    </button>
+                    <button class="nav-item" onclick="switchTab('stats')">
+                        <span>📊</span> Stats
+                    </button>
+                    <button class="nav-item" onclick="switchTab('settings')">
+                        <span>⚙️</span> Settings
+                    </button>
+                </nav>
+                <div class="mode-switcher">
+                    <div class="mode-label">Current Mode</div>
+                    <div class="mode-value" id="currentMode">👀 Co-Pilot</div>
+                    <button class="btn btn-primary" style="width: 100%; margin-top: 10px; padding: 10px; font-size: 0.9rem;" onclick="toggleMode()">Switch Mode</button>
+                </div>
+            </aside>
+            <main class="dashboard-main">
+                <div class="tab-content active" id="inboxTab">
+                    <div class="dashboard-header">
+                        <h2>📥 Pending Approvals</h2>
+                        <p style="color: var(--text-secondary);">Review OpenEgo's suggested responses</p>
+                    </div>
+                    <div class="approval-list">
+                        <div class="approval-card">
+                            <div class="approval-meta">
+                                <span class="approval-type">📧 Email</span>
+                                <span class="approval-time">2 min ago</span>
+                            </div>
+                            <div class="approval-from">From: client@company.com</div>
+                            <div class="approval-preview">"Can we schedule a call to discuss the proposal?"</div>
+                            <div class="ai-suggestion"><strong>🤖 Suggested:</strong> "Absolutely! I'm free Thursday 2-4pm. What works for you?"</div>
+                            <div class="approval-actions">
+                                <button class="btn btn-primary" onclick="approveMessage(this)">✓ Send</button>
+                                <button class="btn btn-secondary" onclick="editMessage(this)">✏️ Edit</button>
+                                <button class="btn btn-secondary" style="background: rgba(239, 68, 68, 0.2); color: #EF4444;" onclick="rejectMessage(this)">✗ Skip</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-content" id="statsTab">
+                    <div class="dashboard-header">
+                        <h2>📊 Your Stats</h2>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card"><div class="stat-value">127</div><div class="stat-label">Emails Handled</div></div>
+                        <div class="stat-card"><div class="stat-value">14.5h</div><div class="stat-label">Time Saved</div></div>
+                        <div class="stat-card"><div class="stat-value">87%</div><div class="stat-label">Accuracy</div></div>
+                        <div class="stat-card"><div class="stat-value">12</div><div class="stat-label">Day Streak</div></div>
+                    </div>
+                </div>
+                <div class="tab-content" id="settingsTab">
+                    <div class="dashboard-header"><h2>⚙️ Settings</h2></div>
+                    <div class="settings-section">
+                        <h3>Connected Accounts</h3>
+                        <div class="settings-item"><span>📧 Gmail</span><span style="color: #10B981;">✓ Connected</span></div>
+                        <div class="settings-item"><span>✈️ Telegram</span><span style="color: #10B981;">✓ Connected</span></div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
     <script>
         let currentStep = 1;
         const totalSteps = 5;
@@ -1485,7 +1794,62 @@
         }
         
         function showSettings() {
-            alert('Settings panel coming soon!');
+            switchTab('settings');
+            document.getElementById('step7').classList.add('active');
+        }
+        
+        // Dashboard Functions
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            document.getElementById(tab + 'Tab').classList.add('active');
+            event.target.closest('.nav-item').classList.add('active');
+        }
+        
+        function approveMessage(btn) {
+            btn.closest('.approval-card').style.opacity = '0.5';
+            setTimeout(() => {
+                btn.closest('.approval-card').remove();
+                updateBadge();
+            }, 300);
+        }
+        
+        function editMessage(btn) {
+            alert('Edit mode - would open editor');
+        }
+        
+        function rejectMessage(btn) {
+            btn.closest('.approval-card').style.opacity = '0.5';
+            setTimeout(() => {
+                btn.closest('.approval-card').remove();
+                updateBadge();
+            }, 300);
+        }
+        
+        function updateBadge() {
+            const cards = document.querySelectorAll('.approval-card');
+            document.getElementById('inboxBadge').textContent = cards.length;
+        }
+        
+        function toggleMode() {
+            const current = localStorage.getItem('openego_mode') || 'copilot';
+            const newMode = current === 'copilot' ? 'autopilot' : 'copilot';
+            localStorage.setItem('openego_mode', newMode);
+            
+            document.getElementById('currentMode').textContent = newMode === 'autopilot' ? '🤖 Auto-Pilot' : '👀 Co-Pilot';
+            alert(`Switched to ${newMode === 'autopilot' ? 'Auto-Pilot' : 'Co-Pilot'} mode`);
+        }
+        
+        function startDashboard() {
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            document.getElementById('step7').classList.add('active');
+            document.querySelector('.stars').style.display = 'none';
+            document.querySelector('.gear-icon').style.display = 'none';
+            
+            // Load saved mode
+            const mode = localStorage.getItem('openego_mode') || 'copilot';
+            document.getElementById('currentMode').textContent = mode === 'autopilot' ? '🤖 Auto-Pilot' : '👀 Co-Pilot';
         }
         
         updateProgress();
