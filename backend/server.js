@@ -127,46 +127,20 @@ app.post('/api/connect/gmail', async (req, res) => {
   });
 });
 
-// Connect Telegram
+// Connect Telegram (simplified - just store username)
 app.post('/api/connect/telegram', (req, res) => {
-  const { userId, botToken } = req.body;
+  const { userId, username } = req.body;
   
-  // Store bot token and initialize bot
   const accountId = require('uuid').v4();
   
-  db.run('INSERT INTO accounts (id, user_id, provider, access_token) VALUES (?, ?, ?, ?)',
-    [accountId, userId, 'telegram', botToken],
+  db.run('INSERT INTO accounts (id, user_id, provider, account_email) VALUES (?, ?, ?, ?)',
+    [accountId, userId, 'telegram', username],
     function(err) {
       if (err) return res.status(500).json({ error: err.message });
-      
-      // Initialize Telegram bot
-      initTelegramBot(botToken, userId);
-      
-      res.json({ success: true, accountId });
+      res.json({ success: true, accountId, message: 'Telegram connected' });
     }
   );
 });
-
-// Initialize Telegram bot
-function initTelegramBot(token, userId) {
-  const TelegramBot = require('node-telegram-bot-api');
-  const bot = new TelegramBot(token, { polling: true });
-  
-  bot.on('message', (msg) => {
-    const chatId = msg.chat.id;
-    const messageText = msg.text;
-    const from = msg.from.username || msg.from.first_name;
-    
-    // Store message for training
-    const msgId = require('uuid').v4();
-    db.run('INSERT INTO messages (id, user_id, provider, from_address, content, received_at) VALUES (?, ?, ?, ?, ?, ?)',
-      [msgId, userId, 'telegram', from, messageText, new Date().toISOString()]
-    );
-    
-    // Simple auto-response for now
-    bot.sendMessage(chatId, '👋 Message received! OpenEgo is learning from your conversations.');
-  });
-}
 
 // ============ AI MODEL ROUTES ============
 

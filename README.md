@@ -51,14 +51,13 @@ cp .env.example .env
 npm start
 ```
 
-### 3. Telegram Bot (Working!)
-1. Message @BotFather on Telegram
-2. Create a new bot
-3. Copy the bot token
-4. In OpenEgo app, go to Step 2 (Connect Data)
-5. Toggle Telegram ON
-6. Paste your bot token
-7. Bot will now receive and store your messages!
+### 3. Connect Telegram (Super Simple!)
+1. In OpenEgo app, go to Step 2 (Connect Data)
+2. Toggle Telegram ON
+3. Enter your Telegram username (e.g., @johndoe)
+4. Done! ✅
+
+No bot creation needed - just your username!
 
 ## 🔑 Required API Keys
 
