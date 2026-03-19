@@ -619,6 +619,70 @@
             display: none;
         }
         
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        
+        .modal-close:hover {
+            background: var(--bg-primary);
+            color: var(--text);
+        }
+        
+        .modal-body {
+            padding: 25px;
+        }
+        
         .btn-success {
             background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
         }
@@ -949,7 +1013,43 @@
 </head>
 <body>
     <div class="stars"></div>
-    <div class="gear-icon" onclick="showSettings()">⚙️</div>
+    <div class="gear-icon" onclick="openSettingsModal()">⚙️</div>
+    
+    <!-- Settings Modal Overlay -->
+    <div id="settingsModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-cog"></i> Settings</h2>
+                <button class="modal-close" onclick="closeSettingsModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h3><i class="fas fa-robot"></i> AI Model</h3>
+                    <div class="settings-item">
+                        <div>
+                            <div>Current Model</div>
+                            <div style="color: var(--text-secondary); font-size: 0.9rem;">GPT-4o via OpenAI API</div>
+                        </div>
+                        <button class="btn btn-secondary" onclick="alert('Model selection coming in next update')">Change</button>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3><i class="fas fa-info-circle"></i> About</h3>
+                    <div class="settings-item">
+                        <div>Current Version</div>
+                        <span style="color: var(--accent); font-weight: 600;">v0.1.1 Beta (Build 2026-03-19)</span>
+                    </div>
+                    <div class="settings-item">
+                        <div>Check for Updates</div>
+                        <button class="btn btn-secondary" onclick="checkForAppUpdates()" id="modalUpdateCheckBtn">
+                            <i class="fas fa-sync-alt"></i> Check
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     
     <div class="container">
         <div class="header">
@@ -1814,6 +1914,9 @@
             }
         }
         
+        // Track current step for settings modal
+        let stepBeforeSettings = 1;
+        
         // Check if returning user
         function checkReturningUser() {
             const hasCompletedOnboarding = localStorage.getItem('openego_onboarding_complete');
@@ -1870,6 +1973,29 @@
             }
             
             return false;
+        }
+        
+        // Open settings modal from any step
+        function openSettingsModal() {
+            // Remember which step we were on
+            stepBeforeSettings = currentStep;
+            
+            // Show modal
+            const modal = document.getElementById('settingsModal');
+            if (modal) {
+                modal.style.display = 'flex';
+            }
+        }
+        
+        // Close settings modal and return to previous step
+        function closeSettingsModal() {
+            // Hide modal
+            const modal = document.getElementById('settingsModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+            
+            console.log(`Closing settings - returning to step ${stepBeforeSettings}`);
         }
         
         // Make initUser available globally
@@ -2729,37 +2855,9 @@
             }
         }
         
+        // Legacy showSettings - now redirects to modal
         function showSettings() {
-            // Hide all steps first
-            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-            
-            // Show dashboard (step 7)
-            const step7 = document.getElementById('step7');
-            if (step7) {
-                step7.classList.add('active');
-                
-                // Hide stars background for dashboard
-                const stars = document.querySelector('.stars');
-                if (stars) stars.style.display = 'none';
-                
-                // Hide gear icon since we're now in dashboard
-                const gear = document.querySelector('.gear-icon');
-                if (gear) gear.style.display = 'none';
-                
-                // Switch to settings tab
-                setTimeout(() => {
-                    const settingsTab = document.getElementById('settingsTab');
-                    const settingsNav = document.querySelector('.nav-item:nth-child(3)');
-                    
-                    if (settingsTab && settingsNav) {
-                        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-                        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-                        
-                        settingsTab.classList.add('active');
-                        settingsNav.classList.add('active');
-                    }
-                }, 100);
-            }
+            openSettingsModal();
         }
         
         // Dashboard Functions
@@ -2900,6 +2998,8 @@
         window.resetOnboarding = resetOnboarding;
         window.minimizeSettings = minimizeSettings;
         window.closeSettings = closeSettings;
+        window.openSettingsModal = openSettingsModal;
+        window.closeSettingsModal = closeSettingsModal;
         
         // Check for app updates
         async function checkForAppUpdates() {
