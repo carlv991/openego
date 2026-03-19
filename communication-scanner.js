@@ -53,11 +53,13 @@ class CommunicationScanner {
     return this.results;
   }
 
-  // Scan Apple Mail
+  // Scan Apple Mail with crash protection
   async scanMail() {
     const mailPath = path.join(os.homedir(), 'Library/Mail');
-    const emails = [];
     let processedCount = 0;
+    let successCount = 0;
+    const MAX_EMAILS = 500; // Limit to prevent memory issues
+    const BATCH_SIZE = 25; // Process in smaller batches
     
     try {
       if (!fs.existsSync(mailPath)) {
@@ -65,41 +67,90 @@ class CommunicationScanner {
         return;
       }
       
-      // Collect all email files
+      // Collect all email files (limit to prevent crash)
       const allFiles = [];
       this.collectFiles(mailPath, allFiles, ['.emlx', '.eml']);
-      const totalFiles = allFiles.length;
       
-      // Process in batches
-      for (let i = 0; i < allFiles.length; i++) {
-        const filePath = allFiles[i];
+      // Limit total files to prevent crash
+      const totalFiles = Math.min(allFiles.length, MAX_EMAILS);
+      const filesToProcess = allFiles.slice(0, MAX_EMAILS);
+      
+      console.log(`[Scanner] Processing ${totalFiles} emails (limited from ${allFiles.length})`);
+      
+      // Process in small batches with frequent breaks
+      for (let i = 0; i < filesToProcess.length; i++) {
+        const filePath = filesToProcess[i];
         
         try {
+          // Check file size before reading (skip files > 1MB)
+          const stats = fs.statSync(filePath);
+          if (stats.size > 1024 * 1024) {
+            console.log(`[Scanner] Skipping large file: ${filePath}`);
+            processedCount++;
+            continue;
+          }
+          
           const content = fs.readFileSync(filePath, 'utf8');
           const email = this.parseEmail(content);
           
           if (email) {
-            emails.push(email);
-            this.results.emails.push(email);
+            // Store limited email data
+            const limitedEmail = {
+              subject: email.subject?.substring(0, 200) || 'No subject',
+              from: email.from?.substring(0, 100) || 'Unknown',
+              date: email.date,
+              content: email.content?.substring(0, 500) || '', // Limit content
+              preview: email.content?.substring(0, 100) || ''
+            };
+            
+            this.results.emails.push(limitedEmail);
             this.results.totalCount++;
+            successCount++;
           }
           
           processedCount++;
           
-          // Send progress every 50 files
-          if (processedCount % 50 === 0) {
-            this.sendProgress('mail', processedCount, totalFiles, null, emails.length);
-            await this.delay(10);
+          // Send progress and save every BATCH_SIZE files
+          if (processedCount % BATCH_SIZE === 0) {
+            this.sendProgress('mail', processedCount, totalFiles, null, successCount);
+            this.saveProgress();
+            
+            // Small delay to prevent blocking
+            await this.delay(50);
+            
+            // Clear some memory every 100 emails
+            if (processedCount % 100 === 0) {
+              global.gc && global.gc(); // Force garbage collection if available
+            }
           }
         } catch (e) {
-          // Skip problematic files
+          console.log(`[Scanner] Error processing file: ${e.message}`);
+          processedCount++;
+          // Continue with next file
         }
       }
       
-      this.sendProgress('mail', processedCount, totalFiles, null, emails.length, true);
+      this.sendProgress('mail', processedCount, totalFiles, null, successCount, true);
+      console.log(`[Scanner] Mail scan complete: ${successCount} emails processed`);
       
     } catch (e) {
+      console.error('[Scanner] Fatal error in scanMail:', e);
       this.sendProgress('mail', processedCount, 0, e.message);
+    }
+  }
+  
+  // Save progress to disk to prevent data loss on crash
+  saveProgress() {
+    try {
+      const progressPath = path.join(os.homedir(), '.openego_scan_progress.json');
+      fs.writeFileSync(progressPath, JSON.stringify({
+        timestamp: new Date().toISOString(),
+        emails: this.results.emails.slice(-50), // Only save last 50 to keep file small
+        totalCount: this.results.totalCount,
+        lastIndex: this.results.emails.length
+      }));
+    } catch (e) {
+      console.log('[Scanner] Could not save progress:', e.message);
     }
   }
 
@@ -206,90 +257,30 @@ class CommunicationScanner {
 
   // Scan Documents
   async scanDocuments() {
-    const docsPath = path.join(os.homedir(), 'Documents');
+    const documentsPath = path.join(os.homedir(), 'Documents');
     const documents = [];
     
     try {
-      if (!fs.existsSync(docsPath)) {
+      if (fs.existsSync(documentsPath)) {
+        // Just note that documents folder exists
+        documents.push({
+          type: 'documents',
+          note: 'Documents folder found',
+          path: documentsPath
+        });
+        
+        this.sendProgress('documents', 1, 1, null, 1, true);
+      } else {
         this.sendProgress('documents', 0, 0, 'Documents folder not found');
-        return;
       }
-      
-      this.scanDocumentsRecursive(docsPath, documents, 0);
-      
-      this.sendProgress('documents', documents.length, documents.length, null, documents.length, true);
-      
     } catch (e) {
       this.sendProgress('documents', 0, 0, e.message);
     }
-  }
-
-  scanDocumentsRecursive(dir, documents, depth) {
-    if (depth > 2) return;
     
-    try {
-      const items = fs.readdirSync(dir);
-      
-      for (const item of items) {
-        if (item.startsWith('.')) continue;
-        
-        const fullPath = path.join(dir, item);
-        const stat = fs.statSync(fullPath);
-        
-        if (stat.isDirectory()) {
-          this.scanDocumentsRecursive(fullPath, documents, depth + 1);
-        } else if (
-          item.endsWith('.txt') ||
-          item.endsWith('.md') ||
-          item.endsWith('.docx') ||
-          item.endsWith('.pdf') ||
-          item.endsWith('.rtf')
-        ) {
-          documents.push({
-            type: 'document',
-            name: item,
-            path: fullPath,
-            size: stat.size,
-            modified: stat.mtime
-          });
-        }
-      }
-    } catch (e) {
-      // Skip directories we can't read
-    }
+    this.results.documents = documents;
   }
 
-  // Parse email content
-  parseEmail(content) {
-    try {
-      const from = content.match(/From: (.+)/i)?.[1] || 'Unknown';
-      const to = content.match(/To: (.+)/i)?.[1] || '';
-      const subject = content.match(/Subject: (.+)/i)?.[1] || 'No Subject';
-      const date = content.match(/Date: (.+)/i)?.[1] || '';
-      
-      // Extract body (simplified)
-      let body = '';
-      const bodyMatch = content.match(/\r?\n\r?\n([\s\S]+)$/);
-      if (bodyMatch) {
-        body = bodyMatch[1].substring(0, 2000); // Limit body size
-      }
-      
-      return {
-        type: 'email',
-        from,
-        to,
-        subject,
-        date,
-        preview: body.substring(0, 500),
-        fullContent: body,
-        timestamp: new Date(date).getTime() || 0
-      };
-    } catch (e) {
-      return null;
-    }
-  }
-
-  // Collect files recursively
+  // Helper: Recursively collect files
   collectFiles(dir, files, extensions) {
     try {
       const items = fs.readdirSync(dir);
@@ -300,30 +291,70 @@ class CommunicationScanner {
         
         if (stat.isDirectory()) {
           this.collectFiles(fullPath, files, extensions);
-        } else if (extensions.some(ext => item.endsWith(ext))) {
-          files.push(fullPath);
+        } else if (stat.isFile()) {
+          const ext = path.extname(item).toLowerCase();
+          if (extensions.includes(ext)) {
+            files.push(fullPath);
+          }
         }
       }
     } catch (e) {
-      // Skip directories we can't read
+      // Skip directories we can't access
     }
   }
 
-  // Send progress update to renderer
-  sendProgress(source, processed, total, error, count = 0, complete = false) {
-    if (this.mainWindow && this.mainWindow.webContents) {
+  // Helper: Parse email content
+  parseEmail(content) {
+    try {
+      // Simple email parsing
+      const lines = content.split('\n');
+      const email = {
+        subject: '',
+        from: '',
+        date: '',
+        content: ''
+      };
+      
+      let inContent = false;
+      const contentLines = [];
+      
+      for (const line of lines) {
+        if (line.startsWith('Subject:')) {
+          email.subject = line.substring(8).trim();
+        } else if (line.startsWith('From:')) {
+          email.from = line.substring(5).trim();
+        } else if (line.startsWith('Date:')) {
+          email.date = line.substring(5).trim();
+        } else if (line === '' && !inContent) {
+          inContent = true;
+        } else if (inContent) {
+          contentLines.push(line);
+        }
+      }
+      
+      email.content = contentLines.join('\n').trim();
+      
+      return email;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Helper: Send progress to renderer
+  sendProgress(type, processed, total, error = null, count = 0, complete = false) {
+    if (this.mainWindow && !this.mainWindow.isDestroyed()) {
       this.mainWindow.webContents.send('scan-progress', {
-        type: source,
+        type,
         processed,
         total,
-        count,
-        percent: total > 0 ? Math.round((processed / total) * 100) : 0,
         error,
+        count,
         complete
       });
     }
   }
 
+  // Helper: Delay
   delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
@@ -331,10 +362,19 @@ class CommunicationScanner {
 
 // Setup IPC handlers
 function setupCommunicationScanner(mainWindow) {
+  const scanner = new CommunicationScanner(mainWindow);
+  
   ipcMain.handle('scan-communications', async (event, sources) => {
-    const scanner = new CommunicationScanner(mainWindow);
-    return await scanner.scanAll(sources);
+    try {
+      const results = await scanner.scanAll(sources);
+      return { success: true, ...results };
+    } catch (error) {
+      console.error('Scan error:', error);
+      return { success: false, error: error.message };
+    }
   });
+  
+  console.log('[Scanner] Communication scanner initialized');
 }
 
-module.exports = { setupCommunicationScanner, CommunicationScanner };
+module.exports = { setupCommunicationScanner };
