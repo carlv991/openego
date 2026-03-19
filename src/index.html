@@ -1986,6 +1986,35 @@
                         </div>
                     </div>
                     
+                    <!-- Historical Data Range Selection -->
+                    <div id="historyRange" style="display: none; background: rgba(222, 109, 81, 0.1); border: 1px solid #DE6D51; border-radius: 12px; padding: 20px; margin-top: 15px;">
+                        <h4 style="color: #DE6D51; margin-bottom: 15px;"><i class="fas fa-calendar-alt"></i> Select Time Range</h4>
+                        <p style="color: var(--text-secondary); margin-bottom: 15px;">How far back should OpenEgo analyze your communications?</p>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 15px;">
+                            <button class="history-range-btn selected" data-range="1month" onclick="selectHistoryRange('1month')" style="padding: 12px; background: var(--bg-primary); border: 2px solid var(--accent); border-radius: 10px; cursor: pointer; text-align: center;">
+                                <div style="font-weight: 700; color: var(--accent);">1 Month</div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary);">~50-100 emails</div>
+                            </button>
+                            <button class="history-range-btn" data-range="2months" onclick="selectHistoryRange('2months')" style="padding: 12px; background: var(--bg-primary); border: 2px solid var(--border); border-radius: 10px; cursor: pointer; text-align: center;">
+                                <div style="font-weight: 700;">2 Months</div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary);">~100-200 emails</div>
+                            </button>
+                            <button class="history-range-btn" data-range="3months" onclick="selectHistoryRange('3months')" style="padding: 12px; background: var(--bg-primary); border: 2px solid var(--border); border-radius: 10px; cursor: pointer; text-align: center;">
+                                <div style="font-weight: 700;">3 Months</div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary);">~200-400 emails</div>
+                            </button>
+                            <button class="history-range-btn" data-range="all" onclick="selectHistoryRange('all')" style="padding: 12px; background: var(--bg-primary); border: 2px solid var(--border); border-radius: 10px; cursor: pointer; text-align: center;">
+                                <div style="font-weight: 700;">All Time</div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary);">All available</div>
+                            </button>
+                        </div>
+                        
+                        <p style="color: var(--text-secondary); font-size: 0.85rem;">
+                            <i class="fas fa-info-circle"></i> More data = better accuracy, but takes longer to analyze.
+                        </p>
+                    </div>
+                    
                     <div id="costEstimate" style="display: none; background: rgba(245, 158, 11, 0.1); border: 1px solid #F59E0B; border-radius: 12px; padding: 20px; margin-top: 15px;">
                         <h4 style="color: #F59E0B; margin-bottom: 15px;"><i class="fas fa-calculator"></i> Cost Estimate</h4>
                         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px;">
@@ -3318,6 +3347,11 @@
                 // Clear any old scan progress
                 localStorage.removeItem('openego_scan_progress');
                 localStorage.removeItem('openego_emails');
+                
+                // Clear server-side progress too
+                if (window.electronAPI && window.electronAPI.clearScanProgress) {
+                    await window.electronAPI.clearScanProgress();
+                }
                 
                 const analysisProgress = document.getElementById('analysisProgress');
                 const continueBtn = document.getElementById('continueBtn');
@@ -5045,10 +5079,12 @@
             
             const dataSourceList = document.getElementById('dataSourceList');
             const costEstimate = document.getElementById('costEstimate');
+            const historyRange = document.getElementById('historyRange');
             
             if (mode === 'scratch') {
                 if (dataSourceList) dataSourceList.style.display = 'none';
                 if (costEstimate) costEstimate.style.display = 'none';
+                if (historyRange) historyRange.style.display = 'none';
                 
                 const continueBtn = document.getElementById('step2Continue');
                 if (continueBtn) {
@@ -5062,6 +5098,7 @@
             } else {
                 if (dataSourceList) dataSourceList.style.display = 'block';
                 if (costEstimate) costEstimate.style.display = 'block';
+                if (historyRange) historyRange.style.display = 'block';
                 
                 const continueBtn = document.getElementById('step2Continue');
                 if (continueBtn) {
@@ -5069,6 +5106,23 @@
                     continueBtn.onclick = showPermissionRequest;
                 }
             }
+        };
+        
+        // History range selection
+        window.selectHistoryRange = function(range) {
+            document.querySelectorAll('.history-range-btn').forEach(btn => {
+                btn.style.borderColor = 'var(--border)';
+                btn.classList.remove('selected');
+            });
+            
+            const selectedBtn = document.querySelector(`.history-range-btn[data-range="${range}"]`);
+            if (selectedBtn) {
+                selectedBtn.style.borderColor = 'var(--accent)';
+                selectedBtn.classList.add('selected');
+            }
+            
+            localStorage.setItem('openego_history_range', range);
+            console.log('[History Range] Selected:', range);
         };
         
         window.calculateRealCost = async function() {
