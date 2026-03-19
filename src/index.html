@@ -121,6 +121,21 @@
             height: 100vh !important;
         }
         
+        /* Ensure dashboard is always visible when active */
+        .step#step7.active {
+            display: block !important;
+            width: 100%;
+            height: 100vh;
+        }
+        
+        .step#step7 .dashboard {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100vh;
+            background: var(--bg-primary);
+        }
+        
         .card {
             background: var(--bg-secondary);
             border: 1px solid var(--border);
@@ -2601,8 +2616,19 @@
                 
                 // Show dashboard (step 7)
                 const dashboard = document.getElementById('step7');
+                console.log('Dashboard element:', dashboard);
                 if (dashboard) {
                     dashboard.classList.add('active');
+                    dashboard.style.display = 'block';
+                    console.log('Dashboard activated, classes:', dashboard.className);
+                    
+                    // Force show dashboard
+                    setTimeout(() => {
+                        dashboard.style.display = 'block';
+                        dashboard.style.visibility = 'visible';
+                        dashboard.style.opacity = '1';
+                        console.log('Dashboard visibility forced');
+                    }, 100);
                     
                     // Hide stars background for dashboard
                     const stars = document.querySelector('.stars');
