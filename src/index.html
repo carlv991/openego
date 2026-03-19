@@ -3099,6 +3099,22 @@
         window.openSettingsModal = openSettingsModal;
         window.closeSettingsModal = closeSettingsModal;
         
+        // Listen for menu bar settings click
+        if (typeof require !== 'undefined') {
+            const { ipcRenderer } = require('electron');
+            ipcRenderer.on('open-settings', () => {
+                openSettingsModal();
+            });
+            
+            // Keyboard shortcut to hide window (Cmd+H)
+            document.addEventListener('keydown', (e) => {
+                if ((e.metaKey || e.ctrlKey) && e.key === 'h') {
+                    e.preventDefault();
+                    ipcRenderer.send('hide-window');
+                }
+            });
+        }
+        
         // Check for app updates
         async function checkForAppUpdates() {
             const btn = document.getElementById('updateCheckBtn');
