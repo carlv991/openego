@@ -96,6 +96,21 @@
             text-align: center;
         }
         
+        /* Hide header when on dashboard */
+        body.dashboard-active .header {
+            display: none !important;
+        }
+        
+        body.dashboard-active {
+            overflow: hidden;
+        }
+        
+        body.dashboard-active .container {
+            max-width: 100% !important;
+            padding: 0 !important;
+            height: 100vh !important;
+        }
+        
         .card {
             background: var(--bg-secondary);
             border: 1px solid var(--border);
@@ -2588,8 +2603,14 @@
                     if (gear) gear.style.display = 'none';
                     
                     // HIDE HEADER on dashboard for returning users too!
+                    document.body.classList.add('dashboard-active');
                     const header = document.querySelector('.header');
-                    if (header) header.style.display = 'none';
+                    if (header) {
+                        header.style.display = 'none';
+                        header.style.visibility = 'hidden';
+                        header.style.height = '0';
+                        header.style.overflow = 'hidden';
+                    }
                     
                     // Adjust container for full-screen dashboard
                     const container = document.querySelector('.container');
@@ -2725,8 +2746,14 @@
                 localStorage.setItem('openego_current_step', '7');
                 
                 // Hide the entire header on dashboard
+                document.body.classList.add('dashboard-active');
                 const header = document.querySelector('.header');
-                if (header) header.style.display = 'none';
+                if (header) {
+                    header.style.display = 'none';
+                    header.style.visibility = 'hidden';
+                    header.style.height = '0';
+                    header.style.overflow = 'hidden';
+                }
                 
                 // Adjust container padding for full-screen dashboard
                 const container = document.querySelector('.container');
