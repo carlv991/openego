@@ -4,7 +4,9 @@ const { autoUpdater } = require('electron-updater');
 const { 
   setupFullDiskAccessHandlers, 
   setupScanningHandlers,
-  setupLocalAIHandlers 
+  setupLocalAIHandlers,
+  setupFeedbackHandlers,
+  setupAITrainingHandlers
 } = require('./electron-modules');
 const { setupCommunicationScanner } = require('./communication-scanner');
 const { setupEmailScannerHandlers } = require('./email-scanner');
@@ -50,6 +52,8 @@ function createWindow() {
     setupFullDiskAccessHandlers();
     setupScanningHandlers(mainWindow);
     setupLocalAIHandlers();
+    setupFeedbackHandlers();
+    setupAITrainingHandlers();
     setupCommunicationScanner(mainWindow);
     setupEmailScannerHandlers(mainWindow);
     ipcHandlersRegistered = true;

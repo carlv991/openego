@@ -358,20 +358,54 @@ class CommunicationScanner {
   delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
+  
+  // Clear all scan progress data
+  clearProgress() {
+    try {
+      const progressFile = path.join(os.homedir(), '.openego_scan_progress.json');
+      const emailCache = path.join(os.homedir(), '.openego_emails_cache.json');
+      
+      if (fs.existsSync(progressFile)) {
+        fs.unlinkSync(progressFile);
+        console.log('[Scanner] Progress file cleared');
+      }
+      
+      if (fs.existsSync(emailCache)) {
+        fs.unlinkSync(emailCache);
+        console.log('[Scanner] Email cache cleared');
+      }
+      
+      return { success: true, message: 'Progress data cleared' };
+    } catch (e) {
+      console.error('[Scanner] Error clearing progress:', e);
+      return { success: false, error: e.message };
+    }
+  }
 }
 
 // Setup IPC handlers
 function setupCommunicationScanner(mainWindow) {
   const scanner = new CommunicationScanner(mainWindow);
   
-  ipcMain.handle('scan-communications', async (event, sources) => {
+  ipcMain.handle('scan-communications', async (event, sources, options = {}) => {
     try {
+      // Handle options like timeRange
+      if (options.timeRange) {
+        console.log(`[Scanner] Time range: ${options.timeRange}`);
+        scanner.timeRange = options.timeRange;
+      }
+      
       const results = await scanner.scanAll(sources);
       return { success: true, ...results };
     } catch (error) {
       console.error('Scan error:', error);
       return { success: false, error: error.message };
     }
+  });
+  
+  // Clear scan progress (for "start from scratch")
+  ipcMain.handle('clear-scan-progress', async () => {
+    return scanner.clearProgress();
   });
   
   console.log('[Scanner] Communication scanner initialized');

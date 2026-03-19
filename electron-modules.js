@@ -488,10 +488,155 @@ function setupLocalAIHandlers() {
   });
 }
 
+// Feedback Loop - Learn from user edits
+function setupFeedbackHandlers() {
+  const { PersonaEngine } = require('./persona-engine');
+  
+  // Submit feedback when user edits a response
+  ipcMain.handle('submit-feedback', async (event, editData) => {
+    try {
+      // Store the edit
+      const feedbackPath = path.join(os.homedir(), '.openego_feedback.json');
+      let feedback = [];
+      
+      if (fs.existsSync(feedbackPath)) {
+        feedback = JSON.parse(fs.readFileSync(feedbackPath, 'utf8'));
+      }
+      
+      feedback.push({
+        ...editData,
+        timestamp: new Date().toISOString()
+      });
+      
+      // Keep only last 100 edits
+      if (feedback.length > 100) {
+        feedback = feedback.slice(-100);
+      }
+      
+      fs.writeFileSync(feedbackPath, JSON.stringify(feedback, null, 2));
+      
+      // Analyze the edit for patterns
+      const engine = new PersonaEngine();
+      engine.analyzeEmail({
+        content: editData.edited,
+        timestamp: new Date()
+      });
+      
+      // Update persona with new patterns
+      engine.savePersona();
+      
+      return { success: true, message: 'Feedback recorded' };
+    } catch (e) {
+      console.error('[Feedback] Error:', e);
+      return { success: false, error: e.message };
+    }
+  });
+  
+  // Get accumulated feedback
+  ipcMain.handle('get-feedback', async () => {
+    try {
+      const feedbackPath = path.join(os.homedir(), '.openego_feedback.json');
+      if (fs.existsSync(feedbackPath)) {
+        return JSON.parse(fs.readFileSync(feedbackPath, 'utf8'));
+      }
+      return [];
+    } catch (e) {
+      return { error: e.message };
+    }
+  });
+}
+
+// AI Training - Send patterns to GPT-4/Claude
+function setupAITrainingHandlers() {
+  const { PersonaEngine } = require('./persona-engine');
+  
+  // Train AI on user's persona
+  ipcMain.handle('train-ai-persona', async (event, apiKey, provider) => {
+    try {
+      // Load existing persona
+      const engine = new PersonaEngine();
+      const personaData = engine.loadPersona();
+      
+      if (!personaData) {
+        return { error: 'No persona data found. Scan emails first.' };
+      }
+      
+      // Generate training prompt
+      const profile = personaData.persona;
+      const trainingPrompt = profile.aiPrompt;
+      
+      // Store the training prompt for use in response generation
+      const trainingPath = path.join(os.homedir(), '.openego_ai_training.json');
+      fs.writeFileSync(trainingPath, JSON.stringify({
+        timestamp: new Date().toISOString(),
+        provider: provider,
+        prompt: trainingPrompt,
+        profile: profile
+      }, null, 2));
+      
+      return { 
+        success: true, 
+        message: 'AI training profile created',
+        promptLength: trainingPrompt.length
+      };
+    } catch (e) {
+      console.error('[AI Training] Error:', e);
+      return { success: false, error: e.message };
+    }
+  });
+  
+  // Get AI training data
+  ipcMain.handle('get-ai-training', async () => {
+    try {
+      const trainingPath = path.join(os.homedir(), '.openego_ai_training.json');
+      if (fs.existsSync(trainingPath)) {
+        return JSON.parse(fs.readFileSync(trainingPath, 'utf8'));
+      }
+      return null;
+    } catch (e) {
+      return { error: e.message };
+    }
+  });
+  
+  // Retrain persona from emails
+  ipcMain.handle('retrain-persona', async () => {
+    try {
+      const { CommunicationScanner } = require('./communication-scanner');
+      const scanner = new CommunicationScanner();
+      
+      // Scan emails with persona extraction
+      const results = await scanner.scanMail();
+      
+      // Build persona from scanned emails
+      const engine = new PersonaEngine();
+      results.emails.forEach(email => {
+        engine.analyzeEmail({
+          content: email.body || email.preview || '',
+          timestamp: new Date(email.date)
+        });
+      });
+      
+      // Save updated persona
+      engine.savePersona();
+      
+      return { 
+        success: true, 
+        emailsAnalyzed: results.emails.length,
+        persona: engine.generatePersonaProfile()
+      };
+    } catch (e) {
+      console.error('[Retrain] Error:', e);
+      return { success: false, error: e.message };
+    }
+  });
+}
+
 module.exports = {
   setupFullDiskAccessHandlers,
   setupScanningHandlers,
   setupLocalAIHandlers,
+  setupFeedbackHandlers,
+  setupAITrainingHandlers,
   scanMailData,
   scanMessagesData,
   scanDocuments,
