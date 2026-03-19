@@ -64,48 +64,83 @@ function setupFullDiskAccessHandlers() {
   });
 }
 
-// Scan Mail app data - ALL emails with progress
+// Scan Mail app data - ALL emails with progress and resume capability
 async function scanAllMailData(window) {
   const mailPath = path.join(os.homedir(), 'Library/Mail');
-  const emails = [];
-  let processedCount = 0;
+  const progressFile = path.join(os.homedir(), '.openego_scan_progress.json');
+  
+  // Load previous progress if exists
+  let progress = { processedFiles: [], emails: [], lastIndex: 0 };
+  try {
+    if (fs.existsSync(progressFile)) {
+      progress = JSON.parse(fs.readFileSync(progressFile, 'utf8'));
+      console.log(`Resuming scan from ${progress.lastIndex}`);
+    }
+  } catch (e) {
+    console.log('No previous progress found');
+  }
+  
+  const emails = progress.emails || [];
+  const processedFiles = new Set(progress.processedFiles || []);
+  let processedCount = emails.length;
   
   try {
     if (!fs.existsSync(mailPath)) {
-      return { error: 'Mail folder not found', emails: [] };
+      return { error: 'Mail folder not found', emails: emails };
     }
     
-    // Get all email files first
+    // Get all email files
     const allFiles = [];
-    
     function collectFiles(dir) {
-      const items = fs.readdirSync(dir);
-      
-      for (const item of items) {
-        const fullPath = path.join(dir, item);
-        const stat = fs.statSync(fullPath);
-        
-        if (stat.isDirectory()) {
-          collectFiles(fullPath);
-        } else if (item.endsWith('.emlx') || item.endsWith('.eml')) {
-          allFiles.push(fullPath);
+      try {
+        const items = fs.readdirSync(dir);
+        for (const item of items) {
+          const fullPath = path.join(dir, item);
+          try {
+            const stat = fs.statSync(fullPath);
+            if (stat.isDirectory()) {
+              collectFiles(fullPath);
+            } else if (item.endsWith('.emlx') || item.endsWith('.eml')) {
+              allFiles.push(fullPath);
+            }
+          } catch (e) {
+            // Skip files we can't stat
+          }
         }
+      } catch (e) {
+        console.log(`Cannot read directory: ${dir}`);
       }
     }
     
     collectFiles(mailPath);
     const totalFiles = allFiles.length;
     
-    // Process in batches to avoid blocking
-    for (let i = 0; i < allFiles.length; i++) {
+    // Resume from where we left off
+    const startIndex = progress.lastIndex || 0;
+    console.log(`Scanning ${startIndex} to ${totalFiles}`);
+    
+    // Process in batches with error recovery
+    for (let i = startIndex; i < allFiles.length; i++) {
       const filePath = allFiles[i];
       
+      // Skip already processed files
+      if (processedFiles.has(filePath)) {
+        continue;
+      }
+      
       try {
-        const content = fs.readFileSync(filePath, 'utf8');
-        const from = content.match(/From: (.+)/)?.[1] || 'Unknown';
-        const subject = content.match(/Subject: (.+)/)?.[1] || 'No Subject';
-        const date = content.match(/Date: (.+)/)?.[1] || '';
-        const to = content.match(/To: (.+)/)?.[1] || '';
+        // Try to read with timeout protection
+        const content = await Promise.race([
+          fs.promises.readFile(filePath, 'utf8'),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout')), 5000)
+          )
+        ]);
+        
+        const from = content.match(/From: (.+)/i)?.[1] || 'Unknown';
+        const subject = content.match(/Subject: (.+)/i)?.[1] || 'No Subject';
+        const date = content.match(/Date: (.+)/i)?.[1] || '';
+        const to = content.match(/To: (.+)/i)?.[1] || '';
         
         emails.push({
           from,
@@ -116,16 +151,33 @@ async function scanAllMailData(window) {
           path: filePath
         });
         
+        processedFiles.add(filePath);
         processedCount++;
         
+        // Save progress every 25 files
+        if (processedCount % 25 === 0) {
+          fs.writeFileSync(progressFile, JSON.stringify({
+            processedFiles: Array.from(processedFiles),
+            emails: emails.slice(-100), // Keep last 100 in memory
+            lastIndex: i,
+            totalFiles: totalFiles,
+            timestamp: new Date().toISOString()
+          }));
+        }
+        
         // Send progress update every 50 files
-        if (processedCount % 50 === 0 && window) {
-          window.webContents.send('scan-progress', {
-            type: 'mail',
-            processed: processedCount,
-            total: totalFiles,
-            percent: Math.round((processedCount / totalFiles) * 100)
-          });
+        if (processedCount % 50 === 0 && window && !window.isDestroyed()) {
+          try {
+            window.webContents.send('scan-progress', {
+              type: 'mail',
+              processed: processedCount,
+              total: totalFiles,
+              percent: Math.round((processedCount / totalFiles) * 100),
+              resuming: i > startIndex
+            });
+          } catch (e) {
+            console.log('Window closed, continuing in background');
+          }
         }
         
         // Small delay to prevent UI freezing
@@ -133,17 +185,46 @@ async function scanAllMailData(window) {
           await new Promise(resolve => setTimeout(resolve, 10));
         }
       } catch (e) {
-        // Skip files we can't read
+        console.log(`Error processing ${filePath}: ${e.message}`);
+        // Continue with next file - don't crash
+        processedFiles.add(filePath); // Mark as processed to skip next time
       }
+    }
+    
+    // Clear progress file on completion
+    try {
+      fs.unlinkSync(progressFile);
+    } catch (e) {
+      // Ignore
     }
     
     return {
       count: emails.length,
       emails: emails,
-      complete: true
+      complete: true,
+      resumed: startIndex > 0
     };
   } catch (e) {
-    return { error: e.message, emails: emails };
+    // Save progress on error so we can resume
+    try {
+      fs.writeFileSync(progressFile, JSON.stringify({
+        processedFiles: Array.from(processedFiles),
+        emails: emails.slice(-100),
+        lastIndex: progress.lastIndex,
+        totalFiles: allFiles.length,
+        timestamp: new Date().toISOString(),
+        error: e.message
+      }));
+    } catch (saveError) {
+      console.log('Could not save progress:', saveError);
+    }
+    
+    return { 
+      error: e.message, 
+      emails: emails,
+      partial: true,
+      canResume: true
+    };
   }
 }
 

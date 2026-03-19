@@ -1917,6 +1917,32 @@
         // Track current step for settings modal
         let stepBeforeSettings = 1;
         
+        // Check for incomplete scan and show resume option
+        function checkAndResumeScan() {
+            if (typeof require === 'undefined') return;
+            
+            const progressPath = require('path').join(require('os').homedir(), '.openego_scan_progress.json');
+            try {
+                if (require('fs').existsSync(progressPath)) {
+                    const progress = JSON.parse(require('fs').readFileSync(progressPath, 'utf8'));
+                    if (progress.lastIndex > 0 && progress.totalFiles > progress.lastIndex) {
+                        console.log(`Found incomplete scan: ${progress.lastIndex}/${progress.totalFiles}`);
+                        
+                        // Update UI to show resume option
+                        document.getElementById('analysisProgress').textContent = 
+                            `Scan interrupted. ${progress.lastIndex} of ${progress.totalFiles} emails scanned. Click Continue to resume.`;
+                        document.getElementById('continueBtn').textContent = 'Resume Scan →';
+                        document.getElementById('continueBtn').disabled = false;
+                        
+                        return true;
+                    }
+                }
+            } catch (e) {
+                console.log('No resume data found');
+            }
+            return false;
+        }
+        
         // Check if returning user
         function checkReturningUser() {
             const hasCompletedOnboarding = localStorage.getItem('openego_onboarding_complete');
@@ -2051,12 +2077,36 @@
             }
         }
         
-        // Data analysis for step 4 - Background loading ALL channels
+        // Data analysis for step 4 - Background loading ALL channels with resume
+        let scanInProgress = false;
+        let scanCancelled = false;
+        
         async function startDataAnalysis() {
+            // Check if we're resuming a previous scan
+            const savedProgress = localStorage.getItem('openego_scan_progress');
+            const isResuming = savedProgress && JSON.parse(savedProgress).lastIndex > 0;
+            
             // Show loading state
-            document.getElementById('analysisProgress').textContent = 'Scanning all communications...';
-            document.getElementById('continueBtn').textContent = 'Scanning...';
+            document.getElementById('analysisProgress').textContent = isResuming 
+                ? 'Resuming scan from where we left off...' 
+                : 'Scanning all communications...';
+            document.getElementById('continueBtn').textContent = isResuming ? 'Resuming...' : 'Scanning...';
             document.getElementById('continueBtn').disabled = true;
+            
+            // Add cancel button
+            const cancelBtn = document.createElement('button');
+            cancelBtn.className = 'btn btn-secondary';
+            cancelBtn.style.marginLeft = '10px';
+            cancelBtn.innerHTML = 'Run in Background';
+            cancelBtn.onclick = () => {
+                scanCancelled = true;
+                document.getElementById('analysisProgress').textContent = 'Scanning continues in background...';
+                cancelBtn.style.display = 'none';
+                document.getElementById('continueBtn').disabled = false;
+                document.getElementById('continueBtn').textContent = 'Continue →';
+                document.getElementById('continueBtn').onclick = nextStep.bind(null, 5);
+            };
+            document.getElementById('continueBtn').parentNode.appendChild(cancelBtn);
             
             // Get selected sources from Step 2
             const sources = JSON.parse(localStorage.getItem('openego_sources') || '{}');
@@ -2066,43 +2116,60 @@
                 
                 // Listen for progress updates from ALL channels
                 ipcRenderer.on('scan-progress', (event, data) => {
-                    updateChannelProgress(data);
+                    if (!scanCancelled) {
+                        updateChannelProgress(data);
+                    } else {
+                        // Just update counts silently in background
+                        console.log(`Background progress: ${data.processed}/${data.total}`);
+                    }
                 });
                 
-                // Start comprehensive scan of ALL selected channels
-                const scanResult = await ipcRenderer.invoke('scan-communications', sources);
+                scanInProgress = true;
                 
-                // Process results
-                if (scanResult.emails) {
-                    localStorage.setItem('openego_mail_count', scanResult.emails.length);
-                    localStorage.setItem('openego_emails', JSON.stringify(scanResult.emails));
-                    updateChannelProgress({ type: 'mail', count: scanResult.emails.length, complete: true });
-                }
-                
-                if (scanResult.messages) {
-                    localStorage.setItem('openego_messages_count', scanResult.messages.length);
-                    updateChannelProgress({ type: 'messages', count: scanResult.messages.length, complete: true });
-                }
-                
-                if (scanResult.telegram) {
-                    localStorage.setItem('openego_telegram_count', scanResult.telegram.length);
-                    updateChannelProgress({ type: 'telegram', count: scanResult.telegram.length, complete: true });
-                }
-                
-                if (scanResult.whatsapp) {
-                    localStorage.setItem('openego_whatsapp_count', scanResult.whatsapp.length);
-                    updateChannelProgress({ type: 'whatsapp', count: scanResult.whatsapp.length, complete: true });
+                try {
+                    // Start comprehensive scan of ALL selected channels
+                    const scanResult = await ipcRenderer.invoke('scan-communications', sources);
+                    
+                    scanInProgress = false;
+                    
+                    // Process results
+                    if (scanResult.emails) {
+                        localStorage.setItem('openego_mail_count', scanResult.emails.length);
+                        localStorage.setItem('openego_emails', JSON.stringify(scanResult.emails));
+                        if (!scanCancelled) {
+                            updateChannelProgress({ type: 'mail', count: scanResult.emails.length, complete: true });
+                        }
+                    }
+                    
+                    // Clear progress file on completion
+                    localStorage.removeItem('openego_scan_progress');
+                    
+                    if (scanResult.partial) {
+                        console.log('Scan partially completed, can resume later');
+                    }
+                    
+                } catch (e) {
+                    console.error('Scan error:', e);
+                    // Scan can be resumed later
                 }
                 
                 // Store total communications count
-                localStorage.setItem('openego_total_communications', scanResult.totalCount);
+                const totalEmails = parseInt(localStorage.getItem('openego_mail_count') || 0);
+                localStorage.setItem('openego_total_communications', totalEmails);
             } else {
                 // Fallback - simulate scan completion
                 simulateScanCompletion(sources);
             }
             
-            // Continue with pattern analysis
-            analyzeCommunicationPatterns();
+            // Continue with pattern analysis if not cancelled
+            if (!scanCancelled) {
+                analyzeCommunicationPatterns();
+            }
+            
+            // Remove cancel button if still there
+            if (cancelBtn.parentNode) {
+                cancelBtn.parentNode.removeChild(cancelBtn);
+            }
         }
         
         // Update UI for each channel's progress
@@ -3051,6 +3118,16 @@
         }
         
         window.checkForAppUpdates = checkForAppUpdates;
+        window.checkAndResumeScan = checkAndResumeScan;
+        
+        // Check for resume on load if on step 4
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                if (currentStep === 4) {
+                    checkAndResumeScan();
+                }
+            }, 500);
+        });
         
         console.log('OpenEgo initialized successfully');
     </script>
