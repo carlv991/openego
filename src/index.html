@@ -3121,21 +3121,17 @@
                 }
                 
                 // Verify API key before saving
-                const verifyBtn = selectedCard.querySelector('.verify-btn') || document.createElement('button');
-                verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
-                verifyBtn.disabled = true;
+                showToast('Verifying API key...', 'info');
                 
                 const verifyResult = await verifyAPIKey(provider, apiKey);
                 
                 if (!verifyResult.valid) {
-                    verifyBtn.innerHTML = '<i class="fas fa-times"></i> Verification Failed';
-                    verifyBtn.disabled = false;
-                    alert('API key verification failed:\n\n' + verifyResult.message + '\n\nPlease check your key and try again.');
+                    showToast('Verification failed: ' + verifyResult.message, 'info');
+                    alert('API key verification failed:\n\n' + verifyResult.message + '\n\nPlease check your key and try again.\n\nFor OpenAI: Key should start with "sk-"\nFor Anthropic: Key should start with "sk-ant-"');
                     return;
                 }
                 
-                verifyBtn.innerHTML = '<i class="fas fa-check"></i> Verified';
-                showToast('API key verified!', 'success');
+                showToast('API key verified successfully!', 'success');
             }
             
             try {

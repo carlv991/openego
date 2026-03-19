@@ -7,6 +7,7 @@ const {
   setupLocalAIHandlers 
 } = require('./electron-modules');
 const { setupCommunicationScanner } = require('./communication-scanner');
+const { setupEmailScannerHandlers } = require('./email-scanner');
 
 let mainWindow;
 let tray;
@@ -50,6 +51,7 @@ function createWindow() {
     setupScanningHandlers(mainWindow);
     setupLocalAIHandlers();
     setupCommunicationScanner(mainWindow);
+    setupEmailScannerHandlers(mainWindow);
     ipcHandlersRegistered = true;
   }
 
@@ -69,15 +71,26 @@ function createWindow() {
 function setupMenuBar() {
   // Create a template icon for menu bar (16x16, black/white for macOS)
   const iconPath = path.join(__dirname, 'src-tauri/icons/icon.png');
-  let icon = nativeImage.createFromPath(iconPath);
   
-  // Resize for menu bar
-  icon = icon.resize({ width: 16, height: 16 });
+  let icon;
+  try {
+    icon = nativeImage.createFromPath(iconPath);
+    // Resize for menu bar
+    icon = icon.resize({ width: 16, height: 16 });
+    // For macOS dark mode support
+    icon.setTemplateImage(true);
+  } catch (e) {
+    console.error('Failed to load menu bar icon:', e);
+    // Create a blank icon as fallback
+    icon = nativeImage.createEmpty();
+  }
   
-  // For macOS dark mode support
-  icon.setTemplateImage(true);
-  
-  tray = new Tray(icon);
+  // Create new tray if doesn't exist
+  if (!tray) {
+    tray = new Tray(icon);
+  } else {
+    tray.setImage(icon);
+  }
   
   // Build context menu
   const contextMenu = Menu.buildFromTemplate([
