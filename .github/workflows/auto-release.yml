@@ -5,6 +5,10 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+  actions: write
+
 jobs:
   auto-release:
     runs-on: macos-latest
@@ -54,12 +58,16 @@ jobs:
         # Update HTML
         sed -i '' "s/v$CURRENT_VERSION/v$NEW_VERSION/g" src/index.html
         
-        # Commit
+        # Commit and push
         git config user.name "GitHub Actions"
         git config user.email "actions@github.com"
         git add -A
         git commit -m "Auto-bump version to v$NEW_VERSION"
-        git push
+        git push origin HEAD:main
+        
+        # Create and push tag
+        git tag -a "v$NEW_VERSION" -m "Release v$NEW_VERSION"
+        git push origin "v$NEW_VERSION"
         
         echo "new_version=$NEW_VERSION" >> $GITHUB_ENV
     
@@ -76,8 +84,18 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
+    - name: Create Tag
+      run: |
+        NEW_VERSION=${{ env.new_version }}
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+        git tag -fa "v$NEW_VERSION" -m "Release v$NEW_VERSION"
+        git push -f origin "v$NEW_VERSION"
+    
     - name: Create Release
       uses: softprops/action-gh-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: v${{ env.new_version }}
         name: OpenEgo v${{ env.new_version }}
@@ -102,8 +120,7 @@ jobs:
           dist-electron/*.zip
         draft: false
         prerelease: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        fail_on_unmatched_files: false
     
     - name: Output Release URL
       run: |
