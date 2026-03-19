@@ -3,15 +3,23 @@
   "version": "0.1.1",
   "description": "Your Personal Digital Twin",
   "main": "main.js",
+  "author": "OpenEgo Team",
+  "homepage": "https://github.com/carlv991/openego",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/carlv991/openego.git"
+  },
   "scripts": {
     "start": "electron .",
     "build": "electron-builder",
     "build:mac": "electron-builder --mac",
-    "postinstall": "electron-builder install-app-deps"
+    "postinstall": "electron-builder install-app-deps",
+    "release": "npm run build:mac && npm version patch"
   },
   "build": {
     "appId": "com.openego.app",
     "productName": "OpenEgo",
+    "copyright": "Copyright © 2026 OpenEgo",
     "directories": {
       "output": "dist-electron"
     },
@@ -28,12 +36,17 @@
         {
           "target": "dmg",
           "arch": ["arm64", "x64"]
+        },
+        {
+          "target": "zip",
+          "arch": ["arm64", "x64"]
         }
       ],
       "publish": {
         "provider": "github",
         "owner": "carlv991",
-        "repo": "openego"
+        "repo": "openego",
+        "releaseType": "release"
       }
     }
   },
