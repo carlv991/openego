@@ -5243,25 +5243,46 @@
                 const pendingCards = document.querySelectorAll('.message-card.pending');
                 
                 pendingCards.forEach((card, index) => {
-                    // Auto-send after a brief delay (staggered)
+                    // Auto-send after delay (staggered)
                     setTimeout(() => {
                         const sendBtn = card.querySelector('.btn-primary');
                         if (sendBtn) {
-                            // Hide action buttons to show it's auto-pilot
+                            // Show countdown
                             const actions = card.querySelector('.message-actions');
+                            let countdown = 10;
+                            
                             if (actions) {
                                 actions.innerHTML = `
-                                    <div style="display: flex; align-items: center; gap: 8px; color: #10B981; font-size: 14px;">
+                                    <div style="display: flex; align-items: center; gap: 12px; color: #10B981; font-size: 14px;">
                                         <i class="fas fa-robot"></i>
-                                        <span>Auto-pilot sent</span>
+                                        <span>Auto-sending in <span id="countdown-${index}">${countdown}</span>s...</span>
+                                        <button class="btn btn-secondary" style="padding: 4px 12px; font-size: 12px;" onclick="cancelAutoSend(this)">
+                                            Cancel
+                                        </button>
                                     </div>
                                 `;
+                                
+                                // Countdown interval
+                                const countdownInterval = setInterval(() => {
+                                    countdown--;
+                                    const countdownEl = document.getElementById(`countdown-${index}`);
+                                    if (countdownEl) countdownEl.textContent = countdown;
+                                    
+                                    if (countdown <= 0) {
+                                        clearInterval(countdownInterval);
+                                    }
+                                }, 1000);
+                                
+                                // Store interval on card for cancellation
+                                card.dataset.countdownInterval = countdownInterval;
                             }
                             
-                            // Trigger send
-                            sendResponse(sendBtn, true);
+                            // Trigger send after 10 seconds
+                            setTimeout(() => {
+                                sendResponse(sendBtn, true);
+                            }, 10000);
                         }
-                    }, 2000 + (index * 1000)); // Stagger sends by 1 second
+                    }, 1000 + (index * 2000)); // Stagger starts by 2 seconds
                 });
                 
                 // Update activity text
@@ -5270,6 +5291,36 @@
                 }
             }
         }
+        
+        // Cancel auto-send
+        function cancelAutoSend(btn) {
+            const card = btn.closest('.message-card');
+            
+            // Clear the countdown interval
+            if (card.dataset.countdownInterval) {
+                clearInterval(parseInt(card.dataset.countdownInterval));
+                delete card.dataset.countdownInterval;
+            }
+            
+            // Restore the action buttons
+            const actions = card.querySelector('.message-actions');
+            if (actions) {
+                actions.innerHTML = `
+                    <button class="btn btn-primary action-btn" onclick="sendResponse(this)">
+                        <i class="fas fa-paper-plane"></i> Send
+                    </button>
+                    <button class="btn btn-secondary action-btn" onclick="editResponse(this)">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button class="btn btn-secondary action-btn" onclick="dismissMessage(this)">
+                        <i class="fas fa-times"></i> Dismiss
+                    </button>
+                `;
+            }
+            
+            showToast('Auto-send cancelled', 'info');
+        }
+        window.cancelAutoSend = cancelAutoSend;
         
         // Log auto-sent responses for learning
         function logAutoSentResponse(recipient, response) {
