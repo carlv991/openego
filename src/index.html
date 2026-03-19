@@ -1059,6 +1059,14 @@
                     <div style="margin-top: 10px; padding: 12px; background: var(--bg-primary); border-radius: 8px; font-size: 0.85rem; color: var(--text-secondary);">
                         <i class="fas fa-info-circle"></i> When enabled, OpenEgo will monitor incoming emails and suggest replies via macOS notifications.
                     </div>
+                    <div style="margin-top: 15px;">
+                        <button class="btn btn-secondary" onclick="testSmartSuggest()" style="width: 100%;">
+                            <i class="fas fa-vial"></i> Test Smart Suggest
+                        </button>
+                        <p style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 8px; text-align: center;">
+                            Sends a test notification to preview the feature
+                        </p>
+                    </div>
                 </div>
                 
                 <div class="settings-section">
@@ -3368,7 +3376,51 @@
                     window.selectTrainingMode(savedMode);
                 }
             }, 500);
+            
+            // Setup IPC listeners for Smart Suggest (if in Electron)
+            if (typeof require !== 'undefined') {
+                try {
+                    const { ipcRenderer } = require('electron');
+                    
+                    // Auto-reply success
+                    ipcRenderer.on('auto-reply-success', (event, data) => {
+                        showToast('Reply auto-filled in Mail!', 'success');
+                        console.log('[Smart Suggest] Auto-reply success:', data);
+                    });
+                    
+                    // Auto-reply fallback
+                    ipcRenderer.on('auto-reply-fallback', (event, data) => {
+                        showToast('Copied to clipboard - paste manually', 'info');
+                        console.log('[Smart Suggest] Auto-reply fallback:', data);
+                    });
+                    
+                    // Show suggestion in UI
+                    ipcRenderer.on('show-suggestion', (event, data) => {
+                        console.log('[Smart Suggest] Suggestion received:', data);
+                        // Could show a modal with the suggestion here
+                    });
+                    
+                } catch (e) {
+                    console.log('IPC not available:', e.message);
+                }
+            }
         });
+        
+        // Test Smart Suggest notification
+        window.testSmartSuggest = async function() {
+            if (typeof require !== 'undefined') {
+                try {
+                    const { ipcRenderer } = require('electron');
+                    await ipcRenderer.invoke('smart-suggest:test');
+                    showToast('Test notification sent!', 'success');
+                } catch (e) {
+                    console.error('Test failed:', e);
+                    showToast('Test failed - check console', 'info');
+                }
+            } else {
+                showToast('Smart Suggest requires the app to be running', 'info');
+            }
+        };
         
         console.log('OpenEgo initialized successfully');
     </script>

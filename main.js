@@ -413,41 +413,105 @@ async function autoReplyToEmail(emailData, suggestion) {
     const { promisify } = require('util');
     const execAsync = promisify(exec);
     
-    // AppleScript to open reply and fill it
+    // Escape the suggestion for AppleScript
+    const escapedSuggestion = suggestion
+      .replace(/\\/g, '\\\\')
+      .replace(/"/g, '\\"')
+      .replace(/\n/g, '\\n')
+      .replace(/\r/g, '');
+    
+    // AppleScript to find message by subject/sender and open reply
+    // Note: This searches by subject since message ID may not persist
     const script = `
       tell application "Mail"
         activate
-        set theMessage to first message of inbox whose id is "${emailData.id}"
-        set replyMessage to reply theMessage
-        set content of replyMessage to "${suggestion.replace(/"/g, '\\"')}"
-        activate
+        
+        -- Search for the message by subject
+        set targetSubject to "${emailData.subject.replace(/"/g, '\\"')}"
+        set targetSender to "${emailData.sender.replace(/"/g, '\\"')}"
+        set foundMessage to null
+        
+        -- Search in inbox
+        repeat with msg in messages of inbox
+          if subject of msg contains targetSubject then
+            set foundMessage to msg
+            exit repeat
+          end if
+        end repeat
+        
+        if foundMessage is not null then
+          -- Open the message first
+          set selected messages of front message viewer to {foundMessage}
+          
+          -- Create reply
+          set replyMessage to reply foundMessage
+          
+          -- Set the content
+          set content of replyMessage to "${escapedSuggestion}"
+          
+          -- Activate compose window
+          activate
+          
+          return "Reply created successfully"
+        else
+          return "Message not found - may have been moved or deleted"
+        end if
       end tell
     `;
     
-    // For security, we'll open the main window instead
-    showMainWindow();
-    if (mainWindow) {
-      mainWindow.webContents.send('auto-reply-ready', { 
-        email: emailData, 
-        suggestion,
-        message: 'Open Mail app and paste this reply:'
-      });
+    // Execute the AppleScript
+    console.log('[Smart Suggest] Executing AppleScript to auto-fill reply...');
+    const { stdout, stderr } = await execAsync(`osascript -e '${script}'`);
+    
+    if (stderr) {
+      console.error('[Smart Suggest] AppleScript stderr:', stderr);
     }
     
-    // Copy suggestion to clipboard
-    const clipboard = require('electron').clipboard;
-    clipboard.writeText(suggestion);
+    console.log('[Smart Suggest] AppleScript result:', stdout);
     
-    // Show notification
+    // Show success notification
     const confirmNotification = new Notification({
-      title: '✅ Reply Ready',
-      body: 'Suggested reply copied to clipboard. Paste it into your email.',
-      icon: path.join(__dirname, 'src-tauri/icons/icon.png')
+      title: '✅ Reply Auto-Filled',
+      body: 'Check your Mail app - the reply is ready to send!',
+      icon: path.join(__dirname, 'src-tauri/icons/icon.png'),
+      sound: 'default'
     });
     confirmNotification.show();
     
+    // Also show in main window
+    showMainWindow();
+    if (mainWindow) {
+      mainWindow.webContents.send('auto-reply-success', { 
+        email: emailData, 
+        suggestion,
+        message: 'Reply automatically filled in Mail app!'
+      });
+    }
+    
   } catch (e) {
     console.error('[Smart Suggest] Auto-reply failed:', e);
+    
+    // Fallback to clipboard method
+    const clipboard = require('electron').clipboard;
+    clipboard.writeText(suggestion);
+    
+    // Show fallback notification
+    const fallbackNotification = new Notification({
+      title: '⚠️ Auto-Fill Failed',
+      body: 'Reply copied to clipboard instead. Please paste manually.',
+      icon: path.join(__dirname, 'src-tauri/icons/icon.png')
+    });
+    fallbackNotification.show();
+    
+    // Show in main window
+    showMainWindow();
+    if (mainWindow) {
+      mainWindow.webContents.send('auto-reply-fallback', { 
+        email: emailData, 
+        suggestion,
+        error: e.message
+      });
+    }
   }
 }
 
@@ -468,6 +532,22 @@ ipcMain.handle('smart-suggest:disable', () => {
 
 ipcMain.handle('smart-suggest:status', () => {
   return { enabled: smartSuggestEnabled };
+});
+
+// Test Smart Suggest notification (for demo/testing)
+ipcMain.handle('smart-suggest:test', async () => {
+  const testEmail = {
+    subject: 'Lunch today?',
+    sender: 'Scott <scott@example.com>',
+    content: 'Hey Vic, are you free to grab lunch at 12:00 at Ithaki?',
+    id: 'test-message-id'
+  };
+  
+  const testSuggestion = "Sorry Scott, I'm all booked today with meetings. How about tomorrow at the same time? Or we could do dinner instead if that works better for you.";
+  
+  showSmartSuggestNotification(testEmail, testSuggestion);
+  
+  return { success: true, message: 'Test notification shown' };
 });
 
 // Start monitoring when app launches
