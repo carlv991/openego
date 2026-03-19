@@ -4776,6 +4776,17 @@
             }
             
             showToast(`Switched to ${newMode === 'autopilot' ? 'Auto-Pilot' : 'Co-Pilot'} mode`, 'success');
+            
+            // Handle autopilot monitoring
+            if (newMode === 'autopilot') {
+                // Immediately check for pending messages
+                checkAutoPilotMode();
+                // Start continuous monitoring
+                startAutoPilotMonitor();
+                updateActivityStatus('Auto-pilot active', 'Automatically sending responses');
+            } else {
+                updateActivityStatus('Co-pilot mode', 'Waiting for your approval');
+            }
         }
         
         // Activity Monitor - Update what OpenEgo is doing
@@ -5051,13 +5062,38 @@
             
             // Load saved mode
             const mode = localStorage.getItem('openego_mode') || 'copilot';
-            document.getElementById('currentMode').textContent = mode === 'autopilot' ? '🤖 Auto-Pilot' : '👀 Co-Pilot';
+            
+            // Update top mode button
+            const topModeBtn = document.getElementById('topModeBtn');
+            if (topModeBtn) {
+                if (mode === 'autopilot') {
+                    topModeBtn.classList.add('autopilot');
+                    topModeBtn.innerHTML = '<i class="fas fa-robot"></i><span id="topModeLabel">AUTO-PILOT</span>';
+                } else {
+                    topModeBtn.classList.remove('autopilot');
+                    topModeBtn.innerHTML = '<i class="fas fa-user-astronaut"></i><span id="topModeLabel">CO-PILOT</span>';
+                }
+            }
+            
+            // Update legacy mode display if exists
+            const currentModeEl = document.getElementById('currentMode');
+            if (currentModeEl) {
+                currentModeEl.textContent = mode === 'autopilot' ? '🤖 Auto-Pilot' : '👀 Co-Pilot';
+            }
             
             // Load saved theme
             loadTheme();
             
             // Load persona if available
             loadPersonaDisplay();
+            
+            // Start autopilot monitoring if in autopilot mode
+            if (mode === 'autopilot') {
+                startAutoPilotMonitor();
+                updateActivityStatus('Auto-pilot active', 'Automatically sending responses');
+            } else {
+                updateActivityStatus('Co-pilot mode', 'Waiting for your approval');
+            }
         }
         
         // Reset onboarding to start over
@@ -5165,8 +5201,27 @@
         }
         window.startStatusAnimation = startStatusAnimation;
         
-        function sendResponse(btn) {
+        function sendResponse(btn, autoSend = false) {
             const card = btn.closest('.message-card');
+            const sourceName = card.querySelector('.source-name').textContent;
+            const responseText = card.querySelector('.ai-text').textContent;
+            
+            // In Auto-Pilot mode, we auto-send without animation
+            if (autoSend) {
+                // Show auto-send notification
+                showToast(`Auto-sent response to ${sourceName}`, 'success');
+                addActivity('sent', `Auto-response sent to ${sourceName}`);
+                
+                // Remove card immediately
+                card.remove();
+                updateInboxBadge();
+                
+                // Log for learning
+                logAutoSentResponse(sourceName, responseText);
+                return;
+            }
+            
+            // Co-Pilot mode - animate and show success
             card.style.transform = 'translateX(-100%)';
             card.style.opacity = '0';
             
@@ -5174,10 +5229,77 @@
                 card.remove();
                 updateInboxBadge();
                 showToast('Response sent!', 'success');
-                addActivity('sent', 'Response sent to ' + card.querySelector('.source-name').textContent);
+                addActivity('sent', 'Response sent to ' + sourceName);
             }, 300);
         }
         window.sendResponse = sendResponse;
+        
+        // Check mode and handle auto-pilot
+        function checkAutoPilotMode() {
+            const mode = localStorage.getItem('openego_mode') || 'copilot';
+            
+            if (mode === 'autopilot') {
+                // Find all pending message cards
+                const pendingCards = document.querySelectorAll('.message-card.pending');
+                
+                pendingCards.forEach((card, index) => {
+                    // Auto-send after a brief delay (staggered)
+                    setTimeout(() => {
+                        const sendBtn = card.querySelector('.btn-primary');
+                        if (sendBtn) {
+                            // Hide action buttons to show it's auto-pilot
+                            const actions = card.querySelector('.message-actions');
+                            if (actions) {
+                                actions.innerHTML = `
+                                    <div style="display: flex; align-items: center; gap: 8px; color: #10B981; font-size: 14px;">
+                                        <i class="fas fa-robot"></i>
+                                        <span>Auto-pilot sent</span>
+                                    </div>
+                                `;
+                            }
+                            
+                            // Trigger send
+                            sendResponse(sendBtn, true);
+                        }
+                    }, 2000 + (index * 1000)); // Stagger sends by 1 second
+                });
+                
+                // Update activity text
+                if (pendingCards.length > 0) {
+                    updateActivityStatus('Auto-pilot active', `Sending ${pendingCards.length} responses...`);
+                }
+            }
+        }
+        
+        // Log auto-sent responses for learning
+        function logAutoSentResponse(recipient, response) {
+            const log = JSON.parse(localStorage.getItem('openego_auto_sent') || '[]');
+            log.push({
+                timestamp: new Date().toISOString(),
+                recipient,
+                response: response.substring(0, 200), // Truncate for storage
+                mode: 'autopilot'
+            });
+            
+            // Keep only last 100
+            if (log.length > 100) log.shift();
+            
+            localStorage.setItem('openego_auto_sent', JSON.stringify(log));
+        }
+        
+        // Monitor for new messages and auto-process in autopilot mode
+        function startAutoPilotMonitor() {
+            const mode = localStorage.getItem('openego_mode') || 'copilot';
+            
+            if (mode === 'autopilot') {
+                // Check every 5 seconds for new messages
+                setInterval(() => {
+                    checkAutoPilotMode();
+                }, 5000);
+                
+                console.log('[Auto-Pilot] Monitoring active');
+            }
+        }
         
         function editResponse(btn) {
             const card = btn.closest('.message-card');
