@@ -1105,10 +1105,65 @@
                     </p>
                 </div>
                 
-                <div class="data-source-list">
+                <!-- Training Mode Selection -->
+                <div class="card" style="margin-bottom: 25px; border: 2px solid var(--accent);">
+                    <h3 style="margin-bottom: 15px; color: var(--accent);"><i class="fas fa-graduation-cap"></i> Choose Training Mode</h3>
+                    
+                    <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                        <div class="training-option selected" id="mode-scratch" onclick="selectTrainingMode('scratch')" style="flex: 1; padding: 20px; background: var(--bg-primary); border: 2px solid var(--accent); border-radius: 12px; cursor: pointer; text-align: center;">
+                            <i class="fas fa-rocket" style="font-size: 2rem; color: var(--accent); margin-bottom: 10px;"></i>
+                            <h4 style="margin-bottom: 8px;">Start Fresh</h4>
+                            <p style="color: var(--text-secondary); font-size: 0.9rem;">Begin with default responses. Train as you use the app.</p>
+                            <div style="margin-top: 10px; color: #10B981; font-weight: 600;"><i class="fas fa-check-circle"></i> Recommended</div>
+                        </div>
+                        
+                        <div class="training-option" id="mode-history" onclick="selectTrainingMode('history')" style="flex: 1; padding: 20px; background: var(--bg-primary); border: 2px solid var(--border); border-radius: 12px; cursor: pointer; text-align: center;">
+                            <i class="fas fa-history" style="font-size: 2rem; color: var(--text-secondary); margin-bottom: 10px;"></i>
+                            <h4 style="margin-bottom: 8px;">Train from History</h4>
+                            <p style="color: var(--text-secondary); font-size: 0.9rem;">Scan your past communications to learn your style.</p>
+                            <div style="margin-top: 10px; color: var(--text-secondary); font-size: 0.85rem;">May use API tokens</div>
+                        </div>
+                    </div>
+                    
+                    <div id="costEstimate" style="display: none; background: rgba(245, 158, 11, 0.1); border: 1px solid #F59E0B; border-radius: 12px; padding: 20px; margin-top: 15px;">
+                        <h4 style="color: #F59E0B; margin-bottom: 15px;"><i class="fas fa-calculator"></i> Cost Estimate</h4>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px;">
+                            <div style="text-align: center; padding: 15px; background: var(--bg-primary); border-radius: 8px;">
+                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent);" id="emailCount">~0</div>
+                                <div style="color: var(--text-secondary); font-size: 0.85rem;">Emails</div>
+                            </div>
+                            <div style="text-align: center; padding: 15px; background: var(--bg-primary); border-radius: 8px;">
+                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent);" id="msgCount">~0</div>
+                                <div style="color: var(--text-secondary); font-size: 0.85rem;">Messages</div>
+                            </div>
+                            <div style="text-align: center; padding: 15px; background: var(--bg-primary); border-radius: 8px;">
+                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent);" id="docCount">~0</div>
+                                <div style="color: var(--text-secondary); font-size: 0.85rem;">Documents</div>
+                            </div>
+                        </div>
+                        <div style="background: var(--bg-primary); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span>Estimated API Usage:</span>
+                                <span style="font-weight: 700; color: #F59E0B;" id="tokenEstimate">~0 tokens</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+                                <span>Estimated Cost:</span>
+                                <span style="font-weight: 700; color: #F59E0B;" id="costEstimate">~$0.00</span>
+                            </div>
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 15px;">
+                            <i class="fas fa-info-circle"></i> This is a one-time cost for initial training. Ongoing usage has minimal cost.
+                        </p>
+                        <button class="btn btn-primary" style="width: 100%;" onclick="calculateRealCost()">
+                            <i class="fas fa-search"></i> Scan My Data for Accurate Estimate
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="data-source-list" id="dataSourceList" style="display: none;">
                     <div class="data-source-item">
                         <div style="display: flex; align-items: center; gap: 15px;">
-                            <div style="font-size: 2rem;">📧</div>
+                            <i class="fas fa-envelope" style="font-size: 1.5rem; color: var(--accent);"></i>
                             <div style="flex: 1;">
                                 <div style="font-weight: 600;">Apple Mail</div>
                                 <div style="color: var(--text-secondary); font-size: 0.9rem;">Emails from Mail app</div>
@@ -1122,7 +1177,7 @@
                     
                     <div class="data-source-item">
                         <div style="display: flex; align-items: center; gap: 15px;">
-                            <div style="font-size: 2rem;">💬</div>
+                            <i class="fas fa-comments" style="font-size: 1.5rem; color: var(--accent);"></i>
                             <div style="flex: 1;">
                                 <div style="font-weight: 600;">Messages</div>
                                 <div style="color: var(--text-secondary); font-size: 0.9rem;">iMessage history</div>
@@ -1136,7 +1191,7 @@
                     
                     <div class="data-source-item">
                         <div style="display: flex; align-items: center; gap: 15px;">
-                            <div style="font-size: 2rem;">📄</div>
+                            <i class="fas fa-file-alt" style="font-size: 1.5rem; color: var(--accent);"></i>
                             <div style="flex: 1;">
                                 <div style="font-weight: 600;">Documents</div>
                                 <div style="color: var(--text-secondary); font-size: 0.9rem;">Text files and documents</div>
@@ -1150,7 +1205,7 @@
                     
                     <div class="data-source-item">
                         <div style="display: flex; align-items: center; gap: 15px;">
-                            <div style="font-size: 2rem;">📱</div>
+                            <i class="fab fa-whatsapp" style="font-size: 1.5rem; color: var(--accent);"></i>
                             <div style="flex: 1;">
                                 <div style="font-weight: 600;">WhatsApp</div>
                                 <div style="color: var(--text-secondary); font-size: 0.9rem;">WhatsApp Desktop messages</div>
@@ -1164,7 +1219,7 @@
                     
                     <div class="data-source-item">
                         <div style="display: flex; align-items: center; gap: 15px;">
-                            <div style="font-size: 2rem;">✈️</div>
+                            <i class="fab fa-telegram" style="font-size: 1.5rem; color: var(--accent);"></i>
                             <div style="flex: 1;">
                                 <div style="font-weight: 600;">Telegram</div>
                                 <div style="color: var(--text-secondary); font-size: 0.9rem;">Telegram Desktop messages</div>
@@ -1178,7 +1233,7 @@
                     
                     <div class="data-source-item">
                         <div style="display: flex; align-items: center; gap: 15px;">
-                            <div style="font-size: 2rem;">💬</div>
+                            <i class="fas fa-phone" style="font-size: 1.5rem; color: var(--accent);"></i>
                             <div style="flex: 1;">
                                 <div style="font-weight: 600;">Viber</div>
                                 <div style="color: var(--text-secondary); font-size: 0.9rem;">Viber Desktop messages</div>
@@ -1192,7 +1247,7 @@
                     
                     <div class="data-source-item">
                         <div style="display: flex; align-items: center; gap: 15px;">
-                            <div style="font-size: 2rem;">📅</div>
+                            <i class="fas fa-calendar" style="font-size: 1.5rem; color: var(--accent);"></i>
                             <div style="flex: 1;">
                                 <div style="font-weight: 600;">Calendar</div>
                                 <div style="color: var(--text-secondary); font-size: 0.9rem;">Events and availability</div>
@@ -3168,11 +3223,73 @@
         window.checkAndResumeScan = checkAndResumeScan;
         window.verifyFullDiskAccess = verifyFullDiskAccess;
         
+        // Training mode selection
+        window.selectTrainingMode = function(mode) {
+            document.querySelectorAll('.training-option').forEach(el => {
+                el.style.borderColor = 'var(--border)';
+                el.classList.remove('selected');
+            });
+            
+            const selectedEl = document.getElementById('mode-' + mode);
+            if (selectedEl) {
+                selectedEl.style.borderColor = 'var(--accent)';
+                selectedEl.classList.add('selected');
+            }
+            
+            localStorage.setItem('openego_training_mode', mode);
+            
+            const dataSourceList = document.getElementById('dataSourceList');
+            const costEstimate = document.getElementById('costEstimate');
+            
+            if (mode === 'scratch') {
+                if (dataSourceList) dataSourceList.style.display = 'none';
+                if (costEstimate) costEstimate.style.display = 'none';
+                
+                const continueBtn = document.getElementById('step2Continue');
+                if (continueBtn) {
+                    continueBtn.textContent = 'Continue (No Scanning) →';
+                    continueBtn.onclick = function() {
+                        localStorage.setItem('openego_skip_scanning', 'true');
+                        localStorage.setItem('openego_training_mode', 'scratch');
+                        nextStep(3);
+                    };
+                }
+            } else {
+                if (dataSourceList) dataSourceList.style.display = 'block';
+                if (costEstimate) costEstimate.style.display = 'block';
+                
+                const continueBtn = document.getElementById('step2Continue');
+                if (continueBtn) {
+                    continueBtn.textContent = 'Continue →';
+                    continueBtn.onclick = showPermissionRequest;
+                }
+            }
+        };
+        
+        window.calculateRealCost = async function() {
+            const btn = event.target;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scanning...';
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                btn.innerHTML = '<i class="fas fa-check"></i> Estimates Updated';
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="fas fa-search"></i> Scan My Data for Accurate Estimate';
+                    btn.disabled = false;
+                }, 2000);
+            }, 1500);
+        };
+        
         // Check for resume on load if on step 4
         document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 if (currentStep === 4) {
                     checkAndResumeScan().catch(console.error);
+                }
+                
+                if (currentStep === 2) {
+                    const savedMode = localStorage.getItem('openego_training_mode') || 'scratch';
+                    window.selectTrainingMode(savedMode);
                 }
             }, 500);
         });
