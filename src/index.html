@@ -2856,12 +2856,24 @@
         async function startDataAnalysis() {
             // Check if user selected "Start from Scratch" - skip scanning entirely
             const trainingMode = localStorage.getItem('openego_training_mode');
+            console.log('[Start Data Analysis] Training mode:', trainingMode);
+            
             if (trainingMode === 'scratch') {
                 console.log('[Start from Scratch] Skipping email scan, going directly to AI setup');
-                document.getElementById('analysisProgress').textContent = 'Starting fresh - no historical data needed!';
-                document.getElementById('continueBtn').textContent = 'Continue →';
-                document.getElementById('continueBtn').disabled = false;
-                document.getElementById('continueBtn').onclick = () => nextStep(5);
+                
+                // Clear any old scan progress
+                localStorage.removeItem('openego_scan_progress');
+                localStorage.removeItem('openego_emails');
+                
+                const analysisProgress = document.getElementById('analysisProgress');
+                const continueBtn = document.getElementById('continueBtn');
+                
+                if (analysisProgress) analysisProgress.textContent = 'Starting fresh - no historical data needed!';
+                if (continueBtn) {
+                    continueBtn.textContent = 'Continue →';
+                    continueBtn.disabled = false;
+                    continueBtn.onclick = () => nextStep(5);
+                }
                 
                 // Show a message explaining
                 const msgDiv = document.createElement('div');
