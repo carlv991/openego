@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OpenEgo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -1591,20 +1592,20 @@
                 <div class="sidebar-logo">🧠 OpenEgo</div>
                 <nav class="sidebar-nav">
                     <button class="nav-item active" onclick="switchTab('inbox')">
-                        <span class="nav-icon">[In]</span> Inbox
+                        <i class="fas fa-inbox" style="margin-right: 10px;"></i> Inbox
                         <span class="nav-badge" id="inboxBadge">3</span>
                     </button>
                     <button class="nav-item" onclick="switchTab('stats')">
-                        <span class="nav-icon">[St]</span> Stats
+                        <i class="fas fa-chart-bar" style="margin-right: 10px;"></i> Stats
                     </button>
                     <button class="nav-item" onclick="switchTab('settings')">
-                        <span class="nav-icon">[Se]</span> Settings
+                        <i class="fas fa-cog" style="margin-right: 10px;"></i> Settings
                     </button>
                 </nav>
                 <div class="mode-switcher">
                     <div class="mode-label">Current Mode</div>
-                    <div class="mode-value" id="currentMode">[CP] Co-Pilot</div>
-                    <button class="btn btn-primary" style="width: 100%; margin-top: 10px; padding: 10px; font-size: 0.9rem;" onclick="toggleMode()">Switch Mode</button>
+                    <div class="mode-value" id="currentMode"><i class="fas fa-eye"></i> Co-Pilot</div>
+                    <button class="btn btn-primary" style="width: 100%; margin-top: 10px; padding: 10px; font-size: 0.9rem;" onclick="toggleMode()"><i class="fas fa-exchange-alt"></i> Switch Mode</button>
                 </div>
             </aside>
             <main class="dashboard-main">
@@ -1643,13 +1644,13 @@
                 </div>
                 <div class="tab-content" id="settingsTab">
                     <div class="dashboard-header">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                             <div>
-                                <h2>[Se] Settings</h2>
+                                <h2><i class="fas fa-cog"></i> Settings</h2>
                                 <p style="color: var(--text-secondary);">Manage your OpenEgo configuration</p>
                             </div>
-                            <button class="btn btn-secondary" onclick="closeSettings()">
-                                ← Back to Dashboard
+                            <button class="btn btn-secondary" onclick="closeSettings()" style="display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-arrow-left"></i> Back to Inbox
                             </button>
                         </div>
                     </div>
@@ -1673,30 +1674,30 @@
                     </div>
                     
                     <div class="settings-section">
-                        <h3>[M] Connected Accounts</h3>
+                        <h3><i class="fas fa-plug"></i> Connected Accounts</h3>
                         <div class="settings-item">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <span class="icon-mail" style="font-size: 1.2rem;">[M]</span>
+                                <i class="fas fa-envelope" style="font-size: 1.2rem; color: var(--accent);"></i>
                                 <div>
                                     <div>Gmail</div>
                                     <div style="color: var(--text-secondary); font-size: 0.85rem;">john@gmail.com</div>
                                 </div>
                             </div>
-                            <span style="color: #10B981;">[OK] Connected</span>
+                            <span style="color: #10B981;"><i class="fas fa-check-circle"></i> Connected</span>
                         </div>
                         <div class="settings-item">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <span class="icon-telegram" style="font-size: 1.2rem;">[T]</span>
+                                <i class="fab fa-telegram" style="font-size: 1.2rem; color: var(--accent);"></i>
                                 <div>
                                     <div>Telegram</div>
                                     <div style="color: var(--text-secondary); font-size: 0.85rem;">@johndoe</div>
                                 </div>
                             </div>
-                            <span style="color: #10B981;">[OK] Connected</span>
+                            <span style="color: #10B981;"><i class="fas fa-check-circle"></i> Connected</span>
                         </div>
                         <div class="settings-item">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <span class="icon-slack" style="font-size: 1.2rem;">[S]</span>
+                                <i class="fab fa-slack" style="font-size: 1.2rem; color: var(--accent);"></i>
                                 <div>
                                     <div>Slack</div>
                                     <div style="color: var(--text-secondary); font-size: 0.85rem;">Not connected</div>
@@ -1707,13 +1708,13 @@
                     </div>
                     
                     <div class="settings-section">
-                        <h3>[L] Privacy & Data</h3>
+                        <h3><i class="fas fa-shield-alt"></i> Privacy & Data</h3>
                         <div class="settings-item">
                             <div>
                                 <div>Data Storage</div>
                                 <div style="color: var(--text-secondary); font-size: 0.9rem;">All data stored locally on your device</div>
                             </div>
-                            <span style="color: #10B981;">[L] Secure</span>
+                            <span style="color: #10B981;"><i class="fas fa-lock"></i> Secure</span>
                         </div>
                         <div class="settings-item">
                             <div>
@@ -1739,7 +1740,7 @@
                     </div>
                     
                     <div class="settings-section">
-                        <h3>[i] About</h3>
+                        <h3><i class="fas fa-info-circle"></i> About</h3>
                         <div class="settings-item">
                             <div>Current Version</div>
                             <span style="color: var(--accent); font-weight: 600;">v0.1.1 Beta (Build 2026-03-19)</span>
@@ -2813,8 +2814,15 @@
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             
-            document.getElementById('inboxTab').classList.add('active');
-            document.querySelector('.nav-item').classList.add('active');
+            // Show inbox tab
+            const inboxTab = document.getElementById('inboxTab');
+            if (inboxTab) inboxTab.classList.add('active');
+            
+            // Activate inbox nav button (first nav-item)
+            const inboxNav = document.querySelector('.nav-item');
+            if (inboxNav) inboxNav.classList.add('active');
+            
+            console.log('Settings closed - returned to Inbox');
         }
         
         updateProgress();
