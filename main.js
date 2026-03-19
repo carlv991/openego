@@ -10,6 +10,8 @@ const {
 } = require('./electron-modules');
 const { setupCommunicationScanner } = require('./communication-scanner');
 const { setupEmailScannerHandlers } = require('./email-scanner');
+const { setupMessageMonitor } = require('./message-monitor');
+const { setupAIResponseHandlers } = require('./ai-response-generator');
 
 let mainWindow;
 let tray;
@@ -120,6 +122,13 @@ function createWindow() {
     console.log('[Main] Communication scanner ready');
     setupEmailScannerHandlers(mainWindow);
     console.log('[Main] Email scanner handlers ready');
+    
+    // Setup new message monitor and AI response handlers
+    setupMessageMonitor(mainWindow);
+    console.log('[Main] Message monitor ready');
+    setupAIResponseHandlers();
+    console.log('[Main] AI response handlers ready');
+    
     ipcHandlersRegistered = true;
     console.log('[Main] All IPC handlers registered');
   }

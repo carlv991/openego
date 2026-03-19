@@ -29,6 +29,8 @@
       "communication-scanner.js",
       "email-scanner.js",
       "persona-engine.js",
+      "message-monitor.js",
+      "ai-response-generator.js",
       "src/**/*",
       "node_modules/**/*"
     ],
