@@ -640,37 +640,6 @@ function setupAITrainingHandlers() {
     }
   });
   
-  // Retrain persona from emails
-  ipcMain.handle('retrain-persona', async () => {
-    try {
-      const { CommunicationScanner } = require('./communication-scanner');
-      const scanner = new CommunicationScanner();
-      
-      // Scan emails with persona extraction
-      const results = await scanner.scanMail();
-      
-      // Build persona from scanned emails
-      const engine = new PersonaEngine();
-      results.emails.forEach(email => {
-        engine.analyzeEmail({
-          content: email.body || email.preview || '',
-          timestamp: new Date(email.date)
-        });
-      });
-      
-      // Save updated persona
-      engine.savePersona();
-      
-      return { 
-        success: true, 
-        emailsAnalyzed: results.emails.length,
-        persona: engine.generatePersonaProfile()
-      };
-    } catch (e) {
-      console.error('[Retrain] Error:', e);
-      return { success: false, error: e.message };
-    }
-  });
   
     console.log('[AI Training] All handlers registered');
   } catch (err) {

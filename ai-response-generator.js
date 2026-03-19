@@ -21,7 +21,7 @@ class AIResponseGenerator {
   
   loadSettings() {
     try {
-      // Load from localStorage (passed from renderer)
+      // Load from settings file
       const settingsPath = path.join(os.homedir(), '.openego_ai_settings.json');
       if (fs.existsSync(settingsPath)) {
         const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));

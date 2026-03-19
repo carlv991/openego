@@ -16,10 +16,7 @@ class TelegramSender {
   
   loadToken() {
     try {
-      // Load from localStorage (saved from settings)
-      this.botToken = localStorage.getItem('openego_telegram_token');
-      
-      // Also check file (for main process access)
+      // Load from file (main process)
       const tokenPath = path.join(os.homedir(), '.openego_telegram_token');
       if (fs.existsSync(tokenPath)) {
         this.botToken = fs.readFileSync(tokenPath, 'utf8').trim();

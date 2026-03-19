@@ -277,7 +277,7 @@ class MessageMonitor {
   
   getTelegramBotToken() {
     try {
-      // Read from localStorage (would need to be passed from renderer)
+      // Read from file storage
       // For now, check if token file exists
       const tokenPath = path.join(os.homedir(), '.openego_telegram_token');
       if (fs.existsSync(tokenPath)) {
