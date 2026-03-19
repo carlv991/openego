@@ -1013,7 +1013,7 @@
 </head>
 <body>
     <div class="stars"></div>
-    <div class="gear-icon" onclick="openSettingsModal()">⚙️</div>
+    <div class="gear-icon" onclick="openSettingsModal()"><i class="fas fa-cog"></i></div>
     
     <!-- Settings Modal Overlay -->
     <div id="settingsModal" class="modal-overlay" style="display: none;">
@@ -1308,16 +1308,33 @@
             <h1 style="text-align: center;">Choose Your AI Model</h1>
             <p class="subtitle">Select the brain that powers your digital twin</p>
             
-            <h3 style="margin: 30px 0 15px; color: var(--text-secondary);">☁️ Cloud Models (Requires API Key)</h3>
+            <!-- No API Key Option -->
+            <div class="card model-card selected" onclick="selectModel(this)" data-provider="none" data-model="basic" style="border: 2px solid var(--accent); margin-bottom: 30px;">
+                <span class="badge badge-recommended">Recommended for Beginners</span>
+                <h3><i class="fas fa-play-circle"></i> Basic Mode - No API Key Required</h3>
+                <p style="color: var(--text-secondary); margin: 10px 0;">Start immediately with pre-trained templates. Upgrade to AI later when you're ready.</p>
+                <div class="specs">
+                    <span><i class="fas fa-bolt"></i> Instant Setup</span>
+                    <span><i class="fas fa-dollar-sign"></i> Free</span>
+                    <span><i class="fas fa-arrow-up"></i> Upgrade Anytime</span>
+                </div>
+                <div style="margin-top: 15px; padding: 15px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; border: 1px solid #10B981;">
+                    <p style="color: #10B981; font-size: 0.9rem; margin: 0;">
+                        <i class="fas fa-check-circle"></i> Uses smart templates and your manual training only. No API costs!
+                    </p>
+                </div>
+            </div>
             
-            <div class="card model-card selected" onclick="selectModel(this)" data-provider="openai" data-model="gpt-4o">
-                <span class="badge badge-recommended">Recommended</span>
+            <h3 style="margin: 30px 0 15px; color: var(--text-secondary);"><i class="fas fa-cloud"></i> Cloud Models (Requires API Key)</h3>
+            
+            <div class="card model-card" onclick="selectModel(this)" data-provider="openai" data-model="gpt-4o">
+                <span class="badge">Most Capable</span>
                 <h3>GPT-4o</h3>
                 <p style="color: var(--text-secondary); margin: 10px 0;">Most capable model. Excellent at understanding context and nuance.</p>
                 <div class="specs">
-                    <span>🧠 Most Capable</span>
-                    <span>⚡ Fast</span>
-                    <span>☁️ OpenAI API</span>
+                    <span><i class="fas fa-brain"></i> Most Capable</span>
+                    <span><i class="fas fa-bolt"></i> Fast</span>
+                    <span><i class="fas fa-cloud"></i> OpenAI API</span>
                 </div>
                 <div class="api-key-input" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border);">
                     <input type="password" placeholder="Enter OpenAI API Key" style="width: 100%; padding: 10px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 8px; color: var(--text);">
@@ -1329,9 +1346,9 @@
                 <h3>GPT-4o Mini</h3>
                 <p style="color: var(--text-secondary); margin: 10px 0;">Smarter and cheaper than GPT-3.5. Great for most tasks.</p>
                 <div class="specs">
-                    <span>💰 Cheapest</span>
-                    <span>⚡ Very Fast</span>
-                    <span>☁️ OpenAI API</span>
+                    <span><i class="fas fa-coins"></i> Cheapest</span>
+                    <span><i class="fas fa-bolt"></i> Very Fast</span>
+                    <span><i class="fas fa-cloud"></i> OpenAI API</span>
                 </div>
                 <div class="api-key-input" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border);">
                     <input type="password" placeholder="Enter OpenAI API Key" style="width: 100%; padding: 10px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 8px; color: var(--text);">
@@ -1343,9 +1360,9 @@
                 <h3>Claude 3.5 Sonnet</h3>
                 <p style="color: var(--text-secondary); margin: 10px 0;">Exceptional reasoning and writing. Great for professional communication.</p>
                 <div class="specs">
-                    <span>🧠 Best Reasoning</span>
-                    <span>✍️ Great Writing</span>
-                    <span>☁️ Anthropic API</span>
+                    <span><i class="fas fa-brain"></i> Best Reasoning</span>
+                    <span><i class="fas fa-pen"></i> Great Writing</span>
+                    <span><i class="fas fa-cloud"></i> Anthropic API</span>
                 </div>
                 <div class="api-key-input" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border);">
                     <input type="password" placeholder="Enter Anthropic API Key" style="width: 100%; padding: 10px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 8px; color: var(--text);">
@@ -1357,9 +1374,9 @@
                 <h3>Claude 3 Haiku</h3>
                 <p style="color: var(--text-secondary); margin: 10px 0;">Lightning fast responses. Most affordable Anthropic option.</p>
                 <div class="specs">
-                    <span>🏎 Fastest</span>
-                    <span>💰 Affordable</span>
-                    <span>☁️ Anthropic API</span>
+                    <span><i class="fas fa-tachometer-alt"></i> Fastest</span>
+                    <span><i class="fas fa-coins"></i> Affordable</span>
+                    <span><i class="fas fa-cloud"></i> Anthropic API</span>
                 </div>
                 <div class="api-key-input" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border);">
                     <input type="password" placeholder="Enter Anthropic API Key" style="width: 100%; padding: 10px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 8px; color: var(--text);">
@@ -1371,16 +1388,16 @@
                 <h3>Gemini Pro</h3>
                 <p style="color: var(--text-secondary); margin: 10px 0;">Google's most capable model. Strong multilingual support.</p>
                 <div class="specs">
-                    <span>🌍 Multilingual</span>
-                    <span>⚡ Fast</span>
-                    <span>☁️ Google API</span>
+                    <span><i class="fas fa-globe"></i> Multilingual</span>
+                    <span><i class="fas fa-bolt"></i> Fast</span>
+                    <span><i class="fas fa-cloud"></i> Google API</span>
                 </div>
                 <div class="api-key-input" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border);">
                     <input type="password" placeholder="Enter Google API Key" style="width: 100%; padding: 10px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 8px; color: var(--text);">
                 </div>
             </div>
             
-            <h3 style="margin: 30px 0 15px; color: var(--text-secondary);">💻 Local Models (Runs on Your Computer - Free!)</h3>
+            <h3 style="margin: 30px 0 15px; color: var(--text-secondary);"><i class="fas fa-laptop"></i> Local Models (Runs on Your Computer - Free!)</h3>
             
             <div class="card model-card" onclick="selectModel(this)" data-provider="ollama" data-model="llama3.1">
                 <span class="badge badge-recommended">Recommended Local</span>
@@ -2476,14 +2493,23 @@
             const provider = selectedCard.dataset.provider;
             const model = selectedCard.dataset.model;
             
+            // Handle Basic Mode (no API key needed)
+            if (provider === 'none') {
+                localStorage.setItem('openego_provider', 'none');
+                localStorage.setItem('openego_model', 'basic');
+                localStorage.setItem('openego_mode', 'basic');
+                alert('Basic mode selected! You can start using OpenEgo immediately.\n\nYou can add an AI model later in Settings.');
+                return;
+            }
+            
             // Get API key from input if cloud model
             let apiKey = '';
-            if (provider !== 'local') {
+            if (provider !== 'local' && provider !== 'ollama') {
                 const apiInput = selectedCard.querySelector('input[type="password"]');
                 apiKey = apiInput ? apiInput.value : '';
                 
                 if (!apiKey) {
-                    alert('Please enter your API key for ' + provider);
+                    alert('Please enter your API key for ' + provider + '\n\nOr select "Basic Mode - No API Key Required" to start without an API key.');
                     return;
                 }
             }
@@ -2510,8 +2536,13 @@
         
         // Generate AI response
         async function generateAIResponse(message) {
-            const provider = localStorage.getItem('openego_provider') || 'openai';
-            const model = localStorage.getItem('openego_model') || 'gpt-4o';
+            const provider = localStorage.getItem('openego_provider') || 'none';
+            const model = localStorage.getItem('openego_model') || 'basic';
+            
+            // Basic Mode - use templates
+            if (provider === 'none' || model === 'basic') {
+                return generateBasicResponse(message);
+            }
             
             // Use local AI if selected
             if (provider === 'ollama' && typeof require !== 'undefined') {
@@ -2536,8 +2567,30 @@
                 const data = await response.json();
                 return data.response || 'I am still learning your style.';
             } catch (e) {
-                return 'AI response temporarily unavailable. Please check your API key in settings.';
+                return 'AI response temporarily unavailable. Please check your API key in settings or switch to Basic Mode.';
             }
+        }
+        
+        // Basic Mode - generate response using templates
+        function generateBasicResponse(message) {
+            const lowerMsg = message.toLowerCase();
+            
+            // Simple template matching
+            if (lowerMsg.includes('meeting') || lowerMsg.includes('call')) {
+                return "I'd be happy to chat. What time works for you?";
+            }
+            if (lowerMsg.includes('deadline') || lowerMsg.includes('when')) {
+                return "I'll check my schedule and get back to you with a timeline.";
+            }
+            if (lowerMsg.includes('thanks') || lowerMsg.includes('thank you')) {
+                return "You're welcome! Happy to help.";
+            }
+            if (lowerMsg.includes('?')) {
+                return "Good question! Let me think about that and get back to you.";
+            }
+            
+            // Default response
+            return "Thanks for your message! I'll respond in detail soon.";
         }
         
         function startTraining() {
