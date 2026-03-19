@@ -577,11 +577,23 @@ function setupFeedbackHandlers() {
 function setupAITrainingHandlers() {
   console.log('[AI Training] Setting up handlers...');
   
-  const { PersonaEngine } = require('./persona-engine');
-  console.log('[AI Training] PersonaEngine loaded');
-  
-  // Train AI on user's persona
-  ipcMain.handle('train-ai-persona', async (event, apiKey, provider) => {
+  try {
+    const { PersonaEngine } = require('./persona-engine');
+    console.log('[AI Training] PersonaEngine loaded');
+    
+    // Test handler to verify IPC is working
+    console.log('[AI Training] About to register ping handler...');
+    ipcMain.handle('ping', async () => {
+      return { pong: true, timestamp: new Date().toISOString() };
+    });
+    console.log('[AI Training] Ping handler registered');
+    
+    // Verify ipcMain is working
+    console.log('[AI Training] ipcMain type:', typeof ipcMain);
+    console.log('[AI Training] ipcMain.handle type:', typeof ipcMain.handle);
+    
+    // Train AI on user's persona
+    ipcMain.handle('train-ai-persona', async (event, apiKey, provider) => {
     try {
       // Load existing persona
       const engine = new PersonaEngine();
@@ -660,7 +672,10 @@ function setupAITrainingHandlers() {
     }
   });
   
-  console.log('[AI Training] All handlers registered');
+    console.log('[AI Training] All handlers registered');
+  } catch (err) {
+    console.error('[AI Training] Failed to setup handlers:', err);
+  }
 }
 
 module.exports = {

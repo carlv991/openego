@@ -58,8 +58,15 @@ function createWindow() {
     console.log('[Main] Local AI handlers ready');
     setupFeedbackHandlers();
     console.log('[Main] Feedback handlers ready');
-    setupAITrainingHandlers();
-    console.log('[Main] AI Training handlers ready');
+    
+    // Setup AI Training with error handling
+    try {
+      setupAITrainingHandlers();
+      console.log('[Main] AI Training handlers ready');
+    } catch (e) {
+      console.error('[Main] AI Training handlers failed:', e);
+    }
+    
     setupCommunicationScanner(mainWindow);
     console.log('[Main] Communication scanner ready');
     setupEmailScannerHandlers(mainWindow);
