@@ -4948,6 +4948,9 @@
                 updateActivityStatus('Auto-pilot active', 'Automatically sending responses');
             } else {
                 updateActivityStatus('Co-pilot mode', 'Waiting for your approval');
+            
+            // Start real message monitoring (Phase 3)
+            startMessageMonitoring();
             }
         }
         
@@ -5255,6 +5258,9 @@
                 updateActivityStatus('Auto-pilot active', 'Automatically sending responses');
             } else {
                 updateActivityStatus('Co-pilot mode', 'Waiting for your approval');
+            
+            // Start real message monitoring (Phase 3)
+            startMessageMonitoring();
             }
         }
         
@@ -6096,3 +6102,84 @@ function setupTelegramPermissions() {
 window.setupTelegramPermissions = setupTelegramPermissions;
 
 // End of Telegram Setup Wizard
+
+        // Phase 3 & 4: Message Monitoring and AI Response Generation
+        let messageMonitorActive = false;
+        
+        async function startMessageMonitoring() {
+            if (messageMonitorActive) return;
+            messageMonitorActive = true;
+            
+            console.log('[Monitor] Starting message monitoring...');
+            
+            if (typeof require !== 'undefined') {
+                const { ipcRenderer } = require('electron');
+                
+                ipcRenderer.on('new-messages', async (event, data) => {
+                    console.log('[Monitor] New messages received:', data);
+                    
+                    if (data.emails) {
+                        for (const email of data.emails) {
+                            await processNewMessage(email);
+                        }
+                    }
+                });
+                
+                await ipcRenderer.invoke('start-message-monitor');
+            }
+            
+            updateActivityStatus('Monitoring inbox...', 'Checking every 30 seconds');
+        }
+        
+        async function processNewMessage(message) {
+            updateActivityStatus('Reading message...', `From: ${message.from}`);
+            
+            let aiResponse = { success: true, text: 'Thanks for your message. Let me get back to you.' };
+            
+            try {
+                if (typeof require !== 'undefined') {
+                    const { ipcRenderer } = require('electron');
+                    aiResponse = await ipcRenderer.invoke('generate-response', message);
+                }
+            } catch (e) {
+                console.error('[AI] Error:', e);
+            }
+            
+            addMessageToInbox(message, aiResponse.text || aiResponse);
+            updateInboxBadge();
+            
+            const mode = localStorage.getItem('openego_mode') || 'copilot';
+            if (mode === 'autopilot') {
+                setTimeout(() => checkAutoPilotMode(), 1000);
+            }
+        }
+        
+        function addMessageToInbox(message, aiText) {
+            const inboxList = document.getElementById('inboxList');
+            if (!inboxList) return;
+            
+            const sourceIcon = message.source === 'telegram' ? 'fab fa-telegram' : 'fas fa-envelope';
+            
+            const card = document.createElement('div');
+            card.className = 'message-card pending';
+            card.innerHTML = `
+                <div class="message-source">
+                    <i class="${sourceIcon}"></i>
+                    <span class="source-name">${message.from}</span>
+                    <span class="message-time">Just now</span>
+                </div>
+                <div class="message-preview">"${message.preview || 'New message'}"</div>
+                <div class="ai-response-box">
+                    <div class="ai-label"><i class="fas fa-robot"></i> OpenEgo suggests:</div>
+                    <div class="ai-text">"${aiText}"</div>
+                </div>
+                <div class="message-actions">
+                    <button class="btn btn-primary action-btn" onclick="sendResponse(this)"><i class="fas fa-paper-plane"></i> Send</button>
+                    <button class="btn btn-secondary action-btn" onclick="editResponse(this)"><i class="fas fa-edit"></i> Edit</button>
+                    <button class="btn btn-secondary action-btn" onclick="dismissMessage(this)"><i class="fas fa-times"></i> Dismiss</button>
+                </div>
+            `;
+            
+            inboxList.insertBefore(card, inboxList.firstChild);
+            showToast(`New message from ${message.from}`, 'info');
+        }
