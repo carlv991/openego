@@ -3315,17 +3315,17 @@
                                     </div>
                                 </div>
                                 
-                                <div class="permission-item">
+                                <div class="permission-item" id="telegramPermissionItem">
                                     <div class="permission-info">
                                         <div class="permission-icon telegram"><i class="fab fa-telegram"></i></div>
                                         <div class="permission-details">
                                             <div class="permission-name">Telegram</div>
-                                            <div class="permission-desc">Bot API token required</div>
+                                            <div class="permission-desc" id="telegramDesc">Bot API token required</div>
                                         </div>
                                     </div>
-                                    <div class="permission-status">
-                                        <span class="status-badge pending">Not Set Up</span>
-                                        <button class="btn btn-secondary btn-small" onclick="setupTelegramPermissions()">Set Up</button>
+                                    <div class="permission-status" id="telegramStatusContainer">
+                                        <span class="status-badge pending" id="telegramStatusBadge">Not Set Up</span>
+                                        <button class="btn btn-secondary btn-small" onclick="showTelegramSetupWizard()">Set Up</button>
                                     </div>
                                 </div>
                                 
