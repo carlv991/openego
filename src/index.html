@@ -2587,6 +2587,21 @@
                     const gear = document.querySelector('.gear-icon');
                     if (gear) gear.style.display = 'none';
                     
+                    // HIDE HEADER on dashboard for returning users too!
+                    const header = document.querySelector('.header');
+                    if (header) header.style.display = 'none';
+                    
+                    // Adjust container for full-screen dashboard
+                    const container = document.querySelector('.container');
+                    if (container) {
+                        container.style.maxWidth = '100%';
+                        container.style.padding = '0';
+                        container.style.height = '100vh';
+                    }
+                    
+                    // Start status animation
+                    startStatusAnimation();
+                    
                     // Load saved mode
                     const mode = localStorage.getItem('openego_mode') || 'copilot';
                     const modeEl = document.getElementById('currentMode');
