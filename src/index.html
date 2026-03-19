@@ -800,6 +800,99 @@
             justify-content: flex-end;
         }
         
+        /* Persona Confidence Bar */
+        .persona-confidence {
+            margin-top: 24px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .confidence-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .confidence-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+        
+        .confidence-status {
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .confidence-status.level-1 { background: rgba(239, 68, 68, 0.2); color: #EF4444; }
+        .confidence-status.level-2 { background: rgba(245, 158, 11, 0.2); color: #F59E0B; }
+        .confidence-status.level-3 { background: rgba(251, 191, 36, 0.2); color: #FBBF24; }
+        .confidence-status.level-4 { background: rgba(16, 185, 129, 0.2); color: #10B981; }
+        .confidence-status.level-5 { background: rgba(5, 150, 105, 0.2); color: #059669; }
+        
+        .confidence-bar-container {
+            margin-bottom: 12px;
+        }
+        
+        .confidence-bar-bg {
+            height: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .confidence-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #EF4444 0%, #F59E0B 50%, #10B981 100%);
+            border-radius: 6px;
+            transition: width 0.8s ease;
+            position: relative;
+        }
+        
+        .confidence-bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .confidence-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .confidence-labels span:nth-child(2) {
+            font-weight: 700;
+            color: var(--text);
+        }
+        
+        .confidence-description {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin: 0;
+            line-height: 1.5;
+        }
+        
         .theme-header {
             display: flex;
             justify-content: space-between;
@@ -2753,6 +2846,27 @@
                                     <span class="persona-tag">Concise</span>
                                     <span class="persona-tag">Direct</span>
                                 </div>
+                                
+                                <!-- Confidence Bar -->
+                                <div class="persona-confidence">
+                                    <div class="confidence-header">
+                                        <span class="confidence-label">OpenEgo Confidence</span>
+                                        <span class="confidence-status" id="confidenceStatus">Learning</span>
+                                    </div>
+                                    <div class="confidence-bar-container">
+                                        <div class="confidence-bar-bg">
+                                            <div class="confidence-bar-fill" id="confidenceBarFill" style="width: 25%;"></div>
+                                        </div>
+                                        <div class="confidence-labels">
+                                            <span>Not Confident</span>
+                                            <span id="confidencePercent">25%</span>
+                                            <span>Confident</span>
+                                        </div>
+                                    </div>
+                                    <p class="confidence-description" id="confidenceDescription">
+                                        Still learning your style. Use the app more to improve accuracy.
+                                    </p>
+                                </div>
                             </div>
                         </div>
                         
@@ -4646,6 +4760,79 @@
                         .map(t => `<span class="persona-phrase">${t}</span>`)
                         .join('');
             }
+            
+            // Update confidence bar
+            updateConfidenceBar(persona);
+        }
+        
+        function updateConfidenceBar(persona) {
+            // Calculate confidence based on data available
+            let confidenceScore = 0;
+            
+            // Base score from email count (max 40 points)
+            const emailCount = persona.summary?.totalEmailsAnalyzed || 0;
+            const emailScore = Math.min((emailCount / 500) * 40, 40);
+            confidenceScore += emailScore;
+            
+            // Vocabulary diversity (max 20 points)
+            const vocabSize = persona.summary?.vocabularySize || 0;
+            const vocabScore = Math.min((vocabSize / 100) * 20, 20);
+            confidenceScore += vocabScore;
+            
+            // Pattern diversity (max 15 points)
+            let patternScore = 0;
+            const greetings = persona.preferences?.commonGreetings?.length || 0;
+            const signoffs = persona.preferences?.commonSignoffs?.length || 0;
+            const topics = persona.preferences?.frequentTopics?.length || 0;
+            if (greetings >= 2) patternScore += 5;
+            if (signoffs >= 2) patternScore += 5;
+            if (topics >= 3) patternScore += 5;
+            confidenceScore += patternScore;
+            
+            // Additional points for having style data
+            if (persona.communicationStyle?.formality) confidenceScore += 15;
+            if (persona.communicationStyle?.enthusiasm) confidenceScore += 10;
+            
+            confidenceScore = Math.min(Math.round(confidenceScore), 100);
+            
+            // Update UI
+            const barFill = document.getElementById('confidenceBarFill');
+            const percentLabel = document.getElementById('confidencePercent');
+            const statusLabel = document.getElementById('confidenceStatus');
+            const descLabel = document.getElementById('confidenceDescription');
+            
+            if (barFill) barFill.style.width = `${confidenceScore}%`;
+            if (percentLabel) percentLabel.textContent = `${confidenceScore}%`;
+            
+            // Determine level and styling
+            let level, label, description, colorClass;
+            if (confidenceScore < 20) {
+                level = 1;
+                label = 'Just Started';
+                description = 'Still learning your style. Use the app more to improve accuracy.';
+            } else if (confidenceScore < 40) {
+                level = 2;
+                label = 'Getting There';
+                description = 'Learning your patterns. Keep using OpenEgo to improve.';
+            } else if (confidenceScore < 60) {
+                level = 3;
+                label = 'Learning';
+                description = 'Getting to know your communication style well.';
+            } else if (confidenceScore < 80) {
+                level = 4;
+                label = 'Confident';
+                description = 'Good understanding of your style. Responses should match well.';
+            } else {
+                level = 5;
+                label = 'Very Confident';
+                description = 'Excellent understanding of your communication patterns!';
+            }
+            
+            if (statusLabel) {
+                statusLabel.textContent = label;
+                statusLabel.className = `confidence-status level-${level}`;
+            }
+            if (descLabel) descLabel.textContent = description;
         }
         
         function retrainPersona() {

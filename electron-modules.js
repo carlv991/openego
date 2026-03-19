@@ -544,6 +544,33 @@ function setupFeedbackHandlers() {
       return { error: e.message };
     }
   });
+  
+  // Get persona confidence
+  ipcMain.handle('get-persona-confidence', async () => {
+    try {
+      const { PersonaEngine } = require('./persona-engine');
+      const engine = new PersonaEngine();
+      const personaData = engine.loadPersona();
+      
+      if (!personaData || !personaData.raw) {
+        return { score: 0, label: 'No Data', description: 'Start using OpenEgo to build your persona' };
+      }
+      
+      // Load the raw data into the engine
+      engine.persona = {
+        ...personaData.raw.persona,
+        vocabulary: {
+          ...personaData.raw.persona.vocabulary,
+          uniqueWords: new Set(personaData.raw.persona.vocabulary?.uniqueWords || [])
+        }
+      };
+      
+      return engine.getConfidenceInfo();
+    } catch (e) {
+      console.error('[Confidence] Error:', e);
+      return { error: e.message };
+    }
+  });
 }
 
 // AI Training - Send patterns to GPT-4/Claude

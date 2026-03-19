@@ -412,6 +412,79 @@ Respond to messages in this style. Match the tone and length of the examples. Us
         }
         return null;
     }
+
+    /**
+     * Calculate confidence level based on data quantity and quality
+     * Returns 0-100 confidence score
+     */
+    calculateConfidence() {
+        let score = 0;
+        const p = this.persona;
+        
+        // Base score from email count (max 40 points)
+        // 0 emails = 0, 500+ emails = 40
+        const emailScore = Math.min((p.totalEmails / 500) * 40, 40);
+        score += emailScore;
+        
+        // Vocabulary diversity (max 20 points)
+        // 100+ unique words = 20 points
+        const vocabSize = p.vocabulary.uniqueWords.size;
+        const vocabScore = Math.min((vocabSize / 100) * 20, 20);
+        score += vocabScore;
+        
+        // Pattern diversity (max 15 points)
+        let patternScore = 0;
+        if (Object.keys(p.commonGreetings).length >= 2) patternScore += 5;
+        if (Object.keys(p.commonSignoffs).length >= 2) patternScore += 5;
+        if (Object.keys(p.topics).length >= 3) patternScore += 5;
+        score += patternScore;
+        
+        // Style consistency (max 15 points)
+        // Higher consistency = higher confidence
+        const styleVariance = Math.abs(p.style.formality - 0.5) + 
+                             Math.abs(p.style.enthusiasm - 0.5);
+        const consistencyScore = Math.min(styleVariance * 15, 15);
+        score += consistencyScore;
+        
+        // Response time data (max 10 points)
+        const hasTimingData = p.responseTime.byHour.some(h => h > 0);
+        if (hasTimingData) score += 10;
+        
+        return Math.round(score);
+    }
+
+    /**
+     * Get confidence label and description
+     */
+    getConfidenceInfo() {
+        const score = this.calculateConfidence();
+        
+        let label, description, color;
+        
+        if (score < 20) {
+            label = 'Just Started';
+            description = 'Still learning your style. Use the app more to improve accuracy.';
+            color = '#EF4444'; // Red
+        } else if (score < 40) {
+            label = 'Getting There';
+            description = 'Learning your patterns. Keep using OpenEgo to improve.';
+            color = '#F59E0B'; // Orange
+        } else if (score < 60) {
+            label = 'Learning';
+            description = 'Getting to know your communication style well.';
+            color = '#FBBF24'; // Yellow
+        } else if (score < 80) {
+            label = 'Confident';
+            description = 'Good understanding of your style. Responses should match well.';
+            color = '#10B981'; // Green
+        } else {
+            label = 'Very Confident';
+            description = 'Excellent understanding of your communication patterns!';
+            color = '#059669'; // Dark Green
+        }
+        
+        return { score, label, description, color };
+    }
 }
 
 // Export for use in main process
