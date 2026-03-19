@@ -532,13 +532,123 @@
         .dashboard-status-bar {
             display: flex;
             align-items: center;
-            gap: 16px;
+            justify-content: space-between;
+            gap: 24px;
             padding: 16px 40px;
             background: rgba(26, 26, 37, 0.4);
             backdrop-filter: blur(20px);
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             position: relative;
             z-index: 1;
+        }
+        
+        .status-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex: 1;
+        }
+        
+        .status-center {
+            display: flex;
+            align-items: center;
+        }
+        
+        /* Soundwave Visualization */
+        .soundwave-container {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            height: 32px;
+            padding: 0 8px;
+        }
+        
+        .soundwave-bar {
+            width: 4px;
+            background: linear-gradient(to top, #DE6D51, #F97316);
+            border-radius: 2px;
+            animation: soundwave 1.2s ease-in-out infinite;
+            opacity: 0.8;
+        }
+        
+        .soundwave-bar:nth-child(1) { height: 12px; animation-delay: 0s; }
+        .soundwave-bar:nth-child(2) { height: 20px; animation-delay: 0.1s; }
+        .soundwave-bar:nth-child(3) { height: 28px; animation-delay: 0.2s; }
+        .soundwave-bar:nth-child(4) { height: 16px; animation-delay: 0.3s; }
+        .soundwave-bar:nth-child(5) { height: 24px; animation-delay: 0.4s; }
+        .soundwave-bar:nth-child(6) { height: 18px; animation-delay: 0.5s; }
+        .soundwave-bar:nth-child(7) { height: 26px; animation-delay: 0.6s; }
+        .soundwave-bar:nth-child(8) { height: 14px; animation-delay: 0.7s; }
+        
+        @keyframes soundwave {
+            0%, 100% { transform: scaleY(0.5); opacity: 0.5; }
+            50% { transform: scaleY(1); opacity: 1; }
+        }
+        
+        .soundwave-container.paused .soundwave-bar {
+            animation: none;
+            opacity: 0.3;
+            height: 8px !important;
+        }
+        
+        .soundwave-container.processing .soundwave-bar {
+            animation-duration: 0.6s;
+            background: linear-gradient(to top, #10B981, #34D399);
+        }
+        
+        .activity-text {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        
+        .activity-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+        
+        .activity-detail {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        /* Mode Switcher in Top Bar */
+        .mode-switcher-top {
+            display: flex;
+            align-items: center;
+        }
+        
+        .mode-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: rgba(222, 109, 81, 0.15);
+            border: 1px solid rgba(222, 109, 81, 0.3);
+            border-radius: 24px;
+            color: #DE6D51;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .mode-btn:hover {
+            background: rgba(222, 109, 81, 0.25);
+            transform: translateY(-1px);
+        }
+        
+        .mode-btn.autopilot {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: rgba(16, 185, 129, 0.3);
+            color: #10B981;
+        }
+        
+        .mode-btn.autopilot:hover {
+            background: rgba(16, 185, 129, 0.25);
         }
         
         .status-item {
@@ -2645,32 +2755,35 @@
     <!-- STEP 7: Dashboard -->
     <div class="step" id="step7">
         <div class="dashboard" style="flex-direction: column;">
-            <!-- Top Status Bar -->
+            <!-- Top Status Bar with Soundwave Visualization -->
             <div class="dashboard-status-bar">
-                <div class="status-item">
-                    <div class="status-indicator active" id="statusLive">
-                        <span class="pulse-dot"></span>
-                        <span class="status-text">Live</span>
+                <div class="status-left">
+                    <!-- Soundwave/Heartbeat Visualization -->
+                    <div class="soundwave-container" id="soundwaveContainer">
+                        <div class="soundwave-bar"></div>
+                        <div class="soundwave-bar"></div>
+                        <div class="soundwave-bar"></div>
+                        <div class="soundwave-bar"></div>
+                        <div class="soundwave-bar"></div>
+                        <div class="soundwave-bar"></div>
+                        <div class="soundwave-bar"></div>
+                        <div class="soundwave-bar"></div>
+                    </div>
+                    <div class="activity-text" id="activityText">
+                        <span class="activity-label">Monitoring inbox...</span>
+                        <span class="activity-detail">Waiting for new messages</span>
                     </div>
                 </div>
-                <div class="status-item">
-                    <div class="status-indicator" id="statusReading">
-                        <i class="fas fa-book-open"></i>
-                        <span class="status-text">Reading</span>
+                
+                <div class="status-center">
+                    <div class="mode-switcher-top">
+                        <button class="mode-btn" id="topModeBtn" onclick="toggleMode()">
+                            <i class="fas fa-user-astronaut"></i>
+                            <span id="topModeLabel">CO-PILOT</span>
+                        </button>
                     </div>
                 </div>
-                <div class="status-item">
-                    <div class="status-indicator" id="statusUnderstanding">
-                        <i class="fas fa-brain"></i>
-                        <span class="status-text">Understanding</span>
-                    </div>
-                </div>
-                <div class="status-item">
-                    <div class="status-indicator" id="statusComposing">
-                        <i class="fas fa-pen-fancy"></i>
-                        <span class="status-text">Composing</span>
-                    </div>
-                </div>
+                
                 <div class="status-actions">
                     <button class="status-btn" onclick="pauseOpenEgo()" id="pauseBtn">
                         <i class="fas fa-pause"></i> Pause
@@ -2682,18 +2795,6 @@
                 <aside class="dashboard-sidebar">
                     <div class="sidebar-logo">
                         <i class="fas fa-brain"></i> OpenEgo
-                    </div>
-                    
-                    <div class="mode-card">
-                        <div class="mode-header">
-                            <span class="mode-badge" id="modeBadge">CO-PILOT</span>
-                            <button class="mode-toggle" onclick="toggleMode()" title="Switch Mode">
-                                <i class="fas fa-exchange-alt"></i>
-                            </button>
-                        </div>
-                        <p class="mode-description" id="modeDescription">
-                            Reviewing all responses before sending
-                        </p>
                     </div>
                     
                     <!-- Theme Toggle -->
@@ -4652,8 +4753,50 @@
             const newMode = current === 'copilot' ? 'autopilot' : 'copilot';
             localStorage.setItem('openego_mode', newMode);
             
-            document.getElementById('currentMode').textContent = newMode === 'autopilot' ? '🤖 Auto-Pilot' : '👀 Co-Pilot';
-            alert(`Switched to ${newMode === 'autopilot' ? 'Auto-Pilot' : 'Co-Pilot'} mode`);
+            // Update top mode button
+            const topModeBtn = document.getElementById('topModeBtn');
+            const topModeLabel = document.getElementById('topModeLabel');
+            
+            if (topModeBtn && topModeLabel) {
+                if (newMode === 'autopilot') {
+                    topModeBtn.classList.add('autopilot');
+                    topModeLabel.textContent = 'AUTO-PILOT';
+                    topModeBtn.innerHTML = '<i class="fas fa-robot"></i><span id="topModeLabel">AUTO-PILOT</span>';
+                } else {
+                    topModeBtn.classList.remove('autopilot');
+                    topModeLabel.textContent = 'CO-PILOT';
+                    topModeBtn.innerHTML = '<i class="fas fa-user-astronaut"></i><span id="topModeLabel">CO-PILOT</span>';
+                }
+            }
+            
+            // Update legacy mode display if exists
+            const currentModeEl = document.getElementById('currentMode');
+            if (currentModeEl) {
+                currentModeEl.textContent = newMode === 'autopilot' ? '🤖 Auto-Pilot' : '👀 Co-Pilot';
+            }
+            
+            showToast(`Switched to ${newMode === 'autopilot' ? 'Auto-Pilot' : 'Co-Pilot'} mode`, 'success');
+        }
+        
+        // Activity Monitor - Update what OpenEgo is doing
+        function updateActivityStatus(status, detail) {
+            const activityLabel = document.querySelector('.activity-label');
+            const activityDetail = document.querySelector('.activity-detail');
+            const soundwaveContainer = document.getElementById('soundwaveContainer');
+            
+            if (activityLabel) activityLabel.textContent = status;
+            if (activityDetail) activityDetail.textContent = detail;
+            
+            // Update soundwave animation based on activity
+            if (soundwaveContainer) {
+                soundwaveContainer.classList.remove('paused', 'processing');
+                
+                if (status.includes('Monitoring') || status.includes('Waiting')) {
+                    soundwaveContainer.classList.add('paused');
+                } else if (status.includes('Reading') || status.includes('Composing') || status.includes('Analyzing')) {
+                    soundwaveContainer.classList.add('processing');
+                }
+            }
         }
         
         // Theme Toggle
@@ -4835,11 +4978,30 @@
             if (descLabel) descLabel.textContent = description;
         }
         
-        function retrainPersona() {
-            showToast('Retraining persona from your emails...', 'info');
-            // This would trigger the persona engine to re-scan
-            if (window.electronAPI) {
-                window.electronAPI.retrainPersona();
+        async function retrainPersona() {
+            showToast('Starting persona retraining...', 'info');
+            
+            try {
+                if (typeof require === 'undefined') {
+                    showToast('Cannot retrain in browser mode', 'error');
+                    return;
+                }
+                
+                const { ipcRenderer } = require('electron');
+                
+                // Call the retrain-persona IPC handler
+                const result = await ipcRenderer.invoke('retrain-persona');
+                
+                if (result.success) {
+                    showToast(`Retraining complete! Analyzed ${result.emailsAnalyzed} emails.`, 'success');
+                    // Reload the persona display
+                    loadPersonaDisplay();
+                } else {
+                    showToast('Retraining failed: ' + (result.error || 'Unknown error'), 'error');
+                }
+            } catch (e) {
+                console.error('[Retrain] Error:', e);
+                showToast('Error retraining: ' + e.message, 'error');
             }
         }
         
