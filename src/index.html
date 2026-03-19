@@ -1383,13 +1383,18 @@
             <h3 style="margin: 30px 0 15px; color: var(--text-secondary);"><i class="fas fa-laptop"></i> Local Models (Runs on Your Computer - Free!)</h3>
             
             <div class="card model-card selected" onclick="selectModel(this)" data-provider="ollama" data-model="llama3.1">
-                <span class="badge badge-recommended">Recommended Local</span>
+                <span class="badge badge-recommended">Free Alternative</span>
                 <h3>Llama 3.1 8B (via Ollama)</h3>
                 <p style="color: var(--text-secondary); margin: 10px 0;">Runs locally - no API key needed! Requires 8GB RAM.</p>
                 <div class="specs">
-                    <span>🔒 100% Private</span>
-                    <span>💾 8GB RAM</span>
-                    <span>🆓 Free Forever</span>
+                    <span><i class="fas fa-lock"></i> 100% Private</span>
+                    <span><i class="fas fa-memory"></i> 8GB RAM</span>
+                    <span><i class="fas fa-gift"></i> Free Forever</span>
+                </div>
+                <div style="margin-top: 15px; padding: 15px; background: rgba(245, 158, 11, 0.1); border-radius: 8px; border: 1px solid #F59E0B;">
+                    <p style="color: #F59E0B; font-size: 0.9rem; margin: 0;">
+                        <i class="fas fa-exclamation-triangle"></i> <strong>Note:</strong> Local AI may be slower and less capable than cloud models. For best performance, we recommend using a cloud AI with an API key.
+                    </p>
                 </div>
                 <div class="ollama-status" id="ollamaStatus" style="margin-top: 15px; padding: 10px; background: var(--bg-primary); border-radius: 8px; font-size: 0.9rem; color: var(--text-secondary);">
                     Checking Ollama...
@@ -1401,9 +1406,9 @@
                 <h3>Llama 3.1 70B</h3>
                 <p style="color: var(--text-secondary); margin: 10px 0;">State-of-the-art local model. Requires 40GB+ RAM. Best quality.</p>
                 <div class="specs">
-                    <span>🔒 100% Private</span>
-                    <span>💾 40GB+ RAM</span>
-                    <span>🐢 Slower</span>
+                    <span><i class="fas fa-lock"></i> 100% Private</span>
+                    <span><i class="fas fa-memory"></i> 40GB+ RAM</span>
+                    <span><i class="fas fa-turtle"></i> Slower</span>
                 </div>
             </div>
             
