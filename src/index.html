@@ -1770,7 +1770,9 @@
                         </div>
                         <div class="settings-item">
                             <div>Check for Updates</div>
-                            <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.85rem;">Check</button>
+                            <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.85rem;" onclick="checkForAppUpdates()" id="updateCheckBtn">
+                                <i class="fas fa-sync-alt"></i> Check
+                            </button>
                         </div>
                         <div style="margin-top: 15px; padding: 12px; background: var(--bg-primary); border-radius: 8px; font-size: 0.85rem; color: var(--text-secondary);">
                             <strong style="color: var(--text);">Latest Changes:</strong><br>
@@ -2898,6 +2900,57 @@
         window.resetOnboarding = resetOnboarding;
         window.minimizeSettings = minimizeSettings;
         window.closeSettings = closeSettings;
+        
+        // Check for app updates
+        async function checkForAppUpdates() {
+            const btn = document.getElementById('updateCheckBtn');
+            if (!btn) return;
+            
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking...';
+            btn.disabled = true;
+            
+            if (typeof require !== 'undefined') {
+                try {
+                    const { ipcRenderer } = require('electron');
+                    const result = await ipcRenderer.invoke('check-for-updates');
+                    
+                    if (result.success && result.available) {
+                        btn.innerHTML = '<i class="fas fa-download"></i> Update Available!';
+                        btn.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
+                        alert(`Update available!\n\nNew version: ${result.version}\n\nThe update will download automatically. You'll be prompted to restart when ready.`);
+                    } else if (result.success) {
+                        btn.innerHTML = '<i class="fas fa-check"></i> Up to Date';
+                        setTimeout(() => {
+                            btn.innerHTML = '<i class="fas fa-sync-alt"></i> Check';
+                            btn.disabled = false;
+                        }, 2000);
+                    } else {
+                        btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
+                        console.error('Update check failed:', result.error);
+                        setTimeout(() => {
+                            btn.innerHTML = '<i class="fas fa-sync-alt"></i> Check';
+                            btn.disabled = false;
+                        }, 2000);
+                    }
+                } catch (e) {
+                    console.error('Error checking for updates:', e);
+                    btn.innerHTML = '<i class="fas fa-sync-alt"></i> Check';
+                    btn.disabled = false;
+                    alert('Could not check for updates. Make sure you\'re connected to the internet.');
+                }
+            } else {
+                // Web mode - simulate
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="fas fa-check"></i> Up to Date';
+                    setTimeout(() => {
+                        btn.innerHTML = '<i class="fas fa-sync-alt"></i> Check';
+                        btn.disabled = false;
+                    }, 2000);
+                }, 1500);
+            }
+        }
+        
+        window.checkForAppUpdates = checkForAppUpdates;
         
         console.log('OpenEgo initialized successfully');
     </script>

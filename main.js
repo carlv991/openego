@@ -1,5 +1,6 @@
-const { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain } = require('electron');
+const { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, dialog } = require('electron');
 const path = require('path');
+const { autoUpdater } = require('electron-updater');
 const { 
   setupFullDiskAccessHandlers, 
   setupScanningHandlers,
@@ -63,3 +64,76 @@ app.on('window-all-closed', () => {
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) createWindow();
 });
+
+// ==================== AUTO UPDATER ====================
+
+// Check for updates
+function checkForUpdates() {
+  autoUpdater.checkForUpdatesAndNotify();
+}
+
+// Auto updater events
+autoUpdater.on('checking-for-update', () => {
+  console.log('Checking for update...');
+});
+
+autoUpdater.on('update-available', (info) => {
+  console.log('Update available:', info);
+  dialog.showMessageBox({
+    type: 'info',
+    title: 'Update Available',
+    message: 'A new version of OpenEgo is available!',
+    detail: `Version ${info.version} is ready to download.`,
+    buttons: ['Download & Install', 'Later'],
+    defaultId: 0
+  }).then((result) => {
+    if (result.response === 0) {
+      autoUpdater.downloadUpdate();
+    }
+  });
+});
+
+autoUpdater.on('update-not-available', () => {
+  console.log('Update not available');
+});
+
+autoUpdater.on('error', (err) => {
+  console.log('Error in auto-updater:', err);
+});
+
+autoUpdater.on('download-progress', (progressObj) => {
+  console.log(`Download progress: ${progressObj.percent}%`);
+});
+
+autoUpdater.on('update-downloaded', (info) => {
+  console.log('Update downloaded:', info);
+  dialog.showMessageBox({
+    type: 'info',
+    title: 'Update Ready',
+    message: 'Update downloaded successfully!',
+    detail: 'OpenEgo will restart to apply the update.',
+    buttons: ['Restart Now', 'Later'],
+    defaultId: 0
+  }).then((result) => {
+    if (result.response === 0) {
+      autoUpdater.quitAndInstall();
+    }
+  });
+});
+
+// IPC handler for manual update check
+ipcMain.handle('check-for-updates', async () => {
+  try {
+    const result = await autoUpdater.checkForUpdates();
+    return { 
+      success: true, 
+      version: result?.updateInfo?.version || null,
+      available: !!result?.updateInfo?.version
+    };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+});
+
+// Check for updates on startup (after 5 seconds)
+setTimeout(checkForUpdates, 5000);
