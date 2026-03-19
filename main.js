@@ -21,6 +21,55 @@ let smartSuggestEnabled = true;
 let lastCheckedEmail = null;
 let smartSuggestInterval = null;
 
+// Register retrain-persona handler directly in main.js to ensure it works
+ipcMain.handle('retrain-persona', async (event) => {
+  console.log('[Main] Retrain persona handler called');
+  try {
+    const { PersonaEngine } = require('./persona-engine');
+    const { CommunicationScanner } = require('./communication-scanner');
+    
+    console.log('[Main] Creating scanner...');
+    const scanner = new CommunicationScanner(mainWindow);
+    
+    console.log('[Main] Starting email scan...');
+    const results = await scanner.scanMail();
+    console.log(`[Main] Scan complete: ${results?.emails?.length || 0} emails`);
+    
+    if (!results.emails || results.emails.length === 0) {
+      return { 
+        success: false, 
+        error: 'No emails found. Make sure you have emails in Apple Mail and Full Disk Access is granted.'
+      };
+    }
+    
+    console.log('[Main] Building persona...');
+    const engine = new PersonaEngine();
+    results.emails.forEach((email, index) => {
+      if (index % 50 === 0) {
+        console.log(`[Main] Analyzing ${index}/${results.emails.length}...`);
+      }
+      engine.analyzeEmail({
+        content: email.body || email.preview || email.content || '',
+        timestamp: new Date(email.date || Date.now())
+      });
+    });
+    
+    console.log('[Main] Saving persona...');
+    engine.savePersona();
+    
+    console.log('[Main] Retrain complete!');
+    return { 
+      success: true, 
+      emailsAnalyzed: results.emails.length,
+      persona: engine.generatePersonaProfile()
+    };
+  } catch (e) {
+    console.error('[Main] Retrain error:', e);
+    return { success: false, error: e.message, stack: e.stack };
+  }
+});
+console.log('[Main] retrain-persona handler registered directly in main.js');
+
 function createWindow() {
   // Prevent creating multiple windows
   if (mainWindow && !mainWindow.isDestroyed()) {
