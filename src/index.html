@@ -6041,7 +6041,9 @@ function showTelegramStep2() {
 window.showTelegramStep2 = showTelegramStep2;
 
 async function validateAndSaveTelegramToken() {
-    const token = document.getElementById('telegramBotToken').value.trim();
+    const tokenInput = document.getElementById('telegramBotToken');
+    if (!tokenInput) return showToast('Error: Token input not found', 'error');
+    const token = tokenInput.value.trim();
     if (!token) return showToast('Please enter token', 'error');
     
     document.getElementById('telegramStep2').style.display = 'none';
@@ -6219,4 +6221,7 @@ window.setupTelegramPermissions = setupTelegramPermissions;
                 showToast('Sent!', 'success');
             }, 300);
         }
+        window.closeEditModal = closeEditModal;
+        window.saveEdit = saveEdit;
+        window.exportPersona = exportPersona;
         window.sendResponseActual = sendResponseActual;
