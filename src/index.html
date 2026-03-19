@@ -419,6 +419,451 @@
             display: block;
         }
         
+        /* Modern Dashboard Status Bar */
+        .dashboard-status-bar {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            padding: 15px 40px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+        
+        .status-indicator.active {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10B981;
+        }
+        
+        .status-indicator.active .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: #10B981;
+            border-radius: 50%;
+            animation: pulse-dot 1.5s infinite;
+        }
+        
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+        
+        .status-actions {
+            margin-left: auto;
+        }
+        
+        .status-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border: 1px solid var(--border);
+            background: var(--bg-primary);
+            color: var(--text);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        
+        .status-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        
+        .dashboard-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .mode-card {
+            background: linear-gradient(135deg, rgba(217, 119, 6, 0.1) 0%, rgba(217, 119, 6, 0.05) 100%);
+            border: 1px solid var(--accent);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .mode-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .mode-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--accent);
+            letter-spacing: 1px;
+        }
+        
+        .mode-toggle {
+            background: transparent;
+            border: none;
+            color: var(--accent);
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        
+        .mode-toggle:hover {
+            background: rgba(217, 119, 6, 0.1);
+        }
+        
+        .mode-description {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+        
+        .sidebar-stats {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 20px;
+        }
+        
+        .mini-stat {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .mini-stat-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+        
+        .mini-stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+        
+        .message-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .message-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 25px;
+            transition: all 0.2s;
+        }
+        
+        .message-card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .message-source {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+        }
+        
+        .message-source i {
+            color: var(--accent);
+            font-size: 1.1rem;
+        }
+        
+        .source-name {
+            font-weight: 600;
+            color: var(--text);
+        }
+        
+        .message-time {
+            color: var(--text-secondary);
+            margin-left: auto;
+            font-size: 0.85rem;
+        }
+        
+        .message-preview {
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+            padding: 15px;
+            background: var(--bg-primary);
+            border-radius: 10px;
+            font-style: italic;
+        }
+        
+        .ai-response-box {
+            background: linear-gradient(135deg, rgba(217, 119, 6, 0.08) 0%, rgba(217, 119, 6, 0.03) 100%);
+            border: 1px solid rgba(217, 119, 6, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .ai-label {
+            font-size: 0.8rem;
+            color: var(--accent);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .ai-text {
+            color: var(--text);
+            line-height: 1.5;
+        }
+        
+        .message-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .action-btn {
+            padding: 10px 20px;
+            font-size: 0.9rem;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            color: #10B981;
+            margin-bottom: 20px;
+        }
+        
+        .empty-state h3 {
+            margin-bottom: 10px;
+        }
+        
+        .empty-state p {
+            color: var(--text-secondary);
+        }
+        
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 20px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+        
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+        
+        .activity-icon.sent { background: rgba(16, 185, 129, 0.15); color: #10B981; }
+        .activity-icon.learned { background: rgba(217, 119, 6, 0.15); color: var(--accent); }
+        .activity-icon.received { background: rgba(59, 130, 246, 0.15); color: #3B82F6; }
+        
+        .activity-content {
+            flex: 1;
+        }
+        
+        .activity-title {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        
+        .activity-time {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .activity-badge {
+            padding: 4px 10px;
+            background: var(--accent);
+            color: white;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .insight-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+        }
+        
+        .insight-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .insight-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 5px;
+        }
+        
+        .insight-change {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .chart-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 25px;
+        }
+        
+        .chart-container h3 {
+            margin-bottom: 20px;
+        }
+        
+        .chart-placeholder {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            height: 150px;
+            gap: 15px;
+            padding: 0 10px;
+        }
+        
+        .chart-bar {
+            flex: 1;
+            background: var(--border);
+            border-radius: 8px 8px 0 0;
+            transition: all 0.3s;
+            min-height: 20px;
+        }
+        
+        .chart-bar.active {
+            background: var(--accent);
+        }
+        
+        .chart-labels {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 10px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+        
+        .settings-panels {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .settings-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 25px;
+        }
+        
+        .settings-card h3 {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .setting-row:last-child {
+            border-bottom: none;
+        }
+        
+        .account-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .account-info i {
+            color: var(--accent);
+            font-size: 1.2rem;
+        }
+        
+        .setting-name {
+            font-weight: 500;
+        }
+        
+        .setting-value {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .status-tag {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-tag.connected {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10B981;
+        }
+        
+        .version-tag {
+            padding: 6px 12px;
+            background: var(--accent);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
         .approval-list {
             display: flex;
             flex-direction: column;
@@ -1073,7 +1518,7 @@
                     <h3><i class="fas fa-info-circle"></i> About</h3>
                     <div class="settings-item">
                         <div>Current Version</div>
-                        <span style="color: var(--accent); font-weight: 600;">v0.1.11 Beta (Build 2026-03-19)</span>
+                        <span style="color: var(--accent); font-weight: 600;">v0.1.12 Beta (Build 2026-03-19)</span>
                     </div>
                     <div class="settings-item">
                         <div>Check for Updates</div>
@@ -1696,189 +2141,315 @@
     
     <!-- STEP 7: Dashboard -->
     <div class="step" id="step7">
-        <div class="dashboard">
-            <aside class="dashboard-sidebar">
-                <div class="sidebar-logo">🧠 OpenEgo</div>
-                <nav class="sidebar-nav">
-                    <button class="nav-item active" onclick="switchTab('inbox')">
-                        <i class="fas fa-inbox" style="margin-right: 10px;"></i> Inbox
-                        <span class="nav-badge" id="inboxBadge">3</span>
-                    </button>
-                    <button class="nav-item" onclick="switchTab('stats')">
-                        <i class="fas fa-chart-bar" style="margin-right: 10px;"></i> Stats
-                    </button>
-                    <button class="nav-item" onclick="switchTab('settings')">
-                        <i class="fas fa-cog" style="margin-right: 10px;"></i> Settings
-                    </button>
-                </nav>
-                <div class="mode-switcher">
-                    <div class="mode-label">Current Mode</div>
-                    <div class="mode-value" id="currentMode"><i class="fas fa-eye"></i> Co-Pilot</div>
-                    <button class="btn btn-primary" style="width: 100%; margin-top: 10px; padding: 10px; font-size: 0.9rem;" onclick="toggleMode()"><i class="fas fa-exchange-alt"></i> Switch Mode</button>
-                </div>
-            </aside>
-            <main class="dashboard-main">
-                <div class="tab-content active" id="inboxTab">
-                    <div class="dashboard-header">
-                        <h2>📥 Pending Approvals</h2>
-                        <p style="color: var(--text-secondary);">Review OpenEgo's suggested responses</p>
-                    </div>
-                    <div class="approval-list">
-                        <div class="approval-card">
-                            <div class="approval-meta">
-                                <span class="approval-type">📧 Email</span>
-                                <span class="approval-time">2 min ago</span>
-                            </div>
-                            <div class="approval-from">From: client@company.com</div>
-                            <div class="approval-preview">"Can we schedule a call to discuss the proposal?"</div>
-                            <div class="ai-suggestion"><strong>🤖 Suggested:</strong> "Absolutely! I'm free Thursday 2-4pm. What works for you?"</div>
-                            <div class="approval-actions">
-                                <button class="btn btn-primary" onclick="approveMessage(this)">✓ Send</button>
-                                <button class="btn btn-secondary" onclick="editMessage(this)">✏️ Edit</button>
-                                <button class="btn btn-secondary" style="background: rgba(239, 68, 68, 0.2); color: #EF4444;" onclick="rejectMessage(this)">✗ Skip</button>
-                            </div>
-                        </div>
+        <div class="dashboard" style="flex-direction: column;">
+            <!-- Top Status Bar -->
+            <div class="dashboard-status-bar">
+                <div class="status-item">
+                    <div class="status-indicator active" id="statusLive">
+                        <span class="pulse-dot"></span>
+                        <span class="status-text">Live</span>
                     </div>
                 </div>
-                <div class="tab-content" id="statsTab">
-                    <div class="dashboard-header">
-                        <h2>📊 Your Stats</h2>
-                    </div>
-                    <div class="stats-grid">
-                        <div class="stat-card"><div class="stat-value">127</div><div class="stat-label">Emails Handled</div></div>
-                        <div class="stat-card"><div class="stat-value">14.5h</div><div class="stat-label">Time Saved</div></div>
-                        <div class="stat-card"><div class="stat-value">87%</div><div class="stat-label">Accuracy</div></div>
-                        <div class="stat-card"><div class="stat-value">12</div><div class="stat-label">Day Streak</div></div>
+                <div class="status-item">
+                    <div class="status-indicator" id="statusReading">
+                        <i class="fas fa-book-open"></i>
+                        <span class="status-text">Reading</span>
                     </div>
                 </div>
-                <div class="tab-content" id="settingsTab">
-                    <div class="dashboard-header">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                            <div>
-                                <h2><i class="fas fa-cog"></i> Settings</h2>
-                                <p style="color: var(--text-secondary);">Manage your OpenEgo configuration</p>
-                            </div>
-                            <div style="display: flex; gap: 10px;">
-                                <button class="btn btn-secondary" onclick="minimizeSettings()" style="display: flex; align-items: center; gap: 8px;" title="Minimize Settings">
-                                    <i class="fas fa-minus"></i> Minimize
-                                </button>
-                                <button class="btn btn-secondary" onclick="closeSettings()" style="display: flex; align-items: center; gap: 8px;">
-                                    <i class="fas fa-arrow-left"></i> Back to Inbox
-                                </button>
-                            </div>
-                        </div>
+                <div class="status-item">
+                    <div class="status-indicator" id="statusUnderstanding">
+                        <i class="fas fa-brain"></i>
+                        <span class="status-text">Understanding</span>
+                    </div>
+                </div>
+                <div class="status-item">
+                    <div class="status-indicator" id="statusComposing">
+                        <i class="fas fa-pen-fancy"></i>
+                        <span class="status-text">Composing</span>
+                    </div>
+                </div>
+                <div class="status-actions">
+                    <button class="status-btn" onclick="pauseOpenEgo()" id="pauseBtn">
+                        <i class="fas fa-pause"></i> Pause
+                    </button>
+                </div>
+            </div>
+            
+            <div class="dashboard-content">
+                <aside class="dashboard-sidebar">
+                    <div class="sidebar-logo">
+                        <i class="fas fa-brain"></i> OpenEgo
                     </div>
                     
-                    <div class="settings-section">
-                        <h3>🤖 AI Model</h3>
-                        <div class="settings-item">
-                            <div>
-                                <div>Current Model</div>
-                                <div style="color: var(--text-secondary); font-size: 0.9rem;">GPT-4o via OpenAI API</div>
-                            </div>
-                            <button class="btn btn-secondary" onclick="alert('Model selection coming in next update')">Change</button>
-                        </div>
-                        <div class="settings-item">
-                            <div>
-                                <div>API Key</div>
-                                <div style="color: var(--text-secondary); font-size: 0.9rem;">sk-••••••••••••••••••••</div>
-                            </div>
-                            <button class="btn btn-secondary">Update</button>
-                        </div>
-                    </div>
-                    
-                    <div class="settings-section">
-                        <h3><i class="fas fa-plug"></i> Connected Accounts</h3>
-                        <div class="settings-item">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <i class="fas fa-envelope" style="font-size: 1.2rem; color: var(--accent);"></i>
-                                <div>
-                                    <div>Gmail</div>
-                                    <div style="color: var(--text-secondary); font-size: 0.85rem;">john@gmail.com</div>
-                                </div>
-                            </div>
-                            <span style="color: #10B981;"><i class="fas fa-check-circle"></i> Connected</span>
-                        </div>
-                        <div class="settings-item">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <i class="fab fa-telegram" style="font-size: 1.2rem; color: var(--accent);"></i>
-                                <div>
-                                    <div>Telegram</div>
-                                    <div style="color: var(--text-secondary); font-size: 0.85rem;">@johndoe</div>
-                                </div>
-                            </div>
-                            <span style="color: #10B981;"><i class="fas fa-check-circle"></i> Connected</span>
-                        </div>
-                        <div class="settings-item">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <i class="fab fa-slack" style="font-size: 1.2rem; color: var(--accent);"></i>
-                                <div>
-                                    <div>Slack</div>
-                                    <div style="color: var(--text-secondary); font-size: 0.85rem;">Not connected</div>
-                                </div>
-                            </div>
-                            <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.85rem;">Connect</button>
-                        </div>
-                    </div>
-                    
-                    <div class="settings-section">
-                        <h3><i class="fas fa-shield-alt"></i> Privacy & Data</h3>
-                        <div class="settings-item">
-                            <div>
-                                <div>Data Storage</div>
-                                <div style="color: var(--text-secondary); font-size: 0.9rem;">All data stored locally on your device</div>
-                            </div>
-                            <span style="color: #10B981;"><i class="fas fa-lock"></i> Secure</span>
-                        </div>
-                        <div class="settings-item">
-                            <div>
-                                <div>Export My Data</div>
-                                <div style="color: var(--text-secondary); font-size: 0.9rem;">Download all your data as JSON</div>
-                            </div>
-                            <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.85rem;">Export</button>
-                        </div>
-                        <div class="settings-item">
-                            <div>
-                                <div>Clear All Data</div>
-                                <div style="color: var(--text-secondary); font-size: 0.9rem;">Delete all learned patterns and history</div>
-                            </div>
-                            <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.85rem; background: rgba(239, 68, 68, 0.2); color: #EF4444;">Delete</button>
-                        </div>
-                        <div class="settings-item">
-                            <div>
-                                <div>Reset Onboarding</div>
-                                <div style="color: var(--text-secondary); font-size: 0.9rem;">Start setup process again</div>
-                            </div>
-                            <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.85rem;" onclick="resetOnboarding()">Reset</button>
-                        </div>
-                    </div>
-                    
-                    <div class="settings-section">
-                        <h3><i class="fas fa-info-circle"></i> About</h3>
-                        <div class="settings-item">
-                            <div>Current Version</div>
-                            <span style="color: var(--accent); font-weight: 600;">v0.1.11 Beta (Build 2026-03-19)</span>
-                        </div>
-                        <div class="settings-item">
-                            <div>Release Channel</div>
-                            <span style="color: var(--text-secondary);">Beta</span>
-                        </div>
-                        <div class="settings-item">
-                            <div>Check for Updates</div>
-                            <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.85rem;" onclick="checkForAppUpdates()" id="updateCheckBtn">
-                                <i class="fas fa-sync-alt"></i> Check
+                    <div class="mode-card">
+                        <div class="mode-header">
+                            <span class="mode-badge" id="modeBadge">CO-PILOT</span>
+                            <button class="mode-toggle" onclick="toggleMode()" title="Switch Mode">
+                                <i class="fas fa-exchange-alt"></i>
                             </button>
                         </div>
-                        <div style="margin-top: 15px; padding: 12px; background: var(--bg-primary); border-radius: 8px; font-size: 0.85rem; color: var(--text-secondary);">
-                            <strong style="color: var(--text);">Latest Changes:</strong><br>
-                            - Multi-channel communication scanning<br>
-                            - Full Disk Access integration<br>
-                            - Settings panel with back navigation<br>
-                            - User persistence (remembers returning users)
+                        <p class="mode-description" id="modeDescription">
+                            Reviewing all responses before sending
+                        </p>
+                    </div>
+                    
+                    <nav class="sidebar-nav">
+                        <button class="nav-item active" onclick="switchTab('inbox')">
+                            <i class="fas fa-inbox"></i>
+                            <span>Inbox</span>
+                            <span class="nav-badge" id="inboxBadge">3</span>
+                        </button>
+                        <button class="nav-item" onclick="switchTab('activity')">
+                            <i class="fas fa-stream"></i>
+                            <span>Activity Log</span>
+                        </button>
+                        <button class="nav-item" onclick="switchTab('insights')">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Insights</span>
+                        </button>
+                        <button class="nav-item" onclick="switchTab('settings')">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </button>
+                    </nav>
+                    
+                    <div class="sidebar-stats">
+                        <div class="mini-stat">
+                            <span class="mini-stat-value">127</span>
+                            <span class="mini-stat-label">Handled</span>
+                        </div>
+                        <div class="mini-stat">
+                            <span class="mini-stat-value">14.5h</span>
+                            <span class="mini-stat-label">Saved</span>
                         </div>
                     </div>
-                </div>
-            </main>
+                </aside>
+                
+                <main class="dashboard-main">
+                    <!-- Inbox Tab -->
+                    <div class="tab-content active" id="inboxTab">
+                        <div class="dashboard-header">
+                            <div>
+                                <h2><i class="fas fa-inbox"></i> Smart Inbox</h2>
+                                <p class="subtitle">Messages that need your attention</p>
+                            </div>
+                            <div class="header-actions">
+                                <button class="btn btn-secondary" onclick="refreshInbox()">
+                                    <i class="fas fa-sync-alt"></i> Refresh
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="message-list" id="messageList">
+                            <div class="message-card pending">
+                                <div class="message-source">
+                                    <i class="fas fa-envelope"></i>
+                                    <span class="source-name">client@company.com</span>
+                                    <span class="message-time">2 min ago</span>
+                                </div>
+                                <div class="message-preview">
+                                    "Can we schedule a call to discuss the proposal?"
+                                </div>
+                                <div class="ai-response-box">
+                                    <div class="ai-label">
+                                        <i class="fas fa-robot"></i> OpenEgo suggests:
+                                    </div>
+                                    <div class="ai-text">
+                                        "Absolutely! I'm free Thursday 2-4pm. What works for you?"
+                                    </div>
+                                </div>
+                                <div class="message-actions">
+                                    <button class="btn btn-primary action-btn" onclick="sendResponse(this)">
+                                        <i class="fas fa-paper-plane"></i> Send
+                                    </button>
+                                    <button class="btn btn-secondary action-btn" onclick="editResponse(this)">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                    <button class="btn btn-secondary action-btn" onclick="dismissMessage(this)">
+                                        <i class="fas fa-times"></i> Dismiss
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="message-card pending">
+                                <div class="message-source">
+                                    <i class="fab fa-telegram"></i>
+                                    <span class="source-name">@sarah_tech</span>
+                                    <span class="message-time">5 min ago</span>
+                                </div>
+                                <div class="message-preview">
+                                    "Hey! Quick question - are we still on for the demo tomorrow?"
+                                </div>
+                                <div class="ai-response-box">
+                                    <div class="ai-label">
+                                        <i class="fas fa-robot"></i> OpenEgo suggests:
+                                    </div>
+                                    <div class="ai-text">
+                                        "Yes, demo is confirmed for 2pm tomorrow! Looking forward to showing you the new features."
+                                    </div>
+                                </div>
+                                <div class="message-actions">
+                                    <button class="btn btn-primary action-btn" onclick="sendResponse(this)">
+                                        <i class="fas fa-paper-plane"></i> Send
+                                    </button>
+                                    <button class="btn btn-secondary action-btn" onclick="editResponse(this)">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                    <button class="btn btn-secondary action-btn" onclick="dismissMessage(this)">
+                                        <i class="fas fa-times"></i> Dismiss
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="empty-state hidden" id="emptyInbox">
+                            <i class="fas fa-check-circle"></i>
+                            <h3>All Caught Up!</h3>
+                            <p>No messages need your attention right now.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Activity Log Tab -->
+                    <div class="tab-content" id="activityTab">
+                        <div class="dashboard-header">
+                            <h2><i class="fas fa-stream"></i> Activity Log</h2>
+                            <p class="subtitle">Recent actions and responses</p>
+                        </div>
+                        <div class="activity-list" id="activityList">
+                            <div class="activity-item">
+                                <div class="activity-icon sent">
+                                    <i class="fas fa-paper-plane"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-title">Response sent to client@company.com</div>
+                                    <div class="activity-time">2 minutes ago</div>
+                                </div>
+                                <span class="activity-badge">Auto</span>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon learned">
+                                    <i class="fas fa-brain"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-title">Learned new pattern from your edit</div>
+                                    <div class="activity-time">15 minutes ago</div>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon received">
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-title">New email from investor@vc.com</div>
+                                    <div class="activity-time">1 hour ago</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Insights Tab -->
+                    <div class="tab-content" id="insightsTab">
+                        <div class="dashboard-header">
+                            <h2><i class="fas fa-chart-line"></i> Insights</h2>
+                            <p class="subtitle">Your communication patterns</p>
+                        </div>
+                        <div class="insights-grid">
+                            <div class="insight-card">
+                                <div class="insight-header">
+                                    <i class="fas fa-envelope"></i>
+                                    <span>Emails Handled</span>
+                                </div>
+                                <div class="insight-value">127</div>
+                                <div class="insight-change">+12 this week</div>
+                            </div>
+                            <div class="insight-card">
+                                <div class="insight-header">
+                                    <i class="fas fa-clock"></i>
+                                    <span>Time Saved</span>
+                                </div>
+                                <div class="insight-value">14.5h</div>
+                                <div class="insight-change">~2.1h per day</div>
+                            </div>
+                            <div class="insight-card">
+                                <div class="insight-header">
+                                    <i class="fas fa-bullseye"></i>
+                                    <span>Accuracy</span>
+                                </div>
+                                <div class="insight-value">87%</div>
+                                <div class="insight-change">+5% from last week</div>
+                            </div>
+                            <div class="insight-card">
+                                <div class="insight-header">
+                                    <i class="fas fa-fire"></i>
+                                    <span>Day Streak</span>
+                                </div>
+                                <div class="insight-value">12</div>
+                                <div class="insight-change">Keep it up!</div>
+                            </div>
+                        </div>
+                        
+                        <div class="chart-container">
+                            <h3>Response Time Trends</h3>
+                            <div class="chart-placeholder">
+                                <div class="chart-bar" style="height: 40%"></div>
+                                <div class="chart-bar" style="height: 60%"></div>
+                                <div class="chart-bar" style="height: 45%"></div>
+                                <div class="chart-bar" style="height: 80%"></div>
+                                <div class="chart-bar" style="height: 65%"></div>
+                                <div class="chart-bar" style="height: 90%"></div>
+                                <div class="chart-bar active" style="height: 75%"></div>
+                            </div>
+                            <div class="chart-labels">
+                                <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Settings Tab -->
+                    <div class="tab-content" id="settingsTab">
+                        <div class="dashboard-header">
+                            <h2><i class="fas fa-cog"></i> Settings</h2>
+                        </div>
+                        <div class="settings-panels">
+                            <div class="settings-card">
+                                <h3><i class="fas fa-robot"></i> AI Model</h3>
+                                <div class="setting-row">
+                                    <div>
+                                        <div class="setting-name">Current Model</div>
+                                        <div class="setting-value">GPT-4o via OpenAI</div>
+                                    </div>
+                                    <button class="btn btn-secondary">Change</button>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-card">
+                                <h3><i class="fas fa-plug"></i> Connected Accounts</h3>
+                                <div class="setting-row">
+                                    <div class="account-info">
+                                        <i class="fas fa-envelope"></i>
+                                        <div>
+                                            <div class="setting-name">Apple Mail</div>
+                                            <div class="setting-value">Active</div>
+                                        </div>
+                                    </div>
+                                    <span class="status-tag connected">Connected</span>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-card">
+                                <h3><i class="fas fa-info-circle"></i> About</h3>
+                                <div class="setting-row">
+                                    <div class="setting-name">Version</div>
+                                    <span class="version-tag">v0.1.12 Beta</span>
+                                </div>
+                                <button class="btn btn-secondary" onclick="checkForAppUpdates()">
+                                    <i class="fas fa-sync-alt"></i> Check for Updates
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
         </div>
     </div>
     
@@ -3375,6 +3946,154 @@
             }
         }
         
+        // Modern Dashboard Functions
+        let isPaused = false;
+        let statusInterval = null;
+        
+        function pauseOpenEgo() {
+            isPaused = !isPaused;
+            const btn = document.getElementById('pauseBtn');
+            const liveIndicator = document.getElementById('statusLive');
+            
+            if (isPaused) {
+                btn.innerHTML = '<i class="fas fa-play"></i> Resume';
+                liveIndicator.classList.remove('active');
+                liveIndicator.innerHTML = '<i class="fas fa-pause-circle"></i><span class="status-text">Paused</span>';
+                showToast('OpenEgo paused', 'info');
+                clearInterval(statusInterval);
+            } else {
+                btn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+                liveIndicator.classList.add('active');
+                liveIndicator.innerHTML = '<span class="pulse-dot"></span><span class="status-text">Live</span>';
+                showToast('OpenEgo resumed', 'success');
+                startStatusAnimation();
+            }
+        }
+        window.pauseOpenEgo = pauseOpenEgo;
+        
+        function startStatusAnimation() {
+            if (statusInterval) clearInterval(statusInterval);
+            
+            const statuses = ['statusReading', 'statusUnderstanding', 'statusComposing'];
+            
+            statusInterval = setInterval(() => {
+                if (isPaused) return;
+                
+                statuses.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.classList.remove('active');
+                });
+                
+                // Randomly activate one or none
+                if (Math.random() > 0.3) {
+                    const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+                    const el = document.getElementById(randomStatus);
+                    if (el) el.classList.add('active');
+                }
+            }, 2000);
+        }
+        window.startStatusAnimation = startStatusAnimation;
+        
+        function sendResponse(btn) {
+            const card = btn.closest('.message-card');
+            card.style.transform = 'translateX(-100%)';
+            card.style.opacity = '0';
+            
+            setTimeout(() => {
+                card.remove();
+                updateInboxBadge();
+                showToast('Response sent!', 'success');
+                addActivity('sent', 'Response sent to ' + card.querySelector('.source-name').textContent);
+            }, 300);
+        }
+        window.sendResponse = sendResponse;
+        
+        function editResponse(btn) {
+            const card = btn.closest('.message-card');
+            const aiText = card.querySelector('.ai-text');
+            const currentText = aiText.textContent;
+            
+            const newText = prompt('Edit your response:', currentText);
+            if (newText && newText !== currentText) {
+                aiText.textContent = newText;
+                showToast('Response updated', 'success');
+            }
+        }
+        window.editResponse = editResponse;
+        
+        function dismissMessage(btn) {
+            const card = btn.closest('.message-card');
+            card.style.transform = 'translateX(100%)';
+            card.style.opacity = '0';
+            
+            setTimeout(() => {
+                card.remove();
+                updateInboxBadge();
+                showToast('Message dismissed', 'info');
+            }, 300);
+        }
+        window.dismissMessage = dismissMessage;
+        
+        function refreshInbox() {
+            showToast('Refreshing inbox...', 'info');
+            setTimeout(() => {
+                showToast('Inbox updated', 'success');
+            }, 1000);
+        }
+        window.refreshInbox = refreshInbox;
+        
+        function updateInboxBadge() {
+            const badge = document.getElementById('inboxBadge');
+            const messages = document.querySelectorAll('.message-card');
+            const count = messages.length;
+            
+            if (count <= 0) {
+                if (badge) badge.style.display = 'none';
+                const emptyState = document.getElementById('emptyInbox');
+                const messageList = document.getElementById('messageList');
+                if (emptyState) emptyState.classList.remove('hidden');
+                if (messageList) messageList.classList.add('hidden');
+            } else {
+                if (badge) {
+                    badge.textContent = count;
+                    badge.style.display = 'block';
+                }
+            }
+        }
+        
+        function addActivity(type, title) {
+            const activityList = document.getElementById('activityList');
+            if (!activityList) return;
+            
+            const item = document.createElement('div');
+            item.className = 'activity-item';
+            const iconClass = type === 'sent' ? 'paper-plane' : type === 'learned' ? 'brain' : 'envelope';
+            item.innerHTML = `
+                <div class="activity-icon ${type}">
+                    <i class="fas fa-${iconClass}"></i>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-title">${title}</div>
+                    <div class="activity-time">Just now</div>
+                </div>
+            `;
+            activityList.insertBefore(item, activityList.firstChild);
+        }
+        
+        // Override switchTab for new dashboard
+        window.switchTab = function(tab) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.sidebar-nav .nav-item').forEach(n => n.classList.remove('active'));
+            
+            const tabContent = document.getElementById(tab + 'Tab');
+            if (tabContent) tabContent.classList.add('active');
+            
+            if (event && event.target) {
+                const navItem = event.target.closest('.nav-item');
+                if (navItem) navItem.classList.add('active');
+            }
+        };
+        
         updateProgress();
         
         // Ensure all functions are available globally for HTML onclick handlers
@@ -3585,6 +4304,11 @@
                 if (currentStep === 2) {
                     const savedMode = localStorage.getItem('openego_training_mode') || 'scratch';
                     window.selectTrainingMode(savedMode);
+                }
+                
+                // Start dashboard status animation if on dashboard
+                if (currentStep === 7) {
+                    startStatusAnimation();
                 }
             }, 500);
             
