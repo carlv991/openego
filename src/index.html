@@ -1917,8 +1917,32 @@
         // Track current step for settings modal
         let stepBeforeSettings = 1;
         
+        // Verify Full Disk Access by actually trying to read Mail folder
+        async function verifyFullDiskAccess() {
+            if (typeof require === 'undefined') return false;
+            
+            try {
+                const { ipcRenderer } = require('electron');
+                const result = await ipcRenderer.invoke('check-full-disk-access');
+                
+                if (result.granted) {
+                    localStorage.setItem('openego_disk_access', 'granted');
+                    localStorage.setItem('openego_disk_access_verified', new Date().toISOString());
+                    return true;
+                } else {
+                    // Permission not actually granted - clear the flag
+                    localStorage.removeItem('openego_disk_access');
+                    return false;
+                }
+            } catch (e) {
+                console.log('Could not verify disk access:', e);
+                // Check if we previously verified
+                return localStorage.getItem('openego_disk_access') === 'granted';
+            }
+        }
+        
         // Check for incomplete scan and show resume option
-        function checkAndResumeScan() {
+        async function checkAndResumeScan() {
             if (typeof require === 'undefined') return;
             
             const progressPath = require('path').join(require('os').homedir(), '.openego_scan_progress.json');
@@ -1944,10 +1968,17 @@
         }
         
         // Check if returning user
-        function checkReturningUser() {
+        async function checkReturningUser() {
             const hasCompletedOnboarding = localStorage.getItem('openego_onboarding_complete');
             const hasUserName = localStorage.getItem('openego_user_name');
-            const hasDiskAccess = localStorage.getItem('openego_disk_access');
+            let hasDiskAccess = localStorage.getItem('openego_disk_access') === 'granted';
+            
+            // Actually verify disk access is real
+            if (hasDiskAccess) {
+                console.log('Verifying Full Disk Access...');
+                hasDiskAccess = await verifyFullDiskAccess();
+                console.log('Disk access verified:', hasDiskAccess);
+            }
             
             if (hasCompletedOnboarding && hasUserName && hasDiskAccess) {
                 // User has completed onboarding before - skip to dashboard
@@ -2033,11 +2064,11 @@
         // Check for returning user on page load
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
-                setTimeout(checkReturningUser, 100);
+                setTimeout(() => checkReturningUser().catch(console.error), 100);
             });
         } else {
             // DOM already loaded
-            setTimeout(checkReturningUser, 100);
+            setTimeout(() => checkReturningUser().catch(console.error), 100);
         }
         
         let currentStep = 1;
@@ -3119,12 +3150,13 @@
         
         window.checkForAppUpdates = checkForAppUpdates;
         window.checkAndResumeScan = checkAndResumeScan;
+        window.verifyFullDiskAccess = verifyFullDiskAccess;
         
         // Check for resume on load if on step 4
         document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 if (currentStep === 4) {
-                    checkAndResumeScan();
+                    checkAndResumeScan().catch(console.error);
                 }
             }, 500);
         });
