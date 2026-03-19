@@ -605,6 +605,20 @@
             opacity: 0.6;
         }
         
+        /* Minimized Settings State */
+        .tab-content.minimized {
+            max-height: 100px;
+            overflow: hidden;
+        }
+        
+        .tab-content.minimized .dashboard-header {
+            margin-bottom: 0;
+        }
+        
+        .tab-content.minimized .settings-section {
+            display: none;
+        }
+        
         .btn-success {
             background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
         }
@@ -1649,9 +1663,14 @@
                                 <h2><i class="fas fa-cog"></i> Settings</h2>
                                 <p style="color: var(--text-secondary);">Manage your OpenEgo configuration</p>
                             </div>
-                            <button class="btn btn-secondary" onclick="closeSettings()" style="display: flex; align-items: center; gap: 8px;">
-                                <i class="fas fa-arrow-left"></i> Back to Inbox
-                            </button>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="btn btn-secondary" onclick="minimizeSettings()" style="display: flex; align-items: center; gap: 8px;" title="Minimize Settings">
+                                    <i class="fas fa-minus"></i> Minimize
+                                </button>
+                                <button class="btn btn-secondary" onclick="closeSettings()" style="display: flex; align-items: center; gap: 8px;">
+                                    <i class="fas fa-arrow-left"></i> Back to Inbox
+                                </button>
+                            </div>
                         </div>
                     </div>
                     
@@ -2822,7 +2841,34 @@
             const inboxNav = document.querySelector('.nav-item');
             if (inboxNav) inboxNav.classList.add('active');
             
+            // Remove minimized state if exists
+            const settingsTab = document.getElementById('settingsTab');
+            if (settingsTab) {
+                settingsTab.classList.remove('minimized');
+                settingsTab.style.maxHeight = '';
+            }
+            
             console.log('Settings closed - returned to Inbox');
+        }
+        
+        // Minimize settings to a compact view
+        function minimizeSettings() {
+            const settingsTab = document.getElementById('settingsTab');
+            const settingsContent = settingsTab.querySelectorAll('.settings-section');
+            
+            if (settingsTab.classList.contains('minimized')) {
+                // Restore
+                settingsTab.classList.remove('minimized');
+                settingsContent.forEach(el => el.style.display = 'block');
+                event.target.innerHTML = '<i class="fas fa-minus"></i> Minimize';
+            } else {
+                // Minimize
+                settingsTab.classList.add('minimized');
+                settingsContent.forEach(el => {
+                    if (!el.querySelector('h2')) el.style.display = 'none';
+                });
+                event.target.innerHTML = '<i class="fas fa-expand"></i> Expand';
+            }
         }
         
         updateProgress();
@@ -2850,6 +2896,8 @@
         window.rejectMessage = rejectMessage;
         window.toggleMode = toggleMode;
         window.resetOnboarding = resetOnboarding;
+        window.minimizeSettings = minimizeSettings;
+        window.closeSettings = closeSettings;
         
         console.log('OpenEgo initialized successfully');
     </script>
