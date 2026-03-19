@@ -1308,23 +1308,6 @@
             <h1 style="text-align: center;">Choose Your AI Model</h1>
             <p class="subtitle">Select the brain that powers your digital twin</p>
             
-            <!-- No API Key Option -->
-            <div class="card model-card selected" onclick="selectModel(this)" data-provider="none" data-model="basic" style="border: 2px solid var(--accent); margin-bottom: 30px;">
-                <span class="badge badge-recommended">Recommended for Beginners</span>
-                <h3><i class="fas fa-play-circle"></i> Basic Mode - No API Key Required</h3>
-                <p style="color: var(--text-secondary); margin: 10px 0;">Start immediately with pre-trained templates. Upgrade to AI later when you're ready.</p>
-                <div class="specs">
-                    <span><i class="fas fa-bolt"></i> Instant Setup</span>
-                    <span><i class="fas fa-dollar-sign"></i> Free</span>
-                    <span><i class="fas fa-arrow-up"></i> Upgrade Anytime</span>
-                </div>
-                <div style="margin-top: 15px; padding: 15px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; border: 1px solid #10B981;">
-                    <p style="color: #10B981; font-size: 0.9rem; margin: 0;">
-                        <i class="fas fa-check-circle"></i> Uses smart templates and your manual training only. No API costs!
-                    </p>
-                </div>
-            </div>
-            
             <h3 style="margin: 30px 0 15px; color: var(--text-secondary);"><i class="fas fa-cloud"></i> Cloud Models (Requires API Key)</h3>
             
             <div class="card model-card" onclick="selectModel(this)" data-provider="openai" data-model="gpt-4o">
@@ -1399,7 +1382,7 @@
             
             <h3 style="margin: 30px 0 15px; color: var(--text-secondary);"><i class="fas fa-laptop"></i> Local Models (Runs on Your Computer - Free!)</h3>
             
-            <div class="card model-card" onclick="selectModel(this)" data-provider="ollama" data-model="llama3.1">
+            <div class="card model-card selected" onclick="selectModel(this)" data-provider="ollama" data-model="llama3.1">
                 <span class="badge badge-recommended">Recommended Local</span>
                 <h3>Llama 3.1 8B (via Ollama)</h3>
                 <p style="color: var(--text-secondary); margin: 10px 0;">Runs locally - no API key needed! Requires 8GB RAM.</p>
@@ -2493,15 +2476,6 @@
             const provider = selectedCard.dataset.provider;
             const model = selectedCard.dataset.model;
             
-            // Handle Basic Mode (no API key needed)
-            if (provider === 'none') {
-                localStorage.setItem('openego_provider', 'none');
-                localStorage.setItem('openego_model', 'basic');
-                localStorage.setItem('openego_mode', 'basic');
-                alert('Basic mode selected! You can start using OpenEgo immediately.\n\nYou can add an AI model later in Settings.');
-                return;
-            }
-            
             // Get API key from input if cloud model
             let apiKey = '';
             if (provider !== 'local' && provider !== 'ollama') {
@@ -2509,7 +2483,7 @@
                 apiKey = apiInput ? apiInput.value : '';
                 
                 if (!apiKey) {
-                    alert('Please enter your API key for ' + provider + '\n\nOr select "Basic Mode - No API Key Required" to start without an API key.');
+                    alert('Please enter your API key for ' + provider + '.\n\nOr select "Llama 3.1 (Local)" to run AI on your computer for free.');
                     return;
                 }
             }
@@ -2536,13 +2510,8 @@
         
         // Generate AI response
         async function generateAIResponse(message) {
-            const provider = localStorage.getItem('openego_provider') || 'none';
-            const model = localStorage.getItem('openego_model') || 'basic';
-            
-            // Basic Mode - use templates
-            if (provider === 'none' || model === 'basic') {
-                return generateBasicResponse(message);
-            }
+            const provider = localStorage.getItem('openego_provider') || 'ollama';
+            const model = localStorage.getItem('openego_model') || 'llama3.1';
             
             // Use local AI if selected
             if (provider === 'ollama' && typeof require !== 'undefined') {
@@ -2552,7 +2521,7 @@
                     const response = await ipcRenderer.invoke('query-local-ai', prompt, model);
                     return response;
                 } catch (e) {
-                    return 'Local AI error. Make sure Ollama is running (ollama run llama3.1)';
+                    return 'Local AI error. Make sure Ollama is running (ollama run llama3.1) or add an API key in Settings.';
                 }
             }
             
@@ -2567,30 +2536,8 @@
                 const data = await response.json();
                 return data.response || 'I am still learning your style.';
             } catch (e) {
-                return 'AI response temporarily unavailable. Please check your API key in settings or switch to Basic Mode.';
+                return 'AI response temporarily unavailable. Please check your API key in Settings or install Ollama for free local AI.';
             }
-        }
-        
-        // Basic Mode - generate response using templates
-        function generateBasicResponse(message) {
-            const lowerMsg = message.toLowerCase();
-            
-            // Simple template matching
-            if (lowerMsg.includes('meeting') || lowerMsg.includes('call')) {
-                return "I'd be happy to chat. What time works for you?";
-            }
-            if (lowerMsg.includes('deadline') || lowerMsg.includes('when')) {
-                return "I'll check my schedule and get back to you with a timeline.";
-            }
-            if (lowerMsg.includes('thanks') || lowerMsg.includes('thank you')) {
-                return "You're welcome! Happy to help.";
-            }
-            if (lowerMsg.includes('?')) {
-                return "Good question! Let me think about that and get back to you.";
-            }
-            
-            // Default response
-            return "Thanks for your message! I'll respond in detail soon.";
         }
         
         function startTraining() {
