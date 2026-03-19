@@ -2502,6 +2502,19 @@
                                     <i class="fas fa-sync-alt"></i> Check for Updates
                                 </button>
                             </div>
+                            
+                            <div class="settings-card" style="border: 1px solid #EF4444;">
+                                <h3 style="color: #EF4444;"><i class="fas fa-exclamation-triangle"></i> Danger Zone</h3>
+                                <div class="setting-row">
+                                    <div>
+                                        <div class="setting-name">Reset All Data</div>
+                                        <div class="setting-value">Clear all settings and start fresh</div>
+                                    </div>
+                                    <button class="btn btn-secondary" onclick="resetAllData()" style="background: rgba(239, 68, 68, 0.2); color: #EF4444; border-color: #EF4444;">
+                                        <i class="fas fa-trash"></i> Reset
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </main>
@@ -4196,6 +4209,46 @@
             activityList.insertBefore(item, activityList.firstChild);
         }
         
+        // Reset all data and start fresh
+        function resetAllData() {
+            if (confirm('⚠️ WARNING: This will delete ALL your data!\n\nThis includes:\n- Your name and settings\n- API keys\n- Training data\n- Connected accounts\n\nThis cannot be undone. Are you sure?')) {
+                if (confirm('Final confirmation: Type "DELETE" to confirm\n\nThis will permanently erase everything.')) {
+                    // Clear all localStorage
+                    const keysToRemove = [
+                        'openego_user_name',
+                        'openego_user_id',
+                        'openego_user_email',
+                        'openego_disk_access',
+                        'openego_disk_access_manual',
+                        'openego_onboarding_complete',
+                        'openego_onboarding_in_progress',
+                        'openego_current_step',
+                        'openego_training_mode',
+                        'openego_training_complete',
+                        'openego_training_skipped',
+                        'openego_mode',
+                        'openego_provider',
+                        'openego_model',
+                        'openego_api_key',
+                        'openego_emails',
+                        'openego_mail_count',
+                        'openego_sources',
+                        'openego_skip_scanning',
+                        'smartSuggestEnabled'
+                    ];
+                    
+                    keysToRemove.forEach(key => localStorage.removeItem(key));
+                    
+                    // Show confirmation
+                    alert('✅ All data cleared!\n\nThe app will now restart.');
+                    
+                    // Reload the app
+                    window.location.reload();
+                }
+            }
+        }
+        window.resetAllData = resetAllData;
+        
         // Override switchTab for new dashboard
         window.switchTab = function(tab) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -4245,6 +4298,7 @@
         window.sendResponse = sendResponse;
         window.dismissMessage = dismissMessage;
         window.refreshInbox = refreshInbox;
+        window.resetAllData = resetAllData;
         
         // Listen for menu bar settings click
         if (typeof require !== 'undefined') {
