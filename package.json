@@ -33,6 +33,10 @@
       "ai-response-generator.js",
       "apple-mail-sender.js",
       "telegram-sender.js",
+      "training-engine.js",
+      "smart-features.js",
+      "multi-channel-sender.js",
+      "error-recovery.js",
       "src/**/*",
       "node_modules/**/*"
     ],

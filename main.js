@@ -14,6 +14,10 @@ const { setupMessageMonitor } = require('./message-monitor');
 const { setupAIResponseHandlers } = require('./ai-response-generator');
 const { setupAppleMailHandlers } = require('./apple-mail-sender');
 const { setupTelegramSenderHandlers } = require('./telegram-sender');
+const { setupTrainingEngine } = require('./training-engine');
+const { setupSmartFeatures } = require('./smart-features');
+const { setupMultiChannelHandlers } = require('./multi-channel-sender');
+const { setupErrorRecoveryHandlers } = require('./error-recovery');
 
 let mainWindow;
 let tray;
@@ -132,6 +136,14 @@ function createWindow() {
     setupAppleMailHandlers();
     console.log('[Main] Apple Mail handlers ready');
     setupTelegramSenderHandlers();
+    setupTrainingEngine();
+    console.log('[Main] Training engine ready');
+    setupSmartFeatures();
+    console.log('[Main] Smart features ready');
+    setupMultiChannelHandlers();
+    console.log('[Main] Multi-channel handlers ready');
+    setupErrorRecoveryHandlers();
+    console.log('[Main] Error recovery ready');
     console.log('[Main] Telegram sender handlers ready');
     console.log('[Main] AI response handlers ready');
     
