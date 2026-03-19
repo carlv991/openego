@@ -420,6 +420,36 @@ function setupScanningHandlers(mainWindow) {
   ipcMain.handle('get-home-directory', async () => {
     return os.homedir();
   });
+  
+  // Get emails for training test
+  ipcMain.handle('get-emails-for-training', async () => {
+    try {
+      // Try to load from the database or scan results
+      const scanResultsPath = path.join(os.homedir(), '.openego_scan_results.json');
+      
+      if (fs.existsSync(scanResultsPath)) {
+        const data = JSON.parse(fs.readFileSync(scanResultsPath, 'utf8'));
+        if (data.emails && data.emails.length > 0) {
+          // Return random sample of 5 emails
+          const shuffled = data.emails.sort(() => 0.5 - Math.random());
+          return { emails: shuffled.slice(0, 5) };
+        }
+      }
+      
+      // Try to scan Mail folder directly for a quick sample
+      const mailPath = path.join(os.homedir(), 'Library/Mail');
+      if (fs.existsSync(mailPath)) {
+        // Quick scan for training - just get a few recent emails
+        // This is a simplified version - in production you'd parse .eml files
+        return { emails: [], message: 'Quick scan not implemented yet' };
+      }
+      
+      return { emails: [], message: 'No emails found' };
+    } catch (e) {
+      console.error('Error getting emails for training:', e);
+      return { emails: [], error: e.message };
+    }
+  });
 }
 
 // Local AI via Ollama

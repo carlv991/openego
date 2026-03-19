@@ -1123,7 +1123,7 @@
             </div>
             
             <div class="button-group">
-                <button class="btn btn-primary" onclick="nextStep(2)">Get Started →</button>
+                <button class="btn btn-primary" onclick="validateStep1()">Get Started →</button>
             </div>
         </div>
         
@@ -1610,10 +1610,15 @@
     <!-- STEP 6: Training -->
     <div class="step" id="step6">
         <div class="training-container">
-            <h1 style="text-align: center;">🧪 Training Test</h1>
-            <p class="subtitle">Review how OpenEgo would respond to real scenarios</p>
+            <h1 style="text-align: center;"><i class="fas fa-flask"></i> Training Test</h1>
+            <p class="subtitle">Review how OpenEgo would respond to your real emails</p>
             
-            <div class="training-progress" id="trainingProgress">
+            <div id="loadingRealEmails" style="text-align: center; padding: 40px;">
+                <div class="loading-spinner" style="width: 50px; height: 50px; border-width: 4px; margin: 0 auto 20px;"></div>
+                <p style="color: var(--text-secondary);">Loading your real emails...</p>
+            </div>
+            
+            <div class="training-progress hidden" id="trainingProgress">
                 <div class="training-dot active"></div>
                 <div class="training-dot"></div>
                 <div class="training-dot"></div>
@@ -1622,89 +1627,16 @@
             </div>
             
             <div id="scenarioContainer">
-                <!-- Scenario 1 -->
-                <div class="scenario-card" id="scenario1">
-                    <div class="scenario-header">
-                        <span class="scenario-type">📧 Email</span>
-                        <span class="scenario-date">2024-03-10 14:23</span>
-                    </div>
-                    
-                    <div class="scenario-content">
-                        <div class="scenario-from">From: john@company.com</div>
-                        <div class="scenario-subject">Subject: Project Timeline Update</div>
-                        <div class="scenario-message">"Hi, can we move the deadline to next Friday? The team needs more time to finish the implementation."</div>
-                    </div>
-                    
-                    <div class="ai-response">
-                        <div class="ai-response-label">🤖 OpenEgo would respond:</div>
-                        <div>"Hi John, Friday works for me. Let's sync on Wednesday to make sure we're on track. 👍"</div>
-                    </div>
-                    
-                    <div class="response-actions">
-                        <button class="btn btn-primary" onclick="approveResponse(1)">✓ That's Right</button>
-                        <button class="btn btn-secondary" onclick="editResponse(1)">✏️ Edit</button>
-                        <button class="btn btn-secondary" onclick="rejectResponse(1)" style="background: rgba(239, 68, 68, 0.2); color: #EF4444;">✗ Wrong</button>
-                    </div>
+                <!-- Scenarios will be loaded dynamically from real emails -->
+                <div id="noEmailsMessage" class="hidden" style="text-align: center; padding: 40px;">
+                    <i class="fas fa-envelope-open" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 20px;"></i>
+                    <h3>No Emails Found</h3>
+                    <p style="color: var(--text-secondary);">We couldn't access your emails. Using sample scenarios instead.</p>
+                    <button class="btn btn-primary" onclick="loadSampleScenarios()" style="margin-top: 20px;">
+                        Use Sample Scenarios
+                    </button>
                 </div>
-                
-                <!-- Scenario 2 -->
-                <div class="scenario-card hidden" id="scenario2">
-                    <div class="scenario-header">
-                        <span class="scenario-type">💬 Telegram</span>
-                        <span class="scenario-date">2024-03-09 10:15</span>
-                    </div>
-                    
-                    <div class="scenario-content">
-                        <div class="scenario-from">From: Sarah (Client)</div>
-                        <div class="scenario-message">"Hey! Are you free for a quick call this afternoon? Need to discuss the proposal."</div>
-                    </div>
-                    
-                    <div class="ai-response">
-                        <div class="ai-response-label">🤖 OpenEgo would respond:</div>
-                        <div>"Hey Sarah! I'm open from 2-4pm today. Send over a calendar invite and I'll join. Looking forward to discussing the proposal!"</div>
-                    </div>
-                    
-                    <div class="response-actions">
-                        <button class="btn btn-primary" onclick="approveResponse(2)">✓ That's Right</button>
-                        <button class="btn btn-secondary" onclick="editResponse(2)">✏️ Edit</button>
-                        <button class="btn btn-secondary" onclick="rejectResponse(2)" style="background: rgba(239, 68, 68, 0.2); color: #EF4444;">✗ Wrong</button>
-                    </div>
-                </div>
-                
-                <!-- Scenario 3 -->
-                <div class="scenario-card hidden" id="scenario3">
-                    <div class="scenario-header">
-                        <span class="scenario-type">📧 Email</span>
-                        <span class="scenario-date">2024-03-08 16:45</span>
-                    </div>
-                    
-                    <div class="scenario-content">
-                        <div class="scenario-from">From: team@startup.com</div>
-                        <div class="scenario-subject">Subject: New Feature Request</div>
-                        <div class="scenario-message">"We'd like to add user authentication to the dashboard. What's the timeline and cost estimate?"</div>
-                    </div>
-                    
-                    <div class="ai-response">
-                        <div class="ai-response-label">🤖 OpenEgo would respond:</div>
-                        <div>"Thanks for reaching out! Auth integration typically takes 2-3 weeks and starts at $5k. I'll send a detailed breakdown by EOD. When do you need this live?"</div>
-                    </div>
-                    
-                    <div class="response-actions">
-                        <button class="btn btn-primary" onclick="approveResponse(3)">✓ That's Right</button>
-                        <button class="btn btn-secondary" onclick="editResponse(3)">✏️ Edit</button>
-                        <button class="btn btn-secondary" onclick="rejectResponse(3)" style="background: rgba(239, 68, 68, 0.2); color: #EF4444;">✗ Wrong</button>
-                    </div>
-                </div>
-                
-                <!-- Scenario 4 -->
-                <div class="scenario-card hidden" id="scenario4">
-                    <div class="scenario-header">
-                        <span class="scenario-type">💬 Slack</span>
-                        <span class="scenario-date">2024-03-07 09:30</span>
-                    </div>
-                    
-                    <div class="scenario-content">
-                        <div class="scenario-from">From: @mike (Engineering)</div>
+            </div>
                         <div class="scenario-message">"The deployment failed last night. Can you check the logs and restart the service?"</div>
                     </div>
                     
@@ -2195,6 +2127,20 @@
             document.getElementById('progressBar').style.width = `${(currentStep / totalSteps) * 100}%`;
         }
         
+        // Validate Step 1 - require name
+        function validateStep1() {
+            const userName = document.getElementById('userName')?.value?.trim();
+            if (!userName) {
+                showToast('Please enter your name to continue', 'info');
+                document.getElementById('userName').focus();
+                return;
+            }
+            // Save name and continue
+            localStorage.setItem('openego_user_name', userName);
+            nextStep(2);
+        }
+        window.validateStep1 = validateStep1;
+        
         function nextStep(step) {
             document.getElementById(`step${currentStep}`).classList.remove('active');
             document.getElementById(`step${step}`).classList.add('active');
@@ -2204,7 +2150,13 @@
             // Save current step for resuming later
             localStorage.setItem('openego_current_step', step);
             
-            // Save user name when leaving step 1
+            // Save onboarding progress for crash recovery
+            if (step >= 2 && step <= 6) {
+                localStorage.setItem('openego_onboarding_in_progress', 'true');
+                localStorage.setItem('openego_last_step_timestamp', new Date().toISOString());
+            }
+            
+            // Save user name when leaving step 1 (backup)
             if (step === 2) {
                 const userName = document.getElementById('userName')?.value;
                 if (userName) {
@@ -2215,6 +2167,7 @@
             // Mark onboarding complete when reaching dashboard (step 7)
             if (step === 7) {
                 localStorage.setItem('openego_onboarding_complete', 'true');
+                localStorage.removeItem('openego_onboarding_in_progress');
                 localStorage.setItem('openego_current_step', '7');
             }
             
@@ -2229,6 +2182,28 @@
         let scanCancelled = false;
         
         async function startDataAnalysis() {
+            // Check if user selected "Start from Scratch" - skip scanning entirely
+            const trainingMode = localStorage.getItem('openego_training_mode');
+            if (trainingMode === 'scratch') {
+                console.log('[Start from Scratch] Skipping email scan, going directly to AI setup');
+                document.getElementById('analysisProgress').textContent = 'Starting fresh - no historical data needed!';
+                document.getElementById('continueBtn').textContent = 'Continue →';
+                document.getElementById('continueBtn').disabled = false;
+                document.getElementById('continueBtn').onclick = () => nextStep(5);
+                
+                // Show a message explaining
+                const msgDiv = document.createElement('div');
+                msgDiv.innerHTML = `
+                    <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10B981; border-radius: 12px; padding: 20px; margin: 20px 0;">
+                        <h4 style="color: #10B981; margin-bottom: 10px;"><i class="fas fa-rocket"></i> Starting Fresh!</h4>
+                        <p style="color: var(--text-secondary);">You've chosen to start from scratch. OpenEgo will learn your style as you use it.</p>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 10px;">Click Continue to set up your AI model.</p>
+                    </div>
+                `;
+                document.getElementById('step4').insertBefore(msgDiv, document.querySelector('.button-group'));
+                return;
+            }
+            
             // Check if we're resuming a previous scan
             const savedProgress = localStorage.getItem('openego_scan_progress');
             const isResuming = savedProgress && JSON.parse(savedProgress).lastIndex > 0;
@@ -2526,6 +2501,38 @@
             setTimeout(checkOllamaStatus, 1000);
         });
         
+        // Verify API key by making a test request
+        async function verifyAPIKey(provider, apiKey) {
+            try {
+                let testUrl, headers, body;
+                
+                if (provider === 'openai') {
+                    testUrl = 'https://api.openai.com/v1/models';
+                    headers = { 'Authorization': `Bearer ${apiKey}` };
+                } else if (provider === 'anthropic') {
+                    testUrl = 'https://api.anthropic.com/v1/models';
+                    headers = { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' };
+                } else if (provider === 'google') {
+                    testUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
+                    headers = {};
+                } else {
+                    return { valid: true, message: 'No verification needed for local models' };
+                }
+                
+                const response = await fetch(testUrl, { method: 'GET', headers });
+                
+                if (response.ok) {
+                    return { valid: true, message: 'API key verified successfully!' };
+                } else {
+                    const error = await response.json().catch(() => ({}));
+                    return { valid: false, message: error.error?.message || `Invalid API key (${response.status})` };
+                }
+            } catch (e) {
+                return { valid: false, message: 'Network error - check your connection' };
+            }
+        }
+        window.verifyAPIKey = verifyAPIKey;
+        
         // Save AI model API key
         async function saveAIModel() {
             const selectedCard = document.querySelector('.model-card.selected');
@@ -2547,6 +2554,23 @@
                     alert('Please enter your API key for ' + provider + '.\n\nOr select "Llama 3.1 (Local)" to run AI on your computer for free.');
                     return;
                 }
+                
+                // Verify API key before saving
+                const verifyBtn = selectedCard.querySelector('.verify-btn') || document.createElement('button');
+                verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+                verifyBtn.disabled = true;
+                
+                const verifyResult = await verifyAPIKey(provider, apiKey);
+                
+                if (!verifyResult.valid) {
+                    verifyBtn.innerHTML = '<i class="fas fa-times"></i> Verification Failed';
+                    verifyBtn.disabled = false;
+                    alert('API key verification failed:\n\n' + verifyResult.message + '\n\nPlease check your key and try again.');
+                    return;
+                }
+                
+                verifyBtn.innerHTML = '<i class="fas fa-check"></i> Verified';
+                showToast('API key verified!', 'success');
             }
             
             try {
@@ -2559,12 +2583,13 @@
                 localStorage.setItem('openego_provider', provider);
                 localStorage.setItem('openego_model', model);
                 
-                alert('AI model saved successfully!');
+                showToast('AI model saved successfully!', 'success');
             } catch (e) {
                 // Save locally if API fails
                 localStorage.setItem('openego_provider', provider);
                 localStorage.setItem('openego_model', model);
                 localStorage.setItem('openego_api_key', apiKey);
+                showToast('Saved locally - API not available', 'info');
                 console.log('Saved locally - API not available');
             }
         }
@@ -2603,7 +2628,183 @@
         
         function startTraining() {
             nextStep(6);
+            // Load real emails for training after a short delay
+            setTimeout(loadRealEmailsForTraining, 500);
         }
+        
+        // Load real emails for training test
+        async function loadRealEmailsForTraining() {
+            const container = document.getElementById('scenarioContainer');
+            const loadingDiv = document.getElementById('loadingRealEmails');
+            const progressDiv = document.getElementById('trainingProgress');
+            
+            // Try to get real emails from localStorage or scan
+            let realEmails = [];
+            
+            // Check if we have scanned emails
+            const scannedEmails = localStorage.getItem('openego_emails');
+            if (scannedEmails) {
+                try {
+                    const emails = JSON.parse(scannedEmails);
+                    // Pick 5 random emails
+                    realEmails = emails
+                        .filter(e => e.content && e.content.length > 20)
+                        .sort(() => 0.5 - Math.random())
+                        .slice(0, 5);
+                } catch (e) {
+                    console.log('Could not parse scanned emails');
+                }
+            }
+            
+            // If no scanned emails, try to fetch from Electron
+            if (realEmails.length === 0 && typeof require !== 'undefined') {
+                try {
+                    const { ipcRenderer } = require('electron');
+                    const result = await ipcRenderer.invoke('get-emails-for-training');
+                    if (result && result.emails && result.emails.length > 0) {
+                        realEmails = result.emails.slice(0, 5);
+                    }
+                } catch (e) {
+                    console.log('Could not fetch emails from main process:', e);
+                }
+            }
+            
+            // Hide loading
+            loadingDiv.style.display = 'none';
+            
+            if (realEmails.length === 0) {
+                // Show message and fallback to samples
+                document.getElementById('noEmailsMessage').classList.remove('hidden');
+                return;
+            }
+            
+            // Show progress
+            progressDiv.classList.remove('hidden');
+            
+            // Generate scenario cards from real emails
+            container.innerHTML = '';
+            realEmails.forEach((email, index) => {
+                const scenarioCard = createScenarioCard(email, index + 1);
+                container.appendChild(scenarioCard);
+            });
+            
+            // Show first scenario
+            showScenario(1);
+        }
+        
+        // Create a scenario card from a real email
+        function createScenarioCard(email, index) {
+            const div = document.createElement('div');
+            div.className = 'scenario-card' + (index > 1 ? ' hidden' : '');
+            div.id = `scenario${index}`;
+            
+            const date = email.date ? new Date(email.date).toLocaleString() : 'Unknown date';
+            const sender = email.from || email.sender || 'Unknown sender';
+            const subject = email.subject || 'No subject';
+            const content = email.content || email.body || 'No content';
+            
+            div.innerHTML = `
+                <div class="scenario-header">
+                    <span class="scenario-type"><i class="fas fa-envelope"></i> Real Email</span>
+                    <span class="scenario-date">${date}</span>
+                </div>
+                
+                <div class="scenario-content">
+                    <div class="scenario-from">From: ${sender}</div>
+                    <div class="scenario-subject">Subject: ${subject}</div>
+                    <div class="scenario-message">"${content.substring(0, 300)}${content.length > 300 ? '...' : ''}"</div>
+                </div>
+                
+                <div class="ai-response" id="aiResponse${index}">
+                    <div class="ai-response-label"><i class="fas fa-robot"></i> OpenEgo would respond:</div>
+                    <div id="responseText${index}"><span class="loading-spinner"></span> Generating suggestion...</div>
+                </div>
+                
+                <div class="response-actions">
+                    <button class="btn btn-primary" onclick="approveResponse(${index})"><i class="fas fa-check"></i> That's Right</button>
+                    <button class="btn btn-secondary" onclick="editResponse(${index})"><i class="fas fa-edit"></i> Edit</button>
+                    <button class="btn btn-secondary" onclick="rejectResponse(${index})" style="background: rgba(239, 68, 68, 0.2); color: #EF4444;"><i class="fas fa-times"></i> Wrong</button>
+                </div>
+            `;
+            
+            // Generate AI response
+            generateTrainingResponse(content, index);
+            
+            return div;
+        }
+        
+        // Generate AI response for training
+        async function generateTrainingResponse(emailContent, index) {
+            const responseDiv = document.getElementById(`responseText${index}`);
+            
+            // Get saved AI settings
+            const provider = localStorage.getItem('openego_provider') || 'ollama';
+            const model = localStorage.getItem('openego_model') || 'llama3.1';
+            
+            if (provider === 'none') {
+                responseDiv.textContent = "Please set up an AI model in Settings to generate responses.";
+                return;
+            }
+            
+            try {
+                // Generate response using AI
+                const suggestion = await generateAIResponse(emailContent);
+                responseDiv.textContent = suggestion;
+            } catch (e) {
+                console.error('Failed to generate response:', e);
+                responseDiv.textContent = "I understand your email and will craft an appropriate response based on your communication style.";
+            }
+        }
+        
+        // Load sample scenarios as fallback
+        function loadSampleScenarios() {
+            document.getElementById('noEmailsMessage').classList.add('hidden');
+            document.getElementById('trainingProgress').classList.remove('hidden');
+            
+            // Create sample scenarios
+            const samples = [
+                {
+                    from: 'john@company.com',
+                    subject: 'Project Timeline Update',
+                    content: 'Hi, can we move the deadline to next Friday? The team needs more time to finish the implementation.',
+                    date: '2024-03-10 14:23'
+                },
+                {
+                    from: 'sarah@client.com',
+                    subject: 'Quick Call?',
+                    content: 'Hey! Are you free for a quick call this afternoon? Need to discuss the proposal.',
+                    date: '2024-03-09 10:15'
+                },
+                {
+                    from: 'team@startup.com',
+                    subject: 'New Feature Request',
+                    content: 'We\'d like to add user authentication to the dashboard. What\'s the timeline and cost estimate?',
+                    date: '2024-03-08 16:45'
+                },
+                {
+                    from: 'mike@engineering.com',
+                    subject: 'Code Review',
+                    content: 'Can you review the PR I just submitted? It\'s the auth fix we discussed yesterday.',
+                    date: '2024-03-07 09:30'
+                },
+                {
+                    from: 'lisa@marketing.com',
+                    subject: 'Campaign Launch',
+                    content: 'The new campaign is ready to go live. Can you give final approval by EOD?',
+                    date: '2024-03-06 11:20'
+                }
+            ];
+            
+            const container = document.getElementById('scenarioContainer');
+            container.innerHTML = '';
+            samples.forEach((email, index) => {
+                const scenarioCard = createScenarioCard(email, index + 1);
+                container.appendChild(scenarioCard);
+            });
+            
+            showScenario(1);
+        }
+        window.loadSampleScenarios = loadSampleScenarios;
         
         function showPermissionRequest() {
             // Save selected sources - ALL communication channels

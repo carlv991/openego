@@ -11,6 +11,7 @@ const { setupCommunicationScanner } = require('./communication-scanner');
 let mainWindow;
 let tray;
 let menuBarWindow;
+let ipcHandlersRegistered = false;
 
 // Smart Suggest - Background monitoring
 let smartSuggestEnabled = true;
@@ -18,6 +19,13 @@ let lastCheckedEmail = null;
 let smartSuggestInterval = null;
 
 function createWindow() {
+  // Prevent creating multiple windows
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.show();
+    mainWindow.focus();
+    return;
+  }
+  
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -36,11 +44,14 @@ function createWindow() {
   // Load the HTML file
   mainWindow.loadFile('src/index.html');
 
-  // Setup IPC handlers
-  setupFullDiskAccessHandlers();
-  setupScanningHandlers(mainWindow);
-  setupLocalAIHandlers();
-  setupCommunicationScanner(mainWindow);
+  // Setup IPC handlers (only once)
+  if (!ipcHandlersRegistered) {
+    setupFullDiskAccessHandlers();
+    setupScanningHandlers(mainWindow);
+    setupLocalAIHandlers();
+    setupCommunicationScanner(mainWindow);
+    ipcHandlersRegistered = true;
+  }
 
   // Setup menu bar (top right)
   setupMenuBar();
