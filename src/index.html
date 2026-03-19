@@ -2708,6 +2708,32 @@
                 localStorage.setItem('openego_onboarding_complete', 'true');
                 localStorage.removeItem('openego_onboarding_in_progress');
                 localStorage.setItem('openego_current_step', '7');
+                
+                // Hide the entire header on dashboard
+                const header = document.querySelector('.header');
+                if (header) header.style.display = 'none';
+                
+                // Adjust container padding for full-screen dashboard
+                const container = document.querySelector('.container');
+                if (container) {
+                    container.style.maxWidth = '100%';
+                    container.style.padding = '0';
+                    container.style.height = '100vh';
+                }
+                
+                // Start status animation
+                startStatusAnimation();
+            } else {
+                // Show header on other steps
+                const header = document.querySelector('.header');
+                if (header) header.style.display = 'block';
+                
+                const container = document.querySelector('.container');
+                if (container) {
+                    container.style.maxWidth = '800px';
+                    container.style.padding = '40px 20px';
+                    container.style.height = 'auto';
+                }
             }
             
             // Start data analysis when reaching step 4
