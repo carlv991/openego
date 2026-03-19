@@ -27,6 +27,7 @@
       "main.js",
       "electron-modules.js",
       "communication-scanner.js",
+      "email-scanner.js",
       "src/**/*",
       "node_modules/**/*"
     ],
