@@ -28,6 +28,7 @@
       "electron-modules.js",
       "communication-scanner.js",
       "email-scanner.js",
+      "persona-engine.js",
       "src/**/*",
       "node_modules/**/*"
     ],
