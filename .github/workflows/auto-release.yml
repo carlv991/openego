@@ -1,0 +1,110 @@
+name: Auto Build and Release
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  auto-release:
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+    
+    - name: Get current version
+      id: get_version
+      run: |
+        VERSION=$(node -p "require('./package.json').version")
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Current version: $VERSION"
+    
+    - name: Check if release exists
+      id: check_release
+      run: |
+        if git rev-parse "v${{ steps.get_version.outputs.version }}" >/dev/null 2>&1; then
+          echo "exists=true" >> $GITHUB_OUTPUT
+          echo "Release v${{ steps.get_version.outputs.version }} already exists"
+        else
+          echo "exists=false" >> $GITHUB_OUTPUT
+          echo "Release does not exist - will create"
+        fi
+    
+    - name: Auto-increment version
+      if: steps.check_release.outputs.exists == 'true'
+      run: |
+        CURRENT_VERSION=${{ steps.get_version.outputs.version }}
+        IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+        NEW_PATCH=$((PATCH + 1))
+        NEW_VERSION="$MAJOR.$MINOR.$NEW_PATCH"
+        echo "Auto-incrementing to v$NEW_VERSION"
+        
+        # Update package.json
+        npm version $NEW_VERSION --no-git-tag-version --allow-same-version
+        
+        # Update HTML
+        sed -i '' "s/v$CURRENT_VERSION/v$NEW_VERSION/g" src/index.html
+        
+        # Commit
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+        git add -A
+        git commit -m "Auto-bump version to v$NEW_VERSION"
+        git push
+        
+        echo "new_version=$NEW_VERSION" >> $GITHUB_ENV
+    
+    - name: Use existing version
+      if: steps.check_release.outputs.exists == 'false'
+      run: |
+        echo "new_version=${{ steps.get_version.outputs.version }}" >> $GITHUB_ENV
+    
+    - name: Install dependencies
+      run: npm install
+    
+    - name: Build app
+      run: npm run build:mac
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v${{ env.new_version }}
+        name: OpenEgo v${{ env.new_version }}
+        body: |
+          Auto-generated release for OpenEgo v${{ env.new_version }}
+          
+          ## Changes in this release:
+          ${{ github.event.head_commit.message }}
+          
+          ## Installation:
+          1. Download the appropriate .dmg for your Mac:
+             - **Apple Silicon (M1/M2/M3)**: OpenEgo-${{ env.new_version }}-arm64.dmg
+             - **Intel Mac**: OpenEgo-${{ env.new_version }}-x64.dmg
+             - **Universal**: OpenEgo-${{ env.new_version }}.dmg
+          2. Open the .dmg and drag OpenEgo to Applications
+          3. Launch from Applications
+          
+          ## Auto-Update:
+          If you have a previous version installed, the app will notify you of this update automatically.
+        files: |
+          dist-electron/*.dmg
+          dist-electron/*.zip
+        draft: false
+        prerelease: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Output Release URL
+      run: |
+        echo "✅ Release created: https://github.com/${{ github.repository }}/releases/tag/v${{ env.new_version }}"
