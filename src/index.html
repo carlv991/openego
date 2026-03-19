@@ -6183,3 +6183,40 @@ window.setupTelegramPermissions = setupTelegramPermissions;
             inboxList.insertBefore(card, inboxList.firstChild);
             showToast(`New message from ${message.from}`, 'info');
         }
+
+        // Updated sendResponse with actual sending capability (Phases 5 & 6)
+        async function sendResponseActual(btn, autoSend = false) {
+            const card = btn.closest('.message-card');
+            const sourceName = card.querySelector('.source-name').textContent;
+            const responseText = card.querySelector('.ai-text').textContent;
+            const sourceIcon = card.querySelector('.message-source i');
+            
+            const isEmail = sourceIcon && sourceIcon.classList.contains('fa-envelope');
+            
+            if (!autoSend) showToast('Sending...', 'info');
+            
+            try {
+                if (typeof require !== 'undefined' && isEmail) {
+                    const { ipcRenderer } = require('electron');
+                    const result = await ipcRenderer.invoke('send-email-apple', 
+                        sourceName, 'Re: Your message', responseText, autoSend);
+                    
+                    if (!result.success) {
+                        showToast('Error: ' + result.error, 'error');
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.error('[Send] Error:', e);
+            }
+            
+            // Remove card and show success
+            card.style.transform = 'translateX(-100%)';
+            card.style.opacity = '0';
+            setTimeout(() => {
+                card.remove();
+                updateInboxBadge();
+                showToast('Sent!', 'success');
+            }, 300);
+        }
+        window.sendResponseActual = sendResponseActual;
