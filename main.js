@@ -49,14 +49,23 @@ function createWindow() {
 
   // Setup IPC handlers (only once)
   if (!ipcHandlersRegistered) {
+    console.log('[Main] Setting up IPC handlers...');
     setupFullDiskAccessHandlers();
+    console.log('[Main] Full Disk Access handlers ready');
     setupScanningHandlers(mainWindow);
+    console.log('[Main] Scanning handlers ready');
     setupLocalAIHandlers();
+    console.log('[Main] Local AI handlers ready');
     setupFeedbackHandlers();
+    console.log('[Main] Feedback handlers ready');
     setupAITrainingHandlers();
+    console.log('[Main] AI Training handlers ready');
     setupCommunicationScanner(mainWindow);
+    console.log('[Main] Communication scanner ready');
     setupEmailScannerHandlers(mainWindow);
+    console.log('[Main] Email scanner handlers ready');
     ipcHandlersRegistered = true;
+    console.log('[Main] All IPC handlers registered');
   }
 
   // Setup menu bar (top right)

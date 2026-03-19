@@ -575,7 +575,10 @@ function setupFeedbackHandlers() {
 
 // AI Training - Send patterns to GPT-4/Claude
 function setupAITrainingHandlers() {
+  console.log('[AI Training] Setting up handlers...');
+  
   const { PersonaEngine } = require('./persona-engine');
+  console.log('[AI Training] PersonaEngine loaded');
   
   // Train AI on user's persona
   ipcMain.handle('train-ai-persona', async (event, apiKey, provider) => {
@@ -656,6 +659,8 @@ function setupAITrainingHandlers() {
       return { success: false, error: e.message };
     }
   });
+  
+  console.log('[AI Training] All handlers registered');
 }
 
 module.exports = {
