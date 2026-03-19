@@ -853,6 +853,16 @@
             50% { box-shadow: 0 0 20px 10px rgba(16, 185, 129, 0.2); }
         }
         
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        
         .edit-modal {
             display: none;
             position: fixed;
@@ -1031,6 +1041,23 @@
                             <div style="color: var(--text-secondary); font-size: 0.9rem;">GPT-4o via OpenAI API</div>
                         </div>
                         <button class="btn btn-secondary" onclick="alert('Model selection coming in next update')">Change</button>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3><i class="fas fa-bell"></i> Smart Suggest</h3>
+                    <div class="settings-item">
+                        <div>
+                            <div>Proactive Reply Suggestions</div>
+                            <div style="color: var(--text-secondary); font-size: 0.9rem;">Get notified when OpenEgo has a suggested reply</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="smartSuggestToggle" checked onchange="toggleSmartSuggest(this)">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div style="margin-top: 10px; padding: 12px; background: var(--bg-primary); border-radius: 8px; font-size: 0.85rem; color: var(--text-secondary);">
+                        <i class="fas fa-info-circle"></i> When enabled, OpenEgo will monitor incoming emails and suggest replies via macOS notifications.
                     </div>
                 </div>
                 
@@ -3283,6 +3310,50 @@
                     btn.disabled = false;
                 }, 2000);
             }, 1500);
+        };
+        
+        // Smart Suggest toggle
+        window.toggleSmartSuggest = async function(checkbox) {
+            if (typeof require !== 'undefined') {
+                try {
+                    const { ipcRenderer } = require('electron');
+                    if (checkbox.checked) {
+                        await ipcRenderer.invoke('smart-suggest:enable');
+                        showToast('Smart Suggest enabled', 'success');
+                    } else {
+                        await ipcRenderer.invoke('smart-suggest:disable');
+                        showToast('Smart Suggest disabled', 'info');
+                    }
+                } catch (e) {
+                    console.error('Failed to toggle Smart Suggest:', e);
+                }
+            }
+        };
+        
+        // Toast notification
+        window.showToast = function(message, type) {
+            type = type || 'info';
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 30px;
+                right: 30px;
+                padding: 15px 25px;
+                background: ${type === 'success' ? '#10B981' : 'var(--accent)'};
+                color: white;
+                border-radius: 12px;
+                font-weight: 600;
+                z-index: 10000;
+                animation: slideIn 0.3s ease;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            `;
+            toast.innerHTML = '<i class="fas fa-' + (type === 'success' ? 'check' : 'info') + '-circle"></i> ' + message;
+            document.body.appendChild(toast);
+            
+            setTimeout(function() {
+                toast.style.animation = 'slideOut 0.3s ease forwards';
+                setTimeout(function() { toast.remove(); }, 300);
+            }, 3000);
         };
         
         // Check for resume on load if on step 4

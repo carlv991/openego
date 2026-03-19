@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, dialog, Notification } = require('electron');
 const path = require('path');
 const { autoUpdater } = require('electron-updater');
 const { 
@@ -11,6 +11,11 @@ const { setupCommunicationScanner } = require('./communication-scanner');
 let mainWindow;
 let tray;
 let menuBarWindow;
+
+// Smart Suggest - Background monitoring
+let smartSuggestEnabled = true;
+let lastCheckedEmail = null;
+let smartSuggestInterval = null;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -307,3 +312,165 @@ ipcMain.handle('check-for-updates', async () => {
 });
 
 setTimeout(checkForUpdates, 5000);
+
+// ==================== SMART SUGGEST ====================
+// Proactive reply suggestions based on incoming emails
+
+// Start background monitoring for Smart Suggest
+function startSmartSuggestMonitoring() {
+  if (smartSuggestInterval) {
+    clearInterval(smartSuggestInterval);
+  }
+  
+  // Check every 30 seconds for new emails
+  smartSuggestInterval = setInterval(() => {
+    if (smartSuggestEnabled) {
+      checkForNewEmails();
+    }
+  }, 30000);
+  
+  console.log('[Smart Suggest] Background monitoring started');
+}
+
+// Check for new emails that need replies
+async function checkForNewEmails() {
+  try {
+    // This would integrate with Apple Mail via AppleScript
+    // For now, we'll simulate with a placeholder
+    const { exec } = require('child_process');
+    
+    // AppleScript to get latest unread emails
+    const script = `
+      tell application "Mail"
+        set unreadMessages to {}
+        repeat withacct in accounts
+          set mailboxList to mailboxes of acct
+          repeat with mb in mailboxList
+            set msgs to messages of mb whose read status is false
+            repeat with msg in msgs
+              set msgData to {subject:subject of msg, sender:(sender of msg), content:content of msg, id:id of msg}
+              set end of unreadMessages to msgData
+              if length of unreadMessages >= 5 then exit repeat
+            end repeat
+            if length of unreadMessages >= 5 then exit repeat
+          end repeat
+          if length of unreadMessages >= 5 then exit repeat
+        end repeat
+        return unreadMessages
+      end tell
+    `;
+    
+    // Skip if no access to Mail
+    // In production, this would actually query Mail app
+    
+  } catch (e) {
+    console.log('[Smart Suggest] Email check skipped:', e.message);
+  }
+}
+
+// Show Smart Suggest notification
+function showSmartSuggestNotification(emailData, suggestion) {
+  if (!smartSuggestEnabled) return;
+  
+  const notification = new Notification({
+    title: '💡 OpenEgo Suggestion',
+    subtitle: `Reply to ${emailData.sender}`,
+    body: suggestion.substring(0, 100) + (suggestion.length > 100 ? '...' : ''),
+    icon: path.join(__dirname, 'src-tauri/icons/icon.png'),
+    hasReply: false,
+    actions: [
+      { type: 'button', text: 'Reply with OpenEgo' },
+      { type: 'button', text: 'Dismiss' }
+    ],
+    sound: 'default'
+  });
+  
+  notification.on('action', (event, index) => {
+    if (index === 0) {
+      // User clicked "Reply with OpenEgo"
+      autoReplyToEmail(emailData, suggestion);
+    }
+  });
+  
+  notification.on('click', () => {
+    // Click notification to show main window with suggestion
+    showMainWindow();
+    if (mainWindow) {
+      mainWindow.webContents.send('show-suggestion', { email: emailData, suggestion });
+    }
+  });
+  
+  notification.show();
+  
+  // Log for analytics
+  console.log('[Smart Suggest] Notification shown for:', emailData.sender);
+}
+
+// Auto-fill reply in Mail app
+async function autoReplyToEmail(emailData, suggestion) {
+  try {
+    const { exec } = require('child_process');
+    const { promisify } = require('util');
+    const execAsync = promisify(exec);
+    
+    // AppleScript to open reply and fill it
+    const script = `
+      tell application "Mail"
+        activate
+        set theMessage to first message of inbox whose id is "${emailData.id}"
+        set replyMessage to reply theMessage
+        set content of replyMessage to "${suggestion.replace(/"/g, '\\"')}"
+        activate
+      end tell
+    `;
+    
+    // For security, we'll open the main window instead
+    showMainWindow();
+    if (mainWindow) {
+      mainWindow.webContents.send('auto-reply-ready', { 
+        email: emailData, 
+        suggestion,
+        message: 'Open Mail app and paste this reply:'
+      });
+    }
+    
+    // Copy suggestion to clipboard
+    const clipboard = require('electron').clipboard;
+    clipboard.writeText(suggestion);
+    
+    // Show notification
+    const confirmNotification = new Notification({
+      title: '✅ Reply Ready',
+      body: 'Suggested reply copied to clipboard. Paste it into your email.',
+      icon: path.join(__dirname, 'src-tauri/icons/icon.png')
+    });
+    confirmNotification.show();
+    
+  } catch (e) {
+    console.error('[Smart Suggest] Auto-reply failed:', e);
+  }
+}
+
+// IPC handlers for Smart Suggest
+ipcMain.handle('smart-suggest:enable', () => {
+  smartSuggestEnabled = true;
+  startSmartSuggestMonitoring();
+  return { enabled: true };
+});
+
+ipcMain.handle('smart-suggest:disable', () => {
+  smartSuggestEnabled = false;
+  if (smartSuggestInterval) {
+    clearInterval(smartSuggestInterval);
+  }
+  return { enabled: false };
+});
+
+ipcMain.handle('smart-suggest:status', () => {
+  return { enabled: smartSuggestEnabled };
+});
+
+// Start monitoring when app launches
+app.whenReady().then(() => {
+  setTimeout(startSmartSuggestMonitoring, 10000); // Start after 10 seconds
+});
