@@ -10,14 +10,49 @@ function setupFullDiskAccessHandlers() {
       return { granted: true, platform: process.platform };
     }
     
-    // On macOS, check if we can access Mail folder
-    const testPath = path.join(os.homedir(), 'Library/Mail');
-    try {
-      fs.accessSync(testPath, fs.constants.R_OK);
-      return { granted: true };
-    } catch (e) {
-      return { granted: false };
+    // On macOS, check multiple protected locations
+    const testPaths = [
+      path.join(os.homedir(), 'Library/Mail'),
+      path.join(os.homedir(), 'Library/Messages'),
+      path.join(os.homedir(), 'Library/Containers/com.apple.mail'),
+      path.join(os.homedir(), 'Library/Application Scripts/com.apple.mail')
+    ];
+    
+    // Try to read a protected directory
+    let accessGranted = false;
+    let testedPaths = [];
+    
+    for (const testPath of testPaths) {
+      try {
+        if (fs.existsSync(testPath)) {
+          const files = fs.readdirSync(testPath);
+          testedPaths.push({ path: testPath, accessible: true, files: files.length });
+          accessGranted = true;
+        } else {
+          testedPaths.push({ path: testPath, exists: false });
+        }
+      } catch (e) {
+        testedPaths.push({ path: testPath, accessible: false, error: e.code });
+      }
     }
+    
+    // Also check if we can access the TCC database (meta check)
+    let tccAccessible = false;
+    try {
+      const tccPath = path.join(os.homedir(), 'Library/Application Support/com.apple.TCC/TCC.db');
+      fs.accessSync(tccPath, fs.constants.R_OK);
+      tccAccessible = true;
+    } catch (e) {
+      // TCC not accessible, which is expected without FDA
+    }
+    
+    console.log('[FDA Check] Results:', { accessGranted, tccAccessible, testedPaths });
+    
+    return { 
+      granted: accessGranted, 
+      tccAccessible,
+      debug: testedPaths 
+    };
   });
   
   // Check if OpenEgo is already in the Full Disk Access list (even if not checked)

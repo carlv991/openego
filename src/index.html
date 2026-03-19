@@ -2012,6 +2012,27 @@
         // Track current step for settings modal
         let stepBeforeSettings = 1;
         
+        // Manual override for Full Disk Access
+        function manualOverrideFDA() {
+            if (confirm('Are you sure you\'ve granted Full Disk Access to OpenEgo in System Preferences?\n\nIf you proceed without permission, scanning may fail.')) {
+                localStorage.setItem('openego_disk_access', 'granted');
+                localStorage.setItem('openego_disk_access_manual', 'true');
+                showToast('Continuing with manual override', 'success');
+                
+                // Hide error and continue
+                const errorDiv = document.querySelector('#permissionRequest .error-message');
+                if (errorDiv) errorDiv.remove();
+                
+                // Show granted state
+                document.getElementById('permissionRequest').style.display = 'none';
+                document.getElementById('permissionGranted').style.display = 'block';
+                
+                // Auto-continue
+                setTimeout(() => nextStep(3), 1500);
+            }
+        }
+        window.manualOverrideFDA = manualOverrideFDA;
+        
         // Verify Full Disk Access by actually trying to read Mail folder
         async function verifyFullDiskAccess() {
             if (typeof require === 'undefined') return false;
@@ -2734,7 +2755,7 @@
                         btn.style.opacity = '1';
                         btn.style.background = 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)';
                         
-                        // Add error message inline
+                        // Add error message inline with manual override
                         const errorDiv = document.createElement('div');
                         errorDiv.innerHTML = `
                             <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid #EF4444; border-radius: 12px; padding: 15px; margin-top: 20px; text-align: left;">
@@ -2745,6 +2766,14 @@
                                     <li>Checked the box next to OpenEgo</li>
                                     <li>Restarted OpenEgo</li>
                                 </ol>
+                                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border);">
+                                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 10px;">
+                                        <i class="fas fa-info-circle"></i> Detection may fail even with permission granted. You can proceed manually:
+                                    </p>
+                                    <button class="btn btn-secondary" onclick="manualOverrideFDA()" style="width: 100%;">
+                                        <i class="fas fa-forward"></i> I've Granted Permission - Continue Anyway
+                                    </button>
+                                </div>
                             </div>
                         `;
                         errorDiv.className = 'error-message';
