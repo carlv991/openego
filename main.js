@@ -12,6 +12,8 @@ const { setupCommunicationScanner } = require('./communication-scanner');
 const { setupEmailScannerHandlers } = require('./email-scanner');
 const { setupMessageMonitor } = require('./message-monitor');
 const { setupAIResponseHandlers } = require('./ai-response-generator');
+const { setupAppleMailHandlers } = require('./apple-mail-sender');
+const { setupTelegramSenderHandlers } = require('./telegram-sender');
 
 let mainWindow;
 let tray;
@@ -127,6 +129,10 @@ function createWindow() {
     setupMessageMonitor(mainWindow);
     console.log('[Main] Message monitor ready');
     setupAIResponseHandlers();
+    setupAppleMailHandlers();
+    console.log('[Main] Apple Mail handlers ready');
+    setupTelegramSenderHandlers();
+    console.log('[Main] Telegram sender handlers ready');
     console.log('[Main] AI response handlers ready');
     
     ipcHandlersRegistered = true;

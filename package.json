@@ -31,6 +31,8 @@
       "persona-engine.js",
       "message-monitor.js",
       "ai-response-generator.js",
+      "apple-mail-sender.js",
+      "telegram-sender.js",
       "src/**/*",
       "node_modules/**/*"
     ],
