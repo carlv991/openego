@@ -3187,13 +3187,23 @@
         
         // Verify API key by making a test request
         async function verifyAPIKey(provider, apiKey) {
+            console.log(`[API Verify] Verifying ${provider} API key...`);
+            
             try {
-                let testUrl, headers, body;
+                let testUrl, headers;
                 
                 if (provider === 'openai') {
+                    // Validate key format first
+                    if (!apiKey.startsWith('sk-')) {
+                        return { valid: false, message: 'OpenAI keys should start with "sk-"' };
+                    }
                     testUrl = 'https://api.openai.com/v1/models';
                     headers = { 'Authorization': `Bearer ${apiKey}` };
                 } else if (provider === 'anthropic') {
+                    // Validate key format first
+                    if (!apiKey.startsWith('sk-ant-')) {
+                        return { valid: false, message: 'Anthropic keys should start with "sk-ant-"' };
+                    }
                     testUrl = 'https://api.anthropic.com/v1/models';
                     headers = { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' };
                 } else if (provider === 'google') {
@@ -3203,16 +3213,41 @@
                     return { valid: true, message: 'No verification needed for local models' };
                 }
                 
-                const response = await fetch(testUrl, { method: 'GET', headers });
+                console.log(`[API Verify] Testing with URL: ${testUrl}`);
+                
+                const response = await fetch(testUrl, { 
+                    method: 'GET', 
+                    headers,
+                    signal: AbortSignal.timeout(10000) // 10 second timeout
+                });
+                
+                console.log(`[API Verify] Response status: ${response.status}`);
                 
                 if (response.ok) {
-                    return { valid: true, message: 'API key verified successfully!' };
+                    const data = await response.json().catch(() => ({}));
+                    console.log(`[API Verify] Success! Found ${data.data?.length || 0} models`);
+                    return { valid: true, message: `API key verified! ${data.data?.length || 0} models available.` };
                 } else {
-                    const error = await response.json().catch(() => ({}));
-                    return { valid: false, message: error.error?.message || `Invalid API key (${response.status})` };
+                    let errorMsg = `Invalid API key (${response.status})`;
+                    try {
+                        const errorData = await response.json();
+                        errorMsg = errorData.error?.message || errorData.error?.code || errorMsg;
+                    } catch (e) {
+                        // Use status text if JSON parsing fails
+                        errorMsg = response.statusText || errorMsg;
+                    }
+                    console.error(`[API Verify] Failed: ${errorMsg}`);
+                    return { valid: false, message: errorMsg };
                 }
             } catch (e) {
-                return { valid: false, message: 'Network error - check your connection' };
+                console.error(`[API Verify] Error: ${e.message}`);
+                if (e.name === 'AbortError' || e.name === 'TimeoutError') {
+                    return { valid: false, message: 'Request timed out - check your internet connection' };
+                }
+                if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) {
+                    return { valid: false, message: 'Network error - check your internet connection' };
+                }
+                return { valid: false, message: `Error: ${e.message}` };
             }
         }
         window.verifyAPIKey = verifyAPIKey;
