@@ -1631,49 +1631,14 @@
                 <div id="noEmailsMessage" class="hidden" style="text-align: center; padding: 40px;">
                     <i class="fas fa-envelope-open" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 20px;"></i>
                     <h3>No Emails Found</h3>
-                    <p style="color: var(--text-secondary);">We couldn't access your emails. Using sample scenarios instead.</p>
-                    <button class="btn btn-primary" onclick="loadSampleScenarios()" style="margin-top: 20px;">
-                        Use Sample Scenarios
-                    </button>
-                </div>
-            </div>
-                        <div class="scenario-message">"The deployment failed last night. Can you check the logs and restart the service?"</div>
-                    </div>
-                    
-                    <div class="ai-response">
-                        <div class="ai-response-label">🤖 OpenEgo would respond:</div>
-                        <div>"On it. Checking logs now and will restart. Will update the channel in 10 mins with what I find."</div>
-                    </div>
-                    
-                    <div class="response-actions">
-                        <button class="btn btn-primary" onclick="approveResponse(4)">✓ That's Right</button>
-                        <button class="btn btn-secondary" onclick="editResponse(4)">✏️ Edit</button>
-                        <button class="btn btn-secondary" onclick="rejectResponse(4)" style="background: rgba(239, 68, 68, 0.2); color: #EF4444;">✗ Wrong</button>
-                    </div>
-                </div>
-                
-                <!-- Scenario 5 -->
-                <div class="scenario-card hidden" id="scenario5">
-                    <div class="scenario-header">
-                        <span class="scenario-type">📧 Email</span>
-                        <span class="scenario-date">2024-03-06 11:20</span>
-                    </div>
-                    
-                    <div class="scenario-content">
-                        <div class="scenario-from">From: investor@vc.com</div>
-                        <div class="scenario-subject">Subject: Quarterly Update Request</div>
-                        <div class="scenario-message">"Hi, can you send over your Q1 metrics and growth projections by end of week?"</div>
-                    </div>
-                    
-                    <div class="ai-response">
-                        <div class="ai-response-label">🤖 OpenEgo would respond:</div>
-                        <div>"Absolutely! I'll have the Q1 deck ready by Thursday EOD. We're seeing strong growth - excited to share the numbers. Thanks for the continued support!"</div>
-                    </div>
-                    
-                    <div class="response-actions">
-                        <button class="btn btn-primary" onclick="approveResponse(5)">✓ That's Right</button>
-                        <button class="btn btn-secondary" onclick="editResponse(5)">✏️ Edit</button>
-                        <button class="btn btn-secondary" onclick="rejectResponse(5)" style="background: rgba(239, 68, 68, 0.2); color: #EF4444;">✗ Wrong</button>
+                    <p style="color: var(--text-secondary);">We couldn't access your emails.</p>
+                    <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: center;">
+                        <button class="btn btn-primary" onclick="loadSampleScenarios()">
+                            Use Sample Scenarios
+                        </button>
+                        <button class="btn btn-secondary" onclick="skipTraining()">
+                            Skip to Dashboard
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1709,6 +1674,9 @@
             
             <div class="button-group" id="trainingNav">
                 <button class="btn btn-secondary" onclick="prevStep(5)">← Back</button>
+                <button class="btn btn-secondary" onclick="skipTraining()" style="margin-left: auto;">
+                    <i class="fas fa-forward"></i> Skip to Dashboard
+                </button>
             </div>
         </div>
     </div>
@@ -2120,7 +2088,7 @@
         }
         
         let currentStep = 1;
-        const totalSteps = 5;
+        const totalSteps = 7;
         
         function updateProgress() {
             document.getElementById('stepText').textContent = `Step ${currentStep} of ${totalSteps}`;
@@ -3193,8 +3161,21 @@
         function startDashboard() {
             localStorage.setItem('openego_mode', 'copilot');
             localStorage.setItem('openego_training_complete', 'true');
-            alert('👀 Co-Pilot mode active!\n\nYou\'ll review every response before it\'s sent.\n\nDashboard coming next!');
+            localStorage.setItem('openego_onboarding_complete', 'true');
+            nextStep(7);
         }
+        
+        // Skip training and go directly to dashboard
+        function skipTraining() {
+            if (confirm('Skip the training test?\n\nOpenEgo will start in Co-Pilot mode. You can always train it later from Settings.')) {
+                localStorage.setItem('openego_mode', 'copilot');
+                localStorage.setItem('openego_training_complete', 'false');
+                localStorage.setItem('openego_training_skipped', 'true');
+                showToast('Training skipped - starting dashboard', 'success');
+                nextStep(7);
+            }
+        }
+        window.skipTraining = skipTraining;
         
         // Connector Functions
         function toggleConnector(id) {
