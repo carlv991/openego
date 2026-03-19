@@ -712,6 +712,99 @@
             color: var(--accent);
         }
         
+        /* Permission Items in Settings */
+        .permission-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .permission-item:last-child {
+            border-bottom: none;
+        }
+        
+        .permission-info {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        
+        .permission-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: white;
+        }
+        
+        .permission-icon.gmail { background: #EA4335; }
+        .permission-icon.telegram { background: #0088CC; }
+        .permission-icon.slack { background: #4A154B; }
+        .permission-icon.teams { background: #6264A7; }
+        
+        .permission-name {
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+        
+        .permission-desc {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .permission-status {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-badge.pending {
+            background: rgba(245, 158, 11, 0.15);
+            color: #F59E0B;
+        }
+        
+        .status-badge.connected {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10B981;
+        }
+        
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 0.85rem;
+        }
+        
+        .permission-note {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 16px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        .permission-note i {
+            color: #3B82F6;
+            margin-top: 2px;
+        }
+        
         .dashboard-content {
             display: flex;
             flex: 1;
@@ -3201,6 +3294,75 @@
                                 </button>
                             </div>
                             
+                            <!-- Permissions Section for Auto-Pilot Send Access -->
+                            <div class="settings-card" style="border: 1px solid #DE6D51;">
+                                <h3 style="color: #DE6D51;"><i class="fas fa-key"></i> Send Permissions <span class="badge" style="font-size: 10px; margin-left: 8px;">AUTO-PILOT REQUIRED</span></h3>
+                                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px;">
+                                    Full Disk Access lets OpenEgo <strong>read</strong> your messages. To <strong>send</strong> responses in Auto-Pilot mode, you need to set up each platform individually.
+                                </p>
+                                
+                                <div class="permission-item">
+                                    <div class="permission-info">
+                                        <div class="permission-icon gmail"><i class="fas fa-envelope"></i></div>
+                                        <div class="permission-details">
+                                            <div class="permission-name">Apple Mail</div>
+                                            <div class="permission-desc">Send emails via AppleScript</div>
+                                        </div>
+                                    </div>
+                                    <div class="permission-status">
+                                        <span class="status-badge pending">Not Set Up</span>
+                                        <button class="btn btn-secondary btn-small" onclick="setupMailPermissions()">Set Up</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="permission-item">
+                                    <div class="permission-info">
+                                        <div class="permission-icon telegram"><i class="fab fa-telegram"></i></div>
+                                        <div class="permission-details">
+                                            <div class="permission-name">Telegram</div>
+                                            <div class="permission-desc">Bot API token required</div>
+                                        </div>
+                                    </div>
+                                    <div class="permission-status">
+                                        <span class="status-badge pending">Not Set Up</span>
+                                        <button class="btn btn-secondary btn-small" onclick="setupTelegramPermissions()">Set Up</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="permission-item">
+                                    <div class="permission-info">
+                                        <div class="permission-icon slack"><i class="fab fa-slack"></i></div>
+                                        <div class="permission-details">
+                                            <div class="permission-name">Slack</div>
+                                            <div class="permission-desc">OAuth app integration</div>
+                                        </div>
+                                    </div>
+                                    <div class="permission-status">
+                                        <span class="status-badge pending">Not Set Up</span>
+                                        <button class="btn btn-secondary btn-small" onclick="setupSlackPermissions()">Set Up</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="permission-item">
+                                    <div class="permission-info">
+                                        <div class="permission-icon teams"><i class="fab fa-microsoft"></i></div>
+                                        <div class="permission-details">
+                                            <div class="permission-name">Microsoft Teams</div>
+                                            <div class="permission-desc">Graph API credentials</div>
+                                        </div>
+                                    </div>
+                                    <div class="permission-status">
+                                        <span class="status-badge pending">Not Set Up</span>
+                                        <button class="btn btn-secondary btn-small" onclick="setupTeamsPermissions()">Set Up</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="permission-note">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span>Without these permissions, Auto-Pilot mode will generate responses but you'll need to manually send them.</span>
+                                </div>
+                            </div>
+                            
                             <div class="settings-card" style="border: 1px solid #EF4444;">
                                 <h3 style="color: #EF4444;"><i class="fas fa-exclamation-triangle"></i> Danger Zone</h3>
                                 <div class="setting-row">
@@ -5463,6 +5625,37 @@
             }
         }
         window.resetAllData = resetAllData;
+        
+        // Permission Setup Functions
+        function setupMailPermissions() {
+            alert('📧 Apple Mail Setup\n\nTo enable OpenEgo to send emails automatically:\n\n1. Open Script Editor on your Mac\n2. Grant OpenEgo permission to control Mail\n3. Test with a sample email\n\nNote: Apple requires manual approval for AppleScript automation.');
+            showToast('Mail permissions - Coming in Phase 2', 'info');
+        }
+        window.setupMailPermissions = setupMailPermissions;
+        
+        function setupTelegramPermissions() {
+            const token = prompt('🔵 Telegram Bot Setup\n\nEnter your Telegram Bot API Token:\n\nTo create a bot:\n1. Message @BotFather on Telegram\n2. Create a new bot\n3. Copy the API token here');
+            
+            if (token) {
+                localStorage.setItem('openego_telegram_token', token);
+                showToast('Telegram token saved!', 'success');
+                // Update UI to show connected
+                // TODO: Actually validate the token
+            }
+        }
+        window.setupTelegramPermissions = setupTelegramPermissions;
+        
+        function setupSlackPermissions() {
+            alert('💜 Slack Setup\n\nTo enable OpenEgo to send Slack messages:\n\n1. Create a Slack App at api.slack.com/apps\n2. Add OAuth scopes: chat:write, im:write\n3. Install app to your workspace\n4. Copy the Bot User OAuth Token\n\nNote: This will be implemented in Phase 2.');
+            showToast('Slack permissions - Coming in Phase 2', 'info');
+        }
+        window.setupSlackPermissions = setupSlackPermissions;
+        
+        function setupTeamsPermissions() {
+            alert('🔷 Microsoft Teams Setup\n\nTo enable OpenEgo to send Teams messages:\n\n1. Register an app in Azure AD\n2. Add Microsoft Graph API permissions\n3. Get Client ID and Secret\n4. Authenticate with your Microsoft account\n\nNote: This will be implemented in Phase 2.');
+            showToast('Teams permissions - Coming in Phase 2', 'info');
+        }
+        window.setupTeamsPermissions = setupTeamsPermissions;
         
         // Override switchTab for new dashboard
         window.switchTab = function(tab) {
