@@ -291,6 +291,90 @@ class OpenEgoCore {
         return { success: false, error: e.message };
       }
     });
+
+    // Check Mail permissions
+    ipcMain.handle('check-mail-permissions', async () => {
+      try {
+        if (process.platform !== 'darwin') {
+          return { granted: false, error: 'Apple Mail only available on macOS' };
+        }
+        
+        const { exec } = require('child_process');
+        const util = require('util');
+        const execAsync = util.promisify(exec);
+        
+        // Try to read from Mail to check permissions
+        const script = `
+          tell application "Mail"
+            return (count of accounts) > 0
+          end tell
+        `;
+        
+        try {
+          await execAsync(`osascript -e '${script}'`, { timeout: 5000 });
+          return { granted: true };
+        } catch (e) {
+          return { granted: false, error: 'Full Disk Access or Mail permissions required' };
+        }
+      } catch (e) {
+        return { granted: false, error: e.message };
+      }
+    });
+
+    // Check for updates
+    ipcMain.handle('check-for-updates', async () => {
+      try {
+        // Check GitHub releases for latest version
+        const response = await fetch('https://api.github.com/repos/carlv991/openego/releases/latest');
+        if (!response.ok) {
+          return { updateAvailable: false, error: 'Could not check for updates' };
+        }
+        
+        const release = await response.json();
+        const latestVersion = release.tag_name.replace('v', '');
+        const currentVersion = '0.1.64'; // Current app version
+        
+        // Simple version comparison
+        const latestParts = latestVersion.split('.').map(Number);
+        const currentParts = currentVersion.split('.').map(Number);
+        
+        let updateAvailable = false;
+        for (let i = 0; i < Math.max(latestParts.length, currentParts.length); i++) {
+          const latest = latestParts[i] || 0;
+          const current = currentParts[i] || 0;
+          if (latest > current) {
+            updateAvailable = true;
+            break;
+          } else if (latest < current) {
+            break;
+          }
+        }
+        
+        return {
+          updateAvailable,
+          version: latestVersion,
+          currentVersion,
+          releaseNotes: release.body,
+          downloadUrl: release.html_url
+        };
+      } catch (e) {
+        return { updateAvailable: false, error: e.message };
+      }
+    });
+
+    // Download update (open browser)
+    ipcMain.handle('download-update', async () => {
+      try {
+        const { shell } = require('electron');
+        const result = await ipcMain.invoke('check-for-updates');
+        if (result.downloadUrl) {
+          shell.openExternal(result.downloadUrl);
+        }
+        return { success: true };
+      } catch (e) {
+        return { success: false, error: e.message };
+      }
+    });
   }
 
   async sendEmail(recipient, message, replyToId) {

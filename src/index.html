@@ -3184,7 +3184,7 @@
                                         <div class="setting-name">Current Model</div>
                                         <div class="setting-value" id="currentModelValue">Not configured</div>
                                     </div>
-                                    <button class="btn btn-secondary" onclick="openSettingsModal()">Configure</button>
+                                    <button class="btn btn-secondary" onclick="openAIModelConfig()">Configure</button>
                                 </div>
                             </div>
                             
@@ -3208,7 +3208,7 @@
                                     <div class="setting-name">Version</div>
                                     <span class="version-tag">v0.1.25 Beta</span>
                                 </div>
-                                <button class="btn btn-secondary" onclick="checkForAppUpdates()">
+                                <button class="btn btn-secondary" onclick="checkForAppUpdatesFixed()">
                                     <i class="fas fa-sync-alt"></i> Check for Updates
                                 </button>
                             </div>
@@ -6627,6 +6627,495 @@ async function setupAutoReply(enabled) {
                 showResponseNotification(data);
             });
         }
+        
+        // ============== SETTINGS TAB FIXES ==============
+        
+        /**
+         * Open AI Model Configuration Modal
+         */
+        function openAIModelConfig() {
+            // Check if we're on dashboard or onboarding
+            const dashboardTab = document.getElementById('dashboardTab');
+            if (dashboardTab && dashboardTab.classList.contains('active')) {
+                // On dashboard - show AI config modal
+                showAIModelConfigModal();
+            } else {
+                // On onboarding - go to step 3 (AI Model selection)
+                goToStep(3);
+            }
+        }
+        
+        /**
+         * Show AI Model Configuration Modal (for Dashboard)
+         */
+        function showAIModelConfigModal() {
+            // Create modal if it doesn't exist
+            let modal = document.getElementById('aiModelConfigModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'aiModelConfigModal';
+                modal.className = 'modal-overlay';
+                modal.style.cssText = 'display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center;';
+                modal.innerHTML = `
+                    <div class="modal-content" style="max-width: 600px; max-height: 80vh; overflow-y: auto; background: var(--card-bg, #1a1a1a); border-radius: 12px; border: 1px solid var(--accent, #DE6D51);">
+                        <div class="modal-header" style="padding: 20px; border-bottom: 1px solid var(--border, #333); display: flex; justify-content: space-between; align-items: center;">
+                            <h2 style="margin: 0; color: var(--text, #fff);"><i class="fas fa-robot"></i> Configure AI Model</h2>
+                            <button onclick="closeAIModelConfigModal()" style="background: none; border: none; color: #fff; font-size: 24px; cursor: pointer;">&times;</button>
+                        </div>
+                        <div class="modal-body" style="padding: 20px;">
+                            <div style="margin-bottom: 20px;">
+                                <h3 style="margin: 0 0 10px 0; font-size: 14px; color: var(--text-secondary);">Select Provider</h3>
+                                <select id="aiProviderSelect" onchange="onAIProviderChange()" style="width: 100%; padding: 12px; background: var(--bg-primary, #0a0a0a); border: 1px solid var(--border, #333); border-radius: 8px; color: var(--text, #fff); font-size: 1rem;">
+                                    <option value="">Select Provider...</option>
+                                    <option value="openai">OpenAI (GPT-4o, GPT-4o Mini)</option>
+                                    <option value="anthropic">Anthropic (Claude 3.5 Sonnet, Claude 3 Haiku)</option>
+                                    <option value="google">Google (Gemini Pro)</option>
+                                    <option value="ollama">Local (Ollama - Free)</option>
+                                </select>
+                            </div>
+                            
+                            <div id="modelSelectSection" style="display: none; margin-bottom: 20px;">
+                                <h3 style="margin: 0 0 10px 0; font-size: 14px; color: var(--text-secondary);">Select Model</h3>
+                                <select id="aiModelSelect" style="width: 100%; padding: 12px; background: var(--bg-primary, #0a0a0a); border: 1px solid var(--border, #333); border-radius: 8px; color: var(--text, #fff); font-size: 1rem;">
+                                </select>
+                            </div>
+                            
+                            <div id="apiKeySection" style="display: none; margin-bottom: 20px;">
+                                <h3 style="margin: 0 0 10px 0; font-size: 14px; color: var(--text-secondary);">API Key</h3>
+                                <input type="password" id="aiApiKeyInput" placeholder="Enter your API key" style="width: 100%; padding: 12px; background: var(--bg-primary, #0a0a0a); border: 1px solid var(--border, #333); border-radius: 8px; color: var(--text, #fff); font-size: 1rem; margin-bottom: 10px;">
+                                <p id="apiKeyHelp" style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;"></p>
+                                <button onclick="verifyAndSaveAIConfig()" style="margin-top: 15px; width: 100%; padding: 12px; background: var(--accent, #DE6D51); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500;">
+                                    <i class="fas fa-check"></i> Verify & Save
+                                </button>
+                            </div>
+                            
+                            <div id="ollamaSection" style="display: none; margin-bottom: 20px;">
+                                <h3 style="margin: 0 0 10px 0; font-size: 14px; color: var(--text-secondary);">Ollama Setup</h3>
+                                <p style="color: var(--text-secondary); margin-bottom: 15px;">Ollama runs AI models locally on your computer. No API key needed!</p>
+                                <div id="ollamaInstallStatus" style="padding: 15px; background: var(--bg-primary, #0a0a0a); border-radius: 8px; margin-bottom: 15px; color: var(--text-secondary);">
+                                    Checking Ollama...
+                                </div>
+                                <button onclick="saveOllamaConfig()" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.1); color: white; border: 1px solid var(--border, #333); border-radius: 8px; cursor: pointer;">
+                                    <i class="fas fa-save"></i> Use Local Model
+                                </button>
+                            </div>
+                            
+                            <div id="aiConfigStatus" style="padding: 12px; border-radius: 8px; display: none;"></div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            }
+            
+            // Load current settings
+            loadCurrentAISettings();
+            
+            // Show modal
+            modal.style.display = 'flex';
+        }
+        
+        function closeAIModelConfigModal() {
+            const modal = document.getElementById('aiModelConfigModal');
+            if (modal) modal.style.display = 'none';
+        }
+        
+        function onAIProviderChange() {
+            const provider = document.getElementById('aiProviderSelect').value;
+            const modelSection = document.getElementById('modelSelectSection');
+            const apiKeySection = document.getElementById('apiKeySection');
+            const ollamaSection = document.getElementById('ollamaSection');
+            const modelSelect = document.getElementById('aiModelSelect');
+            const apiKeyHelp = document.getElementById('apiKeyHelp');
+            
+            // Hide all sections first
+            modelSection.style.display = 'none';
+            apiKeySection.style.display = 'none';
+            ollamaSection.style.display = 'none';
+            
+            if (!provider) return;
+            
+            if (provider === 'ollama') {
+                ollamaSection.style.display = 'block';
+                checkOllamaStatusDashboard();
+            } else {
+                // Show model selection
+                modelSection.style.display = 'block';
+                apiKeySection.style.display = 'block';
+                
+                // Populate models based on provider
+                let models = [];
+                let helpText = '';
+                
+                switch(provider) {
+                    case 'openai':
+                        models = [
+                            { value: 'gpt-4o', label: 'GPT-4o (Most Capable)' },
+                            { value: 'gpt-4o-mini', label: 'GPT-4o Mini (Cost Effective)' }
+                        ];
+                        helpText = 'Get your API key from platform.openai.com';
+                        break;
+                    case 'anthropic':
+                        models = [
+                            { value: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet (Best Reasoning)' },
+                            { value: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku (Fast & Cheap)' }
+                        ];
+                        helpText = 'Get your API key from console.anthropic.com';
+                        break;
+                    case 'google':
+                        models = [
+                            { value: 'gemini-pro', label: 'Gemini Pro' }
+                        ];
+                        helpText = 'Get your API key from ai.google.dev';
+                        break;
+                }
+                
+                modelSelect.innerHTML = models.map(m => `<option value="${m.value}">${m.label}</option>`).join('');
+                apiKeyHelp.textContent = helpText;
+            }
+        }
+        
+        async function verifyAndSaveAIConfig() {
+            const provider = document.getElementById('aiProviderSelect').value;
+            const model = document.getElementById('aiModelSelect').value;
+            const apiKey = document.getElementById('aiApiKeyInput').value.trim();
+            const statusDiv = document.getElementById('aiConfigStatus');
+            
+            if (!apiKey) {
+                showAIConfigStatus('error', 'Please enter an API key');
+                return;
+            }
+            
+            statusDiv.style.display = 'block';
+            statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying API key...';
+            statusDiv.style.background = 'rgba(59, 130, 246, 0.1)';
+            statusDiv.style.color = '#3B82F6';
+            
+            try {
+                // Test the API key
+                const isValid = await testAPIKeyDashboard(provider, apiKey);
+                
+                if (isValid) {
+                    // Save settings
+                    const settings = {
+                        provider,
+                        model,
+                        apiKey,
+                        savedAt: new Date().toISOString()
+                    };
+                    
+                    if (typeof require !== 'undefined') {
+                        const { ipcRenderer } = require('electron');
+                        await ipcRenderer.invoke('save-ai-settings', settings);
+                    } else {
+                        localStorage.setItem('openego_ai_settings', JSON.stringify(settings));
+                    }
+                    
+                    // Update UI
+                    localStorage.setItem('openego_provider', provider);
+                    localStorage.setItem('openego_model', model);
+                    updateCurrentModelDisplay(provider, model);
+                    
+                    showAIConfigStatus('success', 'API key verified and saved!');
+                    setTimeout(closeAIModelConfigModal, 1500);
+                } else {
+                    showAIConfigStatus('error', 'Invalid API key. Please check and try again.');
+                }
+            } catch (e) {
+                showAIConfigStatus('error', 'Error verifying API key: ' + e.message);
+            }
+        }
+        
+        async function testAPIKeyDashboard(provider, apiKey) {
+            try {
+                switch(provider) {
+                    case 'openai':
+                        const openaiRes = await fetch('https://api.openai.com/v1/models', {
+                            headers: { 'Authorization': `Bearer ${apiKey}` }
+                        });
+                        return openaiRes.ok;
+                        
+                    case 'anthropic':
+                        const anthropicRes = await fetch('https://api.anthropic.com/v1/models', {
+                            headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' }
+                        });
+                        return anthropicRes.ok;
+                        
+                    case 'google':
+                        const googleRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+                        return googleRes.ok;
+                        
+                    default:
+                        return false;
+                }
+            } catch (e) {
+                console.error('API test error:', e);
+                return false;
+            }
+        }
+        
+        function showAIConfigStatus(type, message) {
+            const statusDiv = document.getElementById('aiConfigStatus');
+            statusDiv.style.display = 'block';
+            statusDiv.innerHTML = type === 'success' 
+                ? `<i class="fas fa-check-circle"></i> ${message}`
+                : `<i class="fas fa-exclamation-circle"></i> ${message}`;
+            statusDiv.style.background = type === 'success' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)';
+            statusDiv.style.color = type === 'success' ? '#10B981' : '#EF4444';
+            statusDiv.style.padding = '12px';
+            statusDiv.style.borderRadius = '8px';
+            statusDiv.style.marginTop = '15px';
+        }
+        
+        function updateCurrentModelDisplay(provider, model) {
+            const display = document.getElementById('currentModelValue');
+            if (display) {
+                const providerNames = {
+                    openai: 'OpenAI',
+                    anthropic: 'Anthropic',
+                    google: 'Google',
+                    ollama: 'Local (Ollama)'
+                };
+                display.textContent = `${providerNames[provider] || provider} - ${model}`;
+            }
+        }
+        
+        function loadCurrentAISettings() {
+            const provider = localStorage.getItem('openego_provider');
+            const model = localStorage.getItem('openego_model');
+            
+            if (provider && document.getElementById('aiProviderSelect')) {
+                document.getElementById('aiProviderSelect').value = provider;
+                onAIProviderChange();
+                if (model && document.getElementById('aiModelSelect')) {
+                    document.getElementById('aiModelSelect').value = model;
+                }
+            }
+        }
+        
+        async function checkOllamaStatusDashboard() {
+            const statusDiv = document.getElementById('ollamaInstallStatus');
+            if (!statusDiv) return;
+            
+            statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking Ollama...';
+            
+            try {
+                const response = await fetch('http://localhost:11434/api/tags');
+                if (response.ok) {
+                    const data = await response.json();
+                    const models = data.models || [];
+                    if (models.length > 0) {
+                        statusDiv.innerHTML = `<i class="fas fa-check-circle" style="color: #10B981;"></i> Ollama is running with ${models.length} model(s)`;
+                    } else {
+                        statusDiv.innerHTML = `<i class="fas fa-exclamation-triangle" style="color: #F59E0B;"></i> Ollama is running but no models found. Run: ollama pull llama3.1`;
+                    }
+                } else {
+                    statusDiv.innerHTML = `<i class="fas fa-times-circle" style="color: #EF4444;"></i> Ollama not responding. Make sure it's running.`;
+                }
+            } catch (e) {
+                statusDiv.innerHTML = `
+                    <div style="color: #EF4444;"><i class="fas fa-times-circle"></i> Ollama not detected</div>
+                    <div style="margin-top: 10px; font-size: 0.9rem;">
+                        <p>Install Ollama: brew install ollama</p>
+                        <p>Then run: ollama pull llama3.1</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function saveOllamaConfig() {
+            const settings = {
+                provider: 'ollama',
+                model: 'llama3.1',
+                apiKey: 'local',
+                savedAt: new Date().toISOString()
+            };
+            
+            if (typeof require !== 'undefined') {
+                const { ipcRenderer } = require('electron');
+                ipcRenderer.invoke('save-ai-settings', settings);
+            } else {
+                localStorage.setItem('openego_ai_settings', JSON.stringify(settings));
+            }
+            
+            localStorage.setItem('openego_provider', 'ollama');
+            localStorage.setItem('openego_model', 'llama3.1');
+            updateCurrentModelDisplay('ollama', 'llama3.1');
+            
+            showAIConfigStatus('success', 'Local AI configuration saved!');
+            setTimeout(closeAIModelConfigModal, 1500);
+        }
+        
+        // ============== CONNECTED ACCOUNTS FIX ==============
+        
+        async function checkAppleMailStatus() {
+            const statusEl = document.getElementById('appleMailStatus');
+            const badgeEl = document.getElementById('appleMailBadge');
+            
+            if (!statusEl || !badgeEl) return;
+            
+            statusEl.textContent = 'Checking...';
+            badgeEl.textContent = 'Unknown';
+            badgeEl.style.background = 'rgba(107, 114, 128, 0.15)';
+            badgeEl.style.color = '#6B7280';
+            
+            if (typeof require === 'undefined') {
+                statusEl.textContent = 'Requires desktop app';
+                badgeEl.textContent = 'N/A';
+                return;
+            }
+            
+            try {
+                const { ipcRenderer } = require('electron');
+                const result = await ipcRenderer.invoke('check-mail-permissions');
+                
+                if (result.granted) {
+                    statusEl.textContent = 'Connected';
+                    badgeEl.textContent = 'Active';
+                    badgeEl.style.background = 'rgba(16, 185, 129, 0.15)';
+                    badgeEl.style.color = '#10B981';
+                } else {
+                    statusEl.textContent = 'Permission needed';
+                    badgeEl.textContent = 'Setup Required';
+                    badgeEl.style.background = 'rgba(245, 158, 11, 0.15)';
+                    badgeEl.style.color = '#F59E0B';
+                }
+            } catch (e) {
+                statusEl.textContent = 'Check failed';
+                badgeEl.textContent = 'Error';
+                badgeEl.style.background = 'rgba(239, 68, 68, 0.15)';
+                badgeEl.style.color = '#EF4444';
+            }
+        }
+        
+        // ============== CHECK FOR UPDATES FIX ==============
+        
+        async function checkForAppUpdatesFixed() {
+            const btn = event?.target || document.querySelector('[onclick="checkForAppUpdatesFixed()"]');
+            const originalText = btn?.innerHTML;
+            
+            if (btn) {
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking...';
+                btn.disabled = true;
+            }
+            
+            try {
+                if (typeof require !== 'undefined') {
+                    const { ipcRenderer } = require('electron');
+                    const result = await ipcRenderer.invoke('check-for-updates');
+                    
+                    if (result.updateAvailable) {
+                        if (confirm(`Update available: v${result.version}\n\n${result.releaseNotes || 'Bug fixes and improvements'}\n\nDownload now?`)) {
+                            await ipcRenderer.invoke('download-update');
+                        }
+                        if (btn) btn.innerHTML = '<i class="fas fa-download"></i> Update Available';
+                    } else {
+                        if (btn) btn.innerHTML = '<i class="fas fa-check"></i> Up to Date';
+                        setTimeout(() => {
+                            if (btn) {
+                                btn.innerHTML = '<i class="fas fa-sync-alt"></i> Check for Updates';
+                                btn.disabled = false;
+                            }
+                        }, 2000);
+                    }
+                } else {
+                    // Web mode - simulate
+                    setTimeout(() => {
+                        if (btn) btn.innerHTML = '<i class="fas fa-check"></i> Up to Date';
+                        setTimeout(() => {
+                            if (btn) {
+                                btn.innerHTML = '<i class="fas fa-sync-alt"></i> Check for Updates';
+                                btn.disabled = false;
+                            }
+                        }, 2000);
+                    }, 1000);
+                }
+            } catch (e) {
+                console.error('Update check error:', e);
+                if (btn) {
+                    btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
+                    setTimeout(() => {
+                        btn.innerHTML = '<i class="fas fa-sync-alt"></i> Check for Updates';
+                        btn.disabled = false;
+                    }, 2000);
+                }
+            }
+        }
+        
+        // ============== SEND PERMISSIONS FIX ==============
+        
+        async function checkTelegramStatus() {
+            const descEl = document.getElementById('telegramDesc');
+            const badgeEl = document.getElementById('telegramStatusBadge');
+            const btnEl = document.getElementById('telegramSetupBtn');
+            
+            if (!descEl || !badgeEl) return;
+            
+            if (typeof require === 'undefined') {
+                descEl.textContent = 'Requires desktop app';
+                badgeEl.textContent = 'N/A';
+                badgeEl.className = 'status-tag';
+                badgeEl.style.background = 'rgba(107, 114, 128, 0.15)';
+                badgeEl.style.color = '#6B7280';
+                return;
+            }
+            
+            try {
+                const { ipcRenderer } = require('electron');
+                
+                // Check if token exists
+                const tokenPath = require('path').join(require('os').homedir(), '.openego_telegram_token');
+                const fs = require('fs');
+                
+                if (fs.existsSync(tokenPath)) {
+                    descEl.textContent = 'Bot configured';
+                    badgeEl.textContent = 'Active';
+                    badgeEl.className = 'status-tag';
+                    badgeEl.style.background = 'rgba(16, 185, 129, 0.15)';
+                    badgeEl.style.color = '#10B981';
+                    if (btnEl) btnEl.textContent = 'Reconfigure';
+                } else {
+                    descEl.textContent = 'Bot API token required';
+                    badgeEl.textContent = 'Not Set Up';
+                    badgeEl.className = 'status-tag';
+                    badgeEl.style.background = 'rgba(239, 68, 68, 0.15)';
+                    badgeEl.style.color = '#EF4444';
+                }
+            } catch (e) {
+                descEl.textContent = 'Check failed';
+                badgeEl.textContent = 'Error';
+            }
+        }
+        
+        function initializeSendPermissions() {
+            checkTelegramStatus();
+            checkAppleMailStatus();
+        }
+        
+        // Expose functions globally
+        window.openAIModelConfig = openAIModelConfig;
+        window.showAIModelConfigModal = showAIModelConfigModal;
+        window.closeAIModelConfigModal = closeAIModelConfigModal;
+        window.onAIProviderChange = onAIProviderChange;
+        window.verifyAndSaveAIConfig = verifyAndSaveAIConfig;
+        window.saveOllamaConfig = saveOllamaConfig;
+        window.checkAppleMailStatus = checkAppleMailStatus;
+        window.checkForAppUpdatesFixed = checkForAppUpdatesFixed;
+        window.initializeSendPermissions = initializeSendPermissions;
+        window.checkTelegramStatus = checkTelegramStatus;
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Update Apple Mail status on load
+            setTimeout(checkAppleMailStatus, 1000);
+            
+            // Initialize send permissions
+            setTimeout(initializeSendPermissions, 1500);
+            
+            // Load current AI model display
+            const provider = localStorage.getItem('openego_provider') || 'ollama';
+            const model = localStorage.getItem('openego_model') || 'llama3.1';
+            updateCurrentModelDisplay(provider, model);
+        });
     </script>
 </body>
 </html>
