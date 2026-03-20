@@ -3262,7 +3262,7 @@
                                     </div>
                                     <div class="permission-status" id="telegramStatusContainer">
                                         <span class="status-badge pending" id="telegramStatusBadge">Not Set Up</span>
-                                        <button class="btn btn-secondary btn-small" id="telegramSetupBtn" onclick="alert('Button clicked!'); try{console.log('Before check:',typeof showTelegramSetupWizard);if(typeof showTelegramSetupWizard==='function'){alert('Function found, calling...');try{showTelegramSetupWizard()}catch(fnErr){alert('Function error: '+fnErr.message+' at '+fnErr.lineNumber)} }else{alert('Error: showTelegramSetupWizard not found')} }catch(e){alert('Error: '+e.message)}; return false;">Set Up</button>
+                                        <button class="btn btn-secondary btn-small" id="telegramSetupBtn" onclick="showTelegramSetupWizard(); return false;">Set Up</button>
                                     </div>
                                 </div>
                                 
@@ -4829,7 +4829,6 @@
         
         // TELEGRAM SETUP FUNCTIONS (moved here to ensure early definition)
         function showTelegramSetupWizard() {
-            alert('Entering showTelegramSetupWizard');
             console.log('[Telegram] Opening setup wizard');
             try {
             const modal = document.createElement('div');
@@ -4883,23 +4882,15 @@
                     </div>
                 </div>
             `;
-            alert('Modal HTML created, appending to body...');
             document.body.appendChild(modal);
-            alert('Modal appended successfully!');
             console.log('[Telegram] Modal added to DOM');
             
-            // Debug: Check if modal is visible
+            // Ensure modal is visible (fixes CSS loading issues)
             const addedModal = document.getElementById('telegramSetupModal');
             if (addedModal) {
-                const styles = window.getComputedStyle(addedModal);
-                alert('Modal found in DOM. Display: ' + styles.display + ', Visibility: ' + styles.visibility + ', Z-index: ' + styles.zIndex);
-                // Force show
                 addedModal.style.display = 'flex';
                 addedModal.style.visibility = 'visible';
                 addedModal.style.zIndex = '10000';
-                alert('Forced styles applied. Check if modal is visible now!');
-            } else {
-                alert('ERROR: Modal not found in DOM after append!');
             }
             } catch(err) {
                 alert('Error in showTelegramSetupWizard: ' + err.message);
