@@ -441,7 +441,7 @@
         }
         
         .sidebar-logo::before {
-            content: '🧠';
+            content: '';
             -webkit-text-fill-color: initial;
             font-size: 1.8rem;
         }
@@ -2210,7 +2210,7 @@
     
     <div class="container">
         <div class="header">
-            <div class="logo">🧠 OpenEgo</div>
+            <div class="logo"><i class="fas fa-brain"></i> OpenEgo</div>
             <div class="step-indicator" id="stepText">Step 1 of 5</div>
             <div class="progress-bar">
                 <div class="progress-fill" id="progressBar" style="width: 20%"></div>
@@ -2230,15 +2230,15 @@
                 
                 <div style="display: flex; gap: 15px; margin-top: 20px;">
                     <div style="flex: 1; padding: 20px; background: var(--bg-primary); border-radius: 12px; text-align: center;">
-                        <div style="font-size: 2rem; margin-bottom: 10px;">🧠</div>
+                        <div style="font-size: 2rem; margin-bottom: 10px;"><i class="fas fa-brain"></i></div>
                         <div>Learns your style</div>
                     </div>
                     <div style="flex: 1; padding: 20px; background: var(--bg-primary); border-radius: 12px; text-align: center;">
-                        <div style="font-size: 2rem; margin-bottom: 10px;">🔒</div>
+                        <div style="font-size: 2rem; margin-bottom: 10px;"><i class="fas fa-lock"></i></div>
                         <div>100% private</div>
                     </div>
                     <div style="flex: 1; padding: 20px; background: var(--bg-primary); border-radius: 12px; text-align: center;">
-                        <div style="font-size: 2rem; margin-bottom: 10px;">⚡️</div>
+                        <div style="font-size: 2rem; margin-bottom: 10px;"><i class="fas fa-bolt"></i></div>
                         <div>Responds for you</div>
                     </div>
                 </div>
@@ -2448,7 +2448,7 @@
                 
                 <div id="permissionRequest" style="display: none; margin-top: 30px; text-align: center;">
                     <div style="background: rgba(217, 119, 6, 0.1); border: 1px solid var(--accent); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
-                        <div style="font-size: 2rem; margin-bottom: 10px;">🔐</div>
+                        <div style="font-size: 2rem; margin-bottom: 10px;"><i class="fas fa-shield-alt"></i></div>
                         <h3 style="margin-bottom: 10px;">Full Disk Access Required</h3>
                         <p style="color: var(--text-secondary);">
                             To read your selected data sources, OpenEgo needs Full Disk Access permission.
@@ -2466,7 +2466,7 @@
                 
                 <div id="permissionGranted" style="display: none; margin-top: 30px; text-align: center;">
                     <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10B981; border-radius: 12px; padding: 20px;">
-                        <div style="font-size: 2rem; margin-bottom: 10px;">✅</div>
+                        <div style="font-size: 2rem; margin-bottom: 10px;"><i class="fas fa-check"></i></div>
                         <h3 style="margin-bottom: 10px; color: #10B981;">Access Granted!</h3>
                         <p style="color: var(--text-secondary);">
                             OpenEgo can now scan your selected data sources.
@@ -2477,7 +2477,7 @@
             
             <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10B981; border-radius: 12px; padding: 20px; margin: 20px 0;">
                 <div style="display: flex; align-items: center; justify-content: center; gap: 10px; color: #10B981;">
-                    <span style="font-size: 1.5rem;">🔒</span>
+                    <span style="font-size: 1.5rem;"><i class="fas fa-lock"></i></span>
                     <span style="font-weight: 600;">All data stays on your device</span>
                 </div>
                 <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 10px; text-align: center;">
@@ -2602,7 +2602,7 @@
                 <h3>Mistral 7B</h3>
                 <p style="color: var(--text-secondary); margin: 10px 0;">Efficient and capable. Good for older computers.</p>
                 <div class="specs">
-                    <span>🔒 100% Private</span>
+                    <span><i class="fas fa-lock"></i> 100% Private</span>
                     <span>💾 7GB RAM</span>
                     <span>⚡ Fast</span>
                 </div>
@@ -2613,9 +2613,9 @@
                 <h3>Mixtral 8x7B</h3>
                 <p style="color: var(--text-secondary); margin: 10px 0;">Advanced MoE architecture. Excellent reasoning.</p>
                 <div class="specs">
-                    <span>🔒 100% Private</span>
+                    <span><i class="fas fa-lock"></i> 100% Private</span>
                     <span>💾 28GB RAM</span>
-                    <span>🧠 Very Smart</span>
+                    <span><i class="fas fa-brain"></i> Very Smart</span>
                 </div>
             </div>
             
@@ -2632,7 +2632,7 @@
             
             <div class="card">
                 <div class="status-item" id="mailStatus">
-                    <span style="font-size: 1.5rem;">📧</span>
+                    <span style="font-size: 1.5rem;"><i class="fas fa-envelope"></i></span>
                     <div style="flex: 1;">
                         <div>Scanning emails...</div>
                         <div style="color: var(--text-secondary); font-size: 0.9rem;" id="mailCount">0 emails found</div>
@@ -2640,7 +2640,7 @@
                     <span id="mailCheck" style="color: var(--text-secondary);">⏳</span>
                 </div>
                 <div class="status-item" id="messagesStatus">
-                    <span style="font-size: 1.5rem;">💬</span>
+                    <span style="font-size: 1.5rem;"><i class="fas fa-comment"></i></span>
                     <div style="flex: 1;">
                         <div>Scanning Messages...</div>
                         <div style="color: var(--text-secondary); font-size: 0.9rem;" id="messagesCount">Checking access...</div>
@@ -2656,7 +2656,7 @@
                     <span id="telegramCheck" style="color: var(--text-secondary);">⏳</span>
                 </div>
                 <div class="status-item" id="whatsappStatus">
-                    <span style="font-size: 1.5rem;">📱</span>
+                    <span style="font-size: 1.5rem;"><i class="fas fa-mobile-alt"></i></span>
                     <div style="flex: 1;">
                         <div>Scanning WhatsApp...</div>
                         <div style="color: var(--text-secondary); font-size: 0.9rem;" id="whatsappCount">Checking access...</div>
@@ -2664,7 +2664,7 @@
                     <span id="whatsappCheck" style="color: var(--text-secondary);">⏳</span>
                 </div>
                 <div class="status-item" id="viberStatus">
-                    <span style="font-size: 1.5rem;">💬</span>
+                    <span style="font-size: 1.5rem;"><i class="fas fa-comment"></i></span>
                     <div style="flex: 1;">
                         <div>Scanning Viber...</div>
                         <div style="color: var(--text-secondary); font-size: 0.9rem;" id="viberCount">Checking access...</div>
@@ -2672,7 +2672,7 @@
                     <span id="viberCheck" style="color: var(--text-secondary);">⏳</span>
                 </div>
                 <div class="status-item" id="docsStatus">
-                    <span style="font-size: 1.5rem;">📄</span>
+                    <span style="font-size: 1.5rem;"><i class="fas fa-file"></i></span>
                     <div style="flex: 1;">
                         <div>Reading documents...</div>
                         <div style="color: var(--text-secondary); font-size: 0.9rem;" id="docsCount">0 documents found</div>
@@ -2680,7 +2680,7 @@
                     <span id="docsCheck" style="color: var(--text-secondary);">⏳</span>
                 </div>
                 <div class="status-item" id="analysisStatus">
-                    <span style="font-size: 1.5rem;">🧠</span>
+                    <span style="font-size: 1.5rem;"><i class="fas fa-brain"></i></span>
                     <div style="flex: 1;">
                         <div>Analyzing patterns...</div>
                         <div style="color: var(--text-secondary); font-size: 0.9rem;" id="analysisProgress">Identifying your style</div>
@@ -2690,7 +2690,7 @@
             </div>
             
             <div class="card" style="margin-top: 20px;">
-                <h4 style="margin-bottom: 15px;">📊 What we found:</h4>
+                <h4 style="margin-bottom: 15px;"><i class="fas fa-chart-bar"></i> What we found:</h4>
                 <div id="patternsFound" style="color: var(--text-secondary);">
                     <p>Scanning your entire email history... This may take a few minutes depending on how many emails you have.</p>
                 </div>
@@ -2713,11 +2713,11 @@
         
         <!-- STEP 5: Ready for Training -->
         <div class="step" id="step5">
-            <h1 style="text-align: center;">🎉 Setup Complete!</h1>
+            <h1 style="text-align: center;">Success Setup Complete!</h1>
             <p class="subtitle">Your OpenEgo is configured and ready to learn</p>
             
             <div class="card" style="text-align: center; padding: 50px;">
-                <div style="font-size: 4rem; margin-bottom: 20px;">🧠</div>
+                <div style="font-size: 4rem; margin-bottom: 20px;"><i class="fas fa-brain"></i></div>
                 <h2>Ready to Start Training</h2>
                 <p style="color: var(--text-secondary); margin: 20px 0; max-width: 500px; margin-left: auto; margin-right: auto;">
                     Before OpenEgo can respond on your behalf, it needs to learn your communication style through a training process.
@@ -2743,7 +2743,7 @@
                 
                 <div style="background: rgba(217, 119, 6, 0.1); border: 1px solid var(--accent); border-radius: 12px; padding: 20px; margin-bottom: 30px;">
                     <div style="display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--accent);">
-                        <span style="font-size: 1.5rem;">🔒</span>
+                        <span style="font-size: 1.5rem;"><i class="fas fa-lock"></i></span>
                         <span style="font-weight: 600;">Auto-Pilot unlocks after passing training</span>
                     </div>
                     <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 10px;">
@@ -2806,7 +2806,7 @@
                 
                 <div class="hidden" id="unlockBanner">
                     <div class="unlock-banner">
-                        <div style="font-size: 3rem; margin-bottom: 15px;">🎉</div>
+                        <div style="font-size: 3rem; margin-bottom: 15px;">Success</div>
                         <h2 style="color: #10B981; margin-bottom: 10px;">Auto-Pilot Unlocked!</h2>
                         <p style="color: var(--text-secondary);">You've achieved 80%+ accuracy. OpenEgo can now handle routine responses automatically.</p>
                         <button class="btn btn-primary" style="margin-top: 20px;" onclick="enableAutoPilot()">Enable Auto-Pilot →</button>
@@ -2815,7 +2815,7 @@
                 
                 <div class="hidden" id="continueCopilot">
                     <div class="card" style="text-align: center; padding: 30px;">
-                        <div style="font-size: 2.5rem; margin-bottom: 15px;">👀</div>
+                        <div style="font-size: 2.5rem; margin-bottom: 15px;"><i class="fas fa-eye"></i></div>
                         <h3>Continue in Co-Pilot Mode</h3>
                         <p style="color: var(--text-secondary); margin: 15px 0;">Keep training to unlock Auto-Pilot. You'll still get suggestions for every response.</p>
                         <button class="btn btn-primary" onclick="startDashboard()">Continue to Dashboard →</button>
@@ -3356,6 +3356,13 @@
         async function verifyFullDiskAccess() {
             if (typeof require === 'undefined') return false;
             
+            // Performance fix: Cache result for 5 minutes to avoid freezing
+            const lastVerified = localStorage.getItem('openego_disk_access_verified');
+            const cacheMs = 5 * 60 * 1000; // 5 minutes
+            if (lastVerified && (Date.now() - new Date(lastVerified).getTime()) < cacheMs) {
+                return localStorage.getItem('openego_disk_access') === 'granted';
+            }
+            
             try {
                 const { ipcRenderer } = require('electron');
                 const result = await ipcRenderer.invoke('check-full-disk-access');
@@ -3471,7 +3478,7 @@
                     const mode = localStorage.getItem('openego_mode') || 'copilot';
                     const modeEl = document.getElementById('currentMode');
                     if (modeEl) {
-                        modeEl.textContent = mode === 'autopilot' ? '🤖 Auto-Pilot' : '👀 Co-Pilot';
+                        modeEl.textContent = mode === 'autopilot' ? '<i class="fas fa-robot"></i> Auto-Pilot' : '<i class="fas fa-eye"></i> Co-Pilot';
                     }
                     
                     // Update user name in dashboard if exists
@@ -3782,7 +3789,7 @@
                     `${data.processed} of ${data.total} ${channel.label} (${data.percent}%)`;
                 
                 if (data.complete) {
-                    document.getElementById(channel.checkId).textContent = '✅';
+                    document.getElementById(channel.checkId).textContent = '<i class="fas fa-check"></i>';
                     document.getElementById(channel.checkId).style.color = '#10B981';
                     document.getElementById(channel.countId).textContent = 
                         `${data.count} ${channel.label} found`;
@@ -3791,12 +3798,12 @@
                 }
             } else if (data.complete) {
                 // Complete but no total (e.g., Telegram/WhatsApp detection)
-                document.getElementById(channel.checkId).textContent = '✅';
+                document.getElementById(channel.checkId).textContent = '<i class="fas fa-check"></i>';
                 document.getElementById(channel.checkId).style.color = '#10B981';
                 document.getElementById(channel.countId).textContent = 
                     data.count > 0 ? `${data.count} ${channel.label} found` : 'App found, data encrypted';
             } else if (data.error) {
-                document.getElementById(channel.checkId).textContent = '⚠️';
+                document.getElementById(channel.checkId).textContent = '<i class="fas fa-exclamation-triangle"></i>';
                 document.getElementById(channel.countId).textContent = data.error;
             }
         }
@@ -3805,36 +3812,36 @@
         function simulateScanCompletion(sources) {
             const mailCount = localStorage.getItem('openego_mail_count') || 1247;
             document.getElementById('mailCount').textContent = `${mailCount} emails found`;
-            document.getElementById('mailCheck').textContent = '✅';
+            document.getElementById('mailCheck').textContent = '<i class="fas fa-check"></i>';
             document.getElementById('mailCheck').style.color = '#10B981';
             
             if (sources.messages) {
                 document.getElementById('messagesCount').textContent = '3,421 messages found';
-                document.getElementById('messagesCheck').textContent = '✅';
+                document.getElementById('messagesCheck').textContent = '<i class="fas fa-check"></i>';
                 document.getElementById('messagesCheck').style.color = '#10B981';
             }
             
             if (sources.telegram) {
                 document.getElementById('telegramCount').textContent = 'App found';
-                document.getElementById('telegramCheck').textContent = '✅';
+                document.getElementById('telegramCheck').textContent = '<i class="fas fa-check"></i>';
                 document.getElementById('telegramCheck').style.color = '#10B981';
             }
             
             if (sources.whatsapp) {
                 document.getElementById('whatsappCount').textContent = 'App found';
-                document.getElementById('whatsappCheck').textContent = '✅';
+                document.getElementById('whatsappCheck').textContent = '<i class="fas fa-check"></i>';
                 document.getElementById('whatsappCheck').style.color = '#10B981';
             }
             
             if (sources.viber) {
                 document.getElementById('viberCount').textContent = 'App found';
-                document.getElementById('viberCheck').textContent = '✅';
+                document.getElementById('viberCheck').textContent = '<i class="fas fa-check"></i>';
                 document.getElementById('viberCheck').style.color = '#10B981';
             }
             
             const docsCount = localStorage.getItem('openego_docs_count') || 89;
             document.getElementById('docsCount').textContent = `${docsCount} documents found`;
-            document.getElementById('docsCheck').textContent = '✅';
+            document.getElementById('docsCheck').textContent = '<i class="fas fa-check"></i>';
             document.getElementById('docsCheck').style.color = '#10B981';
         }
         
@@ -3845,9 +3852,9 @@
             
             if (emails.length === 0) {
                 document.getElementById('patternsFound').innerHTML = `
-                    <p>⚠️ No emails found. Make sure you've granted Full Disk Access.</p>
+                    <p><i class="fas fa-exclamation-triangle"></i> No emails found. Make sure you've granted Full Disk Access.</p>
                 `;
-                document.getElementById('analysisCheck').textContent = '⚠️';
+                document.getElementById('analysisCheck').textContent = '<i class="fas fa-exclamation-triangle"></i>';
                 document.getElementById('analysisCheck').style.color = '#F59E0B';
                 document.getElementById('analysisProgress').textContent = 'No data found';
                 
@@ -3904,16 +3911,16 @@
             
             const patternHTML = `
                 <div style="display: flex; flex-direction: column; gap: 10px;">
-                    <p>✅ <strong>Communication Style:</strong> ${styleDesc}</p>
-                    <p>✅ <strong>Response Length:</strong> ${length}</p>
-                    <p>✅ <strong>Emojis:</strong> ${userPatterns.emojiUsage ? 'Uses emojis regularly' : 'No emoji usage'}</p>
-                    <p>✅ <strong>Questions:</strong> ${userPatterns.questionRate}% of emails ask questions</p>
-                    <p>✅ <strong>Total Analyzed:</strong> ${totalCount.toLocaleString()} emails</p>
+                    <p><i class="fas fa-check"></i> <strong>Communication Style:</strong> ${styleDesc}</p>
+                    <p><i class="fas fa-check"></i> <strong>Response Length:</strong> ${length}</p>
+                    <p><i class="fas fa-check"></i> <strong>Emojis:</strong> ${userPatterns.emojiUsage ? 'Uses emojis regularly' : 'No emoji usage'}</p>
+                    <p><i class="fas fa-check"></i> <strong>Questions:</strong> ${userPatterns.questionRate}% of emails ask questions</p>
+                    <p><i class="fas fa-check"></i> <strong>Total Analyzed:</strong> ${totalCount.toLocaleString()} emails</p>
                 </div>
             `;
             
             document.getElementById('patternsFound').innerHTML = patternHTML;
-            document.getElementById('analysisCheck').textContent = '✅';
+            document.getElementById('analysisCheck').textContent = '<i class="fas fa-check"></i>';
             document.getElementById('analysisCheck').style.color = '#10B981';
             document.getElementById('analysisProgress').textContent = `Analysis complete! (${emails.length.toLocaleString()} emails processed)`;
             
@@ -3953,10 +3960,10 @@
                 
                 if (result.running) {
                     const models = result.models.map(m => m.name).join(', ');
-                    document.getElementById('ollamaStatus').textContent = `✅ Ollama running! Models: ${models}`;
+                    document.getElementById('ollamaStatus').textContent = `<i class="fas fa-check"></i> Ollama running! Models: ${models}`;
                     document.getElementById('ollamaStatus').style.color = '#10B981';
                 } else {
-                    document.getElementById('ollamaStatus').textContent = '⚠️ Ollama not running. Install: ollama.com/download';
+                    document.getElementById('ollamaStatus').textContent = '<i class="fas fa-exclamation-triangle"></i> Ollama not running. Install: ollama.com/download';
                     document.getElementById('ollamaStatus').style.color = '#F59E0B';
                 }
             } catch (e) {
@@ -4401,14 +4408,14 @@
                         
                         // Show what would be scanned
                         let scanList = [];
-                        if (sources.mail) scanList.push('📧 Apple Mail');
-                        if (sources.messages) scanList.push('💬 Messages');
+                        if (sources.mail) scanList.push('<i class="fas fa-envelope"></i> Apple Mail');
+                        if (sources.messages) scanList.push('<i class="fas fa-comment"></i> Messages');
                         if (sources.telegram) scanList.push('✈️ Telegram');
-                        if (sources.whatsapp) scanList.push('📱 WhatsApp');
-                        if (sources.viber) scanList.push('💬 Viber');
-                        if (sources.documents) scanList.push('📄 Documents');
+                        if (sources.whatsapp) scanList.push('<i class="fas fa-mobile-alt"></i> WhatsApp');
+                        if (sources.viber) scanList.push('<i class="fas fa-comment"></i> Viber');
+                        if (sources.documents) scanList.push('<i class="fas fa-file"></i> Documents');
                         
-                        alert('✅ Full Disk Access granted (Demo Mode)\n\nWould scan:\n' + scanList.join('\n'));
+                        alert('<i class="fas fa-check"></i> Full Disk Access granted (Demo Mode)\n\nWould scan:\n' + scanList.join('\n'));
                         
                         setTimeout(() => nextStep(3), 1500);
                     }, 1000);
@@ -4433,7 +4440,7 @@
                         localStorage.setItem('openego_disk_access', 'granted');
                         
                         // Show success state
-                        btn.innerHTML = '✅ Access Granted!';
+                        btn.innerHTML = '<i class="fas fa-check"></i> Access Granted!';
                         btn.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
                         btn.style.opacity = '1';
                         
@@ -4686,7 +4693,7 @@
                 console.log('Training save failed, stored locally');
             }
             
-            alert('🎉 Auto-Pilot enabled!\n\nOpenEgo will now handle routine responses automatically.\n\nTaking you to dashboard...');
+            alert('Success Auto-Pilot enabled!\n\nOpenEgo will now handle routine responses automatically.\n\nTaking you to dashboard...');
             startDashboard();
         }
         
@@ -4761,7 +4768,7 @@
                 localStorage.setItem('openego_telegram_username', username);
                 localStorage.setItem('openego_telegram_connected', 'true');
                 
-                alert(`✅ Telegram connected!\n\nYour username ${username} has been saved. OpenEgo will use this for messaging integration.`);
+                alert(`<i class="fas fa-check"></i> Telegram connected!\n\nYour username ${username} has been saved. OpenEgo will use this for messaging integration.`);
                 
             } else if (provider === 'gmail') {
                 // Simple one-click OAuth simulation
@@ -4773,7 +4780,7 @@
                     document.getElementById(provider + '-oauth').style.display = 'none';
                     localStorage.setItem('openego_gmail_connected', 'true');
                     
-                    alert(`✅ Gmail connected!\n\nOpenEgo will analyze your last 100 emails to learn your communication style.`);
+                    alert(`<i class="fas fa-check"></i> Gmail connected!\n\nOpenEgo will analyze your last 100 emails to learn your communication style.`);
                 }, 1500);
                 
             } else {
@@ -4786,7 +4793,7 @@
                     document.getElementById(provider + '-oauth').style.display = 'none';
                     localStorage.setItem('openego_' + provider + '_connected', 'true');
                     
-                    alert(`✅ ${provider.charAt(0).toUpperCase() + provider.slice(1)} connected!`);
+                    alert(`<i class="fas fa-check"></i> ${provider.charAt(0).toUpperCase() + provider.slice(1)} connected!`);
                 }, 1000);
             }
         }
@@ -4854,7 +4861,7 @@
             // Update legacy mode display if exists
             const currentModeEl = document.getElementById('currentMode');
             if (currentModeEl) {
-                currentModeEl.textContent = newMode === 'autopilot' ? '🤖 Auto-Pilot' : '👀 Co-Pilot';
+                currentModeEl.textContent = newMode === 'autopilot' ? '<i class="fas fa-robot"></i> Auto-Pilot' : '<i class="fas fa-eye"></i> Co-Pilot';
             }
             
             showToast(`Switched to ${newMode === 'autopilot' ? 'Auto-Pilot' : 'Co-Pilot'} mode`, 'success');
@@ -5163,7 +5170,7 @@
             // Update legacy mode display if exists
             const currentModeEl = document.getElementById('currentMode');
             if (currentModeEl) {
-                currentModeEl.textContent = mode === 'autopilot' ? '🤖 Auto-Pilot' : '👀 Co-Pilot';
+                currentModeEl.textContent = mode === 'autopilot' ? '<i class="fas fa-robot"></i> Auto-Pilot' : '<i class="fas fa-eye"></i> Co-Pilot';
             }
             
             // Load saved theme
@@ -5269,23 +5276,9 @@
         function startStatusAnimation() {
             if (statusInterval) clearInterval(statusInterval);
             
-            const statuses = ['statusReading', 'statusUnderstanding', 'statusComposing'];
-            
-            statusInterval = setInterval(() => {
-                if (isPaused) return;
-                
-                statuses.forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) el.classList.remove('active');
-                });
-                
-                // Randomly activate one or none
-                if (Math.random() > 0.3) {
-                    const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
-                    const el = document.getElementById(randomStatus);
-                    if (el) el.classList.add('active');
-                }
-            }, 2000);
+            // Performance fix: Only update status occasionally, not every 2 seconds
+            // The soundwave animation provides enough visual feedback
+            console.log('[Status] Animation disabled for performance');
         }
         window.startStatusAnimation = startStatusAnimation;
         
@@ -5514,7 +5507,7 @@
         
         // Reset all data and start fresh
         function resetAllData() {
-            if (confirm('⚠️ WARNING: This will delete ALL your data!\n\nThis includes:\n- Your name and settings\n- API keys\n- Training data\n- Connected accounts\n\nThis cannot be undone. Are you sure?')) {
+            if (confirm('<i class="fas fa-exclamation-triangle"></i> WARNING: This will delete ALL your data!\n\nThis includes:\n- Your name and settings\n- API keys\n- Training data\n- Connected accounts\n\nThis cannot be undone. Are you sure?')) {
                 if (confirm('Final confirmation: Type "DELETE" to confirm\n\nThis will permanently erase everything.')) {
                     // Clear all localStorage
                     const keysToRemove = [
@@ -5543,7 +5536,7 @@
                     keysToRemove.forEach(key => localStorage.removeItem(key));
                     
                     // Show confirmation
-                    alert('✅ All data cleared!\n\nThe app will now restart.');
+                    alert('<i class="fas fa-check"></i> All data cleared!\n\nThe app will now restart.');
                     
                     // Reload the app
                     window.location.reload();
@@ -5554,13 +5547,13 @@
         
         // Permission Setup Functions
         function setupMailPermissions() {
-            alert('📧 Apple Mail Setup\n\nTo enable OpenEgo to send emails automatically:\n\n1. Open Script Editor on your Mac\n2. Grant OpenEgo permission to control Mail\n3. Test with a sample email\n\nNote: Apple requires manual approval for AppleScript automation.');
+            alert('<i class="fas fa-envelope"></i> Apple Mail Setup\n\nTo enable OpenEgo to send emails automatically:\n\n1. Open Script Editor on your Mac\n2. Grant OpenEgo permission to control Mail\n3. Test with a sample email\n\nNote: Apple requires manual approval for AppleScript automation.');
             showToast('Mail permissions - Coming in Phase 2', 'info');
         }
         window.setupMailPermissions = setupMailPermissions;
         
         function setupTelegramPermissions() {
-            const token = prompt('🔵 Telegram Bot Setup\n\nEnter your Telegram Bot API Token:\n\nTo create a bot:\n1. Message @BotFather on Telegram\n2. Create a new bot\n3. Copy the API token here');
+            const token = prompt('Telegram Telegram Bot Setup\n\nEnter your Telegram Bot API Token:\n\nTo create a bot:\n1. Message @BotFather on Telegram\n2. Create a new bot\n3. Copy the API token here');
             
             if (token) {
                 localStorage.setItem('openego_telegram_token', token);
@@ -5572,13 +5565,13 @@
         window.setupTelegramPermissions = setupTelegramPermissions;
         
         function setupSlackPermissions() {
-            alert('💜 Slack Setup\n\nTo enable OpenEgo to send Slack messages:\n\n1. Create a Slack App at api.slack.com/apps\n2. Add OAuth scopes: chat:write, im:write\n3. Install app to your workspace\n4. Copy the Bot User OAuth Token\n\nNote: This will be implemented in Phase 2.');
+            alert('Slack Slack Setup\n\nTo enable OpenEgo to send Slack messages:\n\n1. Create a Slack App at api.slack.com/apps\n2. Add OAuth scopes: chat:write, im:write\n3. Install app to your workspace\n4. Copy the Bot User OAuth Token\n\nNote: This will be implemented in Phase 2.');
             showToast('Slack permissions - Coming in Phase 2', 'info');
         }
         window.setupSlackPermissions = setupSlackPermissions;
         
         function setupTeamsPermissions() {
-            alert('🔷 Microsoft Teams Setup\n\nTo enable OpenEgo to send Teams messages:\n\n1. Register an app in Azure AD\n2. Add Microsoft Graph API permissions\n3. Get Client ID and Secret\n4. Authenticate with your Microsoft account\n\nNote: This will be implemented in Phase 2.');
+            alert('Teams Microsoft Teams Setup\n\nTo enable OpenEgo to send Teams messages:\n\n1. Register an app in Azure AD\n2. Add Microsoft Graph API permissions\n3. Get Client ID and Secret\n4. Authenticate with your Microsoft account\n\nNote: This will be implemented in Phase 2.');
             showToast('Teams permissions - Coming in Phase 2', 'info');
         }
         window.setupTeamsPermissions = setupTeamsPermissions;
@@ -5924,7 +5917,7 @@
                             </div>
                         </div>
                         <div id="telegramStep3" style="display: none; text-align: center;">
-                            <div style="font-size: 4rem; margin-bottom: 20px;">✅</div>
+                            <div style="font-size: 4rem; margin-bottom: 20px;"><i class="fas fa-check"></i></div>
                             <h3 style="color: #10B981;">Connected!</h3>
                             <p style="color: var(--text-secondary); margin: 20px 0;">Your bot is ready for Auto-Pilot mode.</p>
                             <button class="btn btn-primary" onclick="closeTelegramModal()">Done</button>

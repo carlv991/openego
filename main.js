@@ -438,11 +438,16 @@ setTimeout(checkForUpdates, 5000);
 
 // Start background monitoring for Smart Suggest
 function startSmartSuggestMonitoring() {
+  // Performance fix: Disabled automatic monitoring to prevent freezing
+  // User can manually check for updates instead
+  console.log('[Smart Suggest] Auto-monitoring disabled for performance');
+  return;
+  
+  /* Original code - disabled for performance
   if (smartSuggestInterval) {
     clearInterval(smartSuggestInterval);
   }
   
-  // Check every 30 seconds for new emails
   smartSuggestInterval = setInterval(() => {
     if (smartSuggestEnabled) {
       checkForNewEmails();
@@ -450,6 +455,7 @@ function startSmartSuggestMonitoring() {
   }, 30000);
   
   console.log('[Smart Suggest] Background monitoring started');
+  */
 }
 
 // Check for new emails that need replies
@@ -672,5 +678,5 @@ ipcMain.handle('smart-suggest:test', async () => {
 
 // Start monitoring when app launches
 app.whenReady().then(() => {
-  setTimeout(startSmartSuggestMonitoring, 10000); // Start after 10 seconds
+  // setTimeout(startSmartSuggestMonitoring, 10000); // Disabled for performance
 });
