@@ -18,11 +18,13 @@ const { setupTrainingEngine } = require('./training-engine');
 const { setupSmartFeatures } = require('./smart-features');
 const { setupMultiChannelHandlers } = require('./multi-channel-sender');
 const { setupErrorRecoveryHandlers } = require('./error-recovery');
+const { OpenEgoCore } = require('./openego-core');
 
 let mainWindow;
 let tray;
 let menuBarWindow;
 let ipcHandlersRegistered = false;
+let openegoCore;// OpenEgo Core Controller
 
 // Smart Suggest - Background monitoring
 let smartSuggestEnabled = true;
@@ -174,6 +176,9 @@ function createWindow() {
     console.log('[Main] Telegram sender handlers ready');
     console.log('[Main] AI response handlers ready');
     
+    // Initialize OpenEgo Core Controller
+    openegoCore = new OpenEgoCore(mainWindow);
+    console.log('[Main] OpenEgo Core initialized');
     ipcHandlersRegistered = true;
     console.log('[Main] All IPC handlers registered');
   }

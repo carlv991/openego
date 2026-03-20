@@ -4001,6 +4001,135 @@
         });
         
         // Verify API key by making a test request
+
+// ============== OPENEGO CORE API WRAPPERS ==============
+
+// Initialize OpenEgo
+async function initOpenEgo() {
+    if (typeof require === 'undefined') return { success: false, error: 'Not in Electron' };
+    const { ipcRenderer } = require('electron');
+    return await ipcRenderer.invoke('openego-init');
+}
+
+// Scan emails and train persona
+async function scanAndTrainPersona() {
+    if (typeof require === 'undefined') return { success: false, error: 'Not in Electron' };
+    const { ipcRenderer } = require('electron');
+    showToast('Scanning emails and training persona...', 'info');
+    return await ipcRenderer.invoke('openego-scan-and-train');
+}
+
+// Generate AI response using persona
+async function generateOpenEgoResponse(messageContext) {
+    if (typeof require === 'undefined') {
+        return { success: false, error: 'AI requires the desktop app' };
+    }
+    const { ipcRenderer } = require('electron');
+    return await ipcRenderer.invoke('openego-generate-response', messageContext);
+}
+
+// Send message via OpenEgo
+async function sendOpenEgoMessage(channel, recipient, message, originalId) {
+    if (typeof require === 'undefined') {
+        return { success: false, error: 'Sending requires the desktop app' };
+    }
+    const { ipcRenderer } = require('electron');
+    return await ipcRenderer.invoke('openego-send-message', {
+        channel, recipient, message, originalMessageId: originalId
+    });
+}
+
+// Check OpenEgo readiness
+async function checkOpenEgoReady() {
+    if (typeof require === 'undefined') {
+        return { success: false, ready: false, error: 'Not in Electron' };
+    }
+    const { ipcRenderer } = require('electron');
+    return await ipcRenderer.invoke('openego-check-ready');
+}
+
+// Get current persona
+async function getOpenEgoPersona() {
+    if (typeof require === 'undefined') {
+        return { success: false, error: 'Not in Electron' };
+    }
+    const { ipcRenderer } = require('electron');
+    return await ipcRenderer.invoke('openego-get-persona');
+}
+
+// Save AI settings to file (for the AI generator to read)
+async function saveAISettings(provider, model, apiKey) {
+    try {
+        const settings = { provider, model, apiKey, savedAt: new Date().toISOString() };
+        if (typeof require !== 'undefined') {
+            const { ipcRenderer } = require('electron');
+            // Save via main process for security
+            await ipcRenderer.invoke('save-ai-settings', settings);
+        } else {
+            // Fallback for browser testing
+            localStorage.setItem('openego_ai_settings', JSON.stringify(settings));
+        }
+        return { success: true };
+    } catch (e) {
+        return { success: false, error: e.message };
+    }
+}
+
+// ============== UPDATED TRAINING FLOW ==============
+
+async function startRealTraining() {
+    // Check if we have a trained persona
+    const personaCheck = await getOpenEgoPersona();
+    
+    if (!personaCheck.success || personaCheck.confidence < 80) {
+        // Need to train first
+        showToast('Training persona from your emails...', 'info');
+        const result = await scanAndTrainPersona();
+        
+        if (!result.success) {
+            showToast('Training failed: ' + result.error, 'error');
+            alert('Could not train persona:\n\n' + result.error + '\n\nMake sure you have emails in Apple Mail and Full Disk Access is granted.');
+            return false;
+        }
+        
+        showToast(`Persona trained! Confidence: ${Math.round(result.confidence)}%`, 'success');
+    }
+    
+    return true;
+}
+
+// ============== AI RESPONSE WITH PERSONA ==============
+
+async function getAIResponseForMessage(messageData) {
+    // Check readiness
+    const ready = await checkOpenEgoReady();
+    if (!ready.ready) {
+        return {
+            success: false,
+            text: 'OpenEgo is not ready. Please complete training and set up AI in Settings.',
+            error: ready.error || 'Not ready'
+        };
+    }
+    
+    // Generate response
+    const result = await generateOpenEgoResponse(messageData);
+    return result;
+}
+
+// ============== AUTO-REPLY SETUP ==============
+
+async function setupAutoReply(enabled) {
+    if (typeof require === 'undefined') return;
+    const { ipcRenderer } = require('electron');
+    
+    if (enabled) {
+        await ipcRenderer.invoke('start-message-monitor');
+        showToast('Auto-reply monitoring started', 'success');
+    } else {
+        await ipcRenderer.invoke('stop-message-monitor');
+        showToast('Auto-reply monitoring stopped', 'info');
+    }
+}
         async function verifyAPIKey(provider, apiKey) {
             console.log(`[API Verify] Verifying ${provider} API key...`);
             
