@@ -1,11 +1,14 @@
 const { ipcMain } = require('electron');
-const fs = require('fs');
+const fs = require('fs').promises; // Use async fs
 const path = require('path');
 const os = require('os');
+const { exec } = require('child_process');
+const { promisify } = require('util');
+const execAsync = promisify(exec);
 
 /**
  * Message Monitor - Background service for detecting new messages
- * Scans Mail, Telegram Desktop, and other sources for new messages
+ * PROPERLY IMPLEMENTED: Non-blocking async operations only
  */
 
 class MessageMonitor {
@@ -16,29 +19,31 @@ class MessageMonitor {
     this.knownEmails = new Set();
     this.knownTelegram = new Set();
     this.checkInterval = null;
+    this.isChecking = false; // Prevent overlapping checks
     
     // Load previously seen messages
     this.loadKnownMessages();
   }
   
-  loadKnownMessages() {
+  async loadKnownMessages() {
     try {
       const knownPath = path.join(os.homedir(), '.openego_known_messages.json');
-      if (fs.existsSync(knownPath)) {
-        const data = JSON.parse(fs.readFileSync(knownPath, 'utf8'));
-        this.knownEmails = new Set(data.emails || []);
-        this.knownTelegram = new Set(data.telegram || []);
-        console.log(`[Monitor] Loaded ${this.knownEmails.size} known emails, ${this.knownTelegram.size} known Telegram messages`);
+      const data = await fs.readFile(knownPath, 'utf8').catch(() => null);
+      if (data) {
+        const parsed = JSON.parse(data);
+        this.knownEmails = new Set(parsed.emails || []);
+        this.knownTelegram = new Set(parsed.telegram || []);
+        console.log(`[Monitor] Loaded ${this.knownEmails.size} known emails`);
       }
     } catch (e) {
       console.log('[Monitor] No known messages file yet');
     }
   }
   
-  saveKnownMessages() {
+  async saveKnownMessages() {
     try {
       const knownPath = path.join(os.homedir(), '.openego_known_messages.json');
-      fs.writeFileSync(knownPath, JSON.stringify({
+      await fs.writeFile(knownPath, JSON.stringify({
         emails: Array.from(this.knownEmails),
         telegram: Array.from(this.knownTelegram),
         lastUpdated: new Date().toISOString()
@@ -54,15 +59,15 @@ class MessageMonitor {
     console.log('[Monitor] Starting message monitor...');
     this.isRunning = true;
     
-    // Check immediately
-    this.checkForNewMessages();
+    // First check after 5 seconds (let app finish loading)
+    setTimeout(() => this.checkForNewMessages(), 5000);
     
-    // Check every 30 seconds
+    // Check every 60 seconds (increased from 30 to reduce load)
     this.checkInterval = setInterval(() => {
       this.checkForNewMessages();
-    }, 30000);
+    }, 60000);
     
-    console.log('[Monitor] Message monitor active (checking every 30s)');
+    console.log('[Monitor] Message monitor active (checking every 60s)');
   }
   
   stop() {
@@ -78,258 +83,151 @@ class MessageMonitor {
   }
   
   async checkForNewMessages() {
-    if (!this.isRunning) return;
+    // Prevent overlapping checks
+    if (this.isChecking || !this.isRunning) return;
+    this.isChecking = true;
     
     console.log('[Monitor] Checking for new messages...');
     
     try {
-      // Check Mail
-      const newEmails = await this.checkMail();
+      // Check Mail using AppleScript (non-blocking)
+      const newEmails = await this.checkMailAppleScript();
       
-      // Check Telegram Desktop
-      const newTelegram = await this.checkTelegram();
-      
-      // Notify renderer if new messages found
-      if (newEmails.length > 0 || newTelegram.length > 0) {
-        this.notifyNewMessages(newEmails, newTelegram);
+      // Process emails in background without blocking
+      if (newEmails.length > 0) {
+        setImmediate(() => {
+          this.notifyNewMessages(newEmails, []);
+        });
       }
       
     } catch (e) {
       console.error('[Monitor] Error checking messages:', e);
+    } finally {
+      this.isChecking = false;
     }
   }
   
-  async checkMail() {
+  async checkMailAppleScript() {
     const newEmails = [];
-    const mailPath = path.join(os.homedir(), 'Library/Mail');
     
     try {
-      if (!fs.existsSync(mailPath)) {
-        return newEmails;
+      // AppleScript to get recent unread emails from Mail app
+      const script = `
+        tell application "Mail"
+          set unreadEmails to {}
+          try
+            repeat with acct in accounts
+              try
+                set mb to mailbox "INBOX" of acct
+                set msgs to messages of mb whose read status is false
+                
+                repeat with msg in msgs
+                  try
+                    set msgSubject to subject of msg
+                    set msgSender to sender of msg
+                    set msgContent to content of msg
+                    set msgId to id of msg as string
+                    
+                    set emailData to "ID:" & msgId & "|SUBJECT:" & msgSubject & "|FROM:" & msgSender & "|CONTENT:" & (text 1 thru 200 of msgContent) & "\\n---END---\\n"
+                    set end of unreadEmails to emailData
+                    
+                    if length of unreadEmails >= 5 then exit repeat
+                  on error
+                    -- Skip problematic emails
+                  end try
+                end repeat
+                
+                if length of unreadEmails >= 5 then exit repeat
+              on error
+                -- Skip problematic accounts
+              end try
+            end repeat
+          on error
+            -- Mail app might not be running
+          end try
+          
+          return unreadEmails as string
+        end tell
+      `;
+      
+      // Execute AppleScript asynchronously (NON-BLOCKING)
+      const { stdout, stderr } = await execAsync(`osascript -e '${script}'`, {
+        timeout: 15000, // 15 second timeout
+        maxBuffer: 1024 * 1024 // 1MB buffer
+      }).catch(err => {
+        console.log('[Monitor] AppleScript error (expected if Mail not running):', err.message);
+        return { stdout: '', stderr: '' };
+      });
+      
+      if (stderr) {
+        console.log('[Monitor] AppleScript stderr:', stderr);
       }
       
-      // Get all .emlx files modified in last hour
-      const oneHourAgo = Date.now() - (60 * 60 * 1000);
-      const emailFiles = [];
-      
-      this.collectRecentEmails(mailPath, emailFiles, oneHourAgo);
-      
-      console.log(`[Monitor] Found ${emailFiles.length} recent email files`);
-      
-      for (const filePath of emailFiles) {
-        try {
-          // Create unique ID from path + mtime
-          const stats = fs.statSync(filePath);
-          const msgId = `${filePath}:${stats.mtime.getTime()}`;
+      // Parse the output
+      if (stdout) {
+        const emailBlocks = stdout.split('---END---').filter(b => b.trim());
+        
+        for (const block of emailBlocks) {
+          const idMatch = block.match(/ID:(.+?)\|/);
+          const subjectMatch = block.match(/\|SUBJECT:(.+?)\|FROM:/);
+          const fromMatch = block.match(/\|FROM:(.+?)\|CONTENT:/);
+          const contentMatch = block.match(/\|CONTENT:(.+)$/);
           
-          if (this.knownEmails.has(msgId)) {
-            continue; // Already seen
-          }
-          
-          // Read and parse email
-          const content = fs.readFileSync(filePath, 'utf8');
-          const email = this.parseEmail(content);
-          
-          if (email && email.from && email.subject) {
-            // Only include if it looks like an incoming email (not sent)
-            if (!this.isSentEmail(content)) {
-              newEmails.push({
-                id: msgId,
-                source: 'email',
-                from: email.from,
-                subject: email.subject,
-                preview: email.preview || '',
-                date: stats.mtime.toISOString(),
-                fullContent: email.content
-              });
+          if (idMatch) {
+            const emailId = idMatch[1].trim();
+            
+            // Only process if we haven't seen this email
+            if (!this.knownEmails.has(emailId)) {
+              this.knownEmails.add(emailId);
               
-              this.knownEmails.add(msgId);
+              newEmails.push({
+                id: emailId,
+                subject: subjectMatch ? subjectMatch[1].trim() : 'No subject',
+                from: fromMatch ? fromMatch[1].trim() : 'Unknown',
+                content: contentMatch ? contentMatch[1].trim() : '',
+                source: 'mail',
+                timestamp: new Date().toISOString()
+              });
             }
           }
-        } catch (e) {
-          // Skip problematic files
         }
       }
       
-      console.log(`[Monitor] ${newEmails.length} new emails found`);
-      
-      // Save known messages periodically
-      this.saveKnownMessages();
+      // Save known emails periodically
+      if (newEmails.length > 0) {
+        await this.saveKnownMessages();
+      }
       
     } catch (e) {
-      console.error('[Monitor] Error checking mail:', e);
+      console.error('[Monitor] Error in checkMailAppleScript:', e);
     }
     
     return newEmails;
   }
   
-  collectRecentEmails(dir, files, sinceTime) {
-    try {
-      const items = fs.readdirSync(dir);
-      
-      for (const item of items) {
-        const fullPath = path.join(dir, item);
-        const stat = fs.statSync(fullPath);
-        
-        if (stat.isDirectory()) {
-          // Limit recursion depth
-          if (files.length < 500) {
-            this.collectRecentEmails(fullPath, files, sinceTime);
-          }
-        } else if (item.endsWith('.emlx') || item.endsWith('.eml')) {
-          // Only include if modified recently
-          if (stat.mtime.getTime() > sinceTime) {
-            files.push(fullPath);
-          }
-          
-          // Stop if we have too many
-          if (files.length >= 500) break;
-        }
-      }
-    } catch (e) {
-      // Skip directories we can't access
-    }
-  }
-  
-  isSentEmail(content) {
-    // Simple heuristic - sent emails often have different headers
-    return content.includes('X-Mailer:') || content.includes('Message-Id: <') && content.includes('References:');
-  }
-  
-  parseEmail(content) {
-    try {
-      const lines = content.split('\n');
-      const email = {
-        subject: '',
-        from: '',
-        content: '',
-        preview: ''
-      };
-      
-      let inContent = false;
-      const contentLines = [];
-      
-      for (const line of lines) {
-        if (line.startsWith('Subject:')) {
-          email.subject = line.substring(8).trim();
-        } else if (line.startsWith('From:')) {
-          email.from = line.substring(5).trim();
-          // Extract email from "Name <email@domain.com>" format
-          const match = email.from.match(/<([^>]+)>/);
-          if (match) email.from = match[1];
-        } else if (line === '' && !inContent) {
-          inContent = true;
-        } else if (inContent) {
-          contentLines.push(line);
-        }
-      }
-      
-      email.content = contentLines.join('\n').trim();
-      email.preview = email.content.substring(0, 200).replace(/\n/g, ' ');
-      
-      return email;
-    } catch (e) {
-      return null;
-    }
-  }
-  
-  async checkTelegram() {
-    const newMessages = [];
-    
-    // Check Telegram Desktop local storage
-    const telegramPath = path.join(os.homedir(), 'Library/Application Support/Telegram Desktop/tdata');
-    
-    try {
-      // Telegram stores data in encrypted format, but we can check for new notifications
-      // For now, this is a placeholder for actual Telegram Desktop integration
-      // Would need to use Telegram MTProto API or read from the desktop app's database
-      
-      // Check if user has connected Telegram bot
-      const botToken = this.getTelegramBotToken();
-      if (botToken) {
-        // Use Telegram Bot API to check for messages
-        const updates = await this.getTelegramUpdates(botToken);
-        
-        for (const update of updates) {
-          const msgId = `telegram:${update.message_id}`;
-          
-          if (this.knownTelegram.has(msgId)) continue;
-          
-          newMessages.push({
-            id: msgId,
-            source: 'telegram',
-            from: update.from || 'Unknown',
-            subject: '',
-            preview: update.text || '',
-            date: new Date().toISOString(),
-            fullContent: update.text
-          });
-          
-          this.knownTelegram.add(msgId);
-        }
-      }
-    } catch (e) {
-      console.error('[Monitor] Error checking Telegram:', e);
-    }
-    
-    return newMessages;
-  }
-  
-  getTelegramBotToken() {
-    try {
-      // Read from file storage
-      // For now, check if token file exists
-      const tokenPath = path.join(os.homedir(), '.openego_telegram_token');
-      if (fs.existsSync(tokenPath)) {
-        return fs.readFileSync(tokenPath, 'utf8').trim();
-      }
-    } catch (e) {}
-    return null;
-  }
-  
-  async getTelegramUpdates(botToken) {
-    try {
-      const response = await fetch(`https://api.telegram.org/bot${botToken}/getUpdates?limit=10`);
-      const data = await response.json();
-      
-      if (data.ok && data.result) {
-        return data.result.map(update => ({
-          message_id: update.message?.message_id,
-          from: update.message?.from?.first_name || update.message?.from?.username,
-          text: update.message?.text,
-          chat_id: update.message?.chat?.id
-        })).filter(m => m.message_id);
-      }
-    } catch (e) {
-      console.error('[Monitor] Error getting Telegram updates:', e);
-    }
-    return [];
-  }
-  
   notifyNewMessages(emails, telegram) {
-    if (!this.mainWindow || this.mainWindow.isDestroyed()) return;
-    
     const totalNew = emails.length + telegram.length;
-    console.log(`[Monitor] Notifying ${totalNew} new messages`);
+    if (totalNew === 0) return;
+    
+    console.log(`[Monitor] Found ${totalNew} new messages`);
     
     // Send to renderer process
-    this.mainWindow.webContents.send('new-messages', {
-      emails,
-      telegram,
-      timestamp: new Date().toISOString()
-    });
+    if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+      this.mainWindow.webContents.send('new-messages', {
+        emails,
+        telegram,
+        timestamp: new Date().toISOString()
+      });
+    }
     
-    // Show notification
-    if (totalNew > 0) {
-      const { Notification } = require('electron');
-      
-      if (Notification.isSupported()) {
-        new Notification({
-          title: 'OpenEgo',
-          body: `${totalNew} new message${totalNew > 1 ? 's' : ''} detected`,
-          silent: false
-        }).show();
-      }
+    // Show native notification
+    const { Notification } = require('electron');
+    if (Notification.isSupported()) {
+      new Notification({
+        title: 'OpenEgo',
+        body: `${totalNew} new message${totalNew > 1 ? 's' : ''} to respond to`,
+        silent: false
+      }).show();
     }
   }
 }
@@ -340,26 +238,35 @@ function setupMessageMonitor(mainWindow) {
   
   ipcMain.handle('start-message-monitor', () => {
     monitor.start();
-    return { success: true };
+    return { success: true, status: 'started' };
   });
   
   ipcMain.handle('stop-message-monitor', () => {
     monitor.stop();
-    return { success: true };
+    return { success: true, status: 'stopped' };
   });
   
   ipcMain.handle('check-messages-now', async () => {
-    const emails = await monitor.checkMail();
-    const telegram = await monitor.checkTelegram();
-    return { emails, telegram };
+    const emails = await monitor.checkMailAppleScript();
+    return { emails, count: emails.length };
   });
   
-  // DISABLED: Auto-start causes freezing - user must manually start monitoring
-  // const mode = 'copilot'; 
-  // if (mode === 'autopilot' || mode === 'copilot') {
-  //   monitor.start();
-  // }
-  console.log('[Monitor] Auto-start disabled - user must manually start');
+  ipcMain.handle('get-monitor-status', () => {
+    return { 
+      isRunning: monitor.isRunning,
+      knownEmails: monitor.knownEmails.size,
+      lastCheck: monitor.lastCheckTime
+    };
+  });
+  
+  // Auto-start if user has enabled it in settings
+  // This will be controlled by a setting in the UI
+  const autoStart = false; // User must enable this in settings
+  if (autoStart) {
+    monitor.start();
+  }
+  
+  console.log('[Monitor] Setup complete. Call start-message-monitor to enable auto-reply.');
 }
 
 module.exports = { setupMessageMonitor, MessageMonitor };

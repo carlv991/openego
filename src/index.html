@@ -3213,6 +3213,24 @@
                                 </button>
                             </div>
                             
+                            <!-- Auto-Reply Toggle -->
+                            <div class="settings-card">
+                                <h3><i class="fas fa-sync-alt"></i> Auto-Reply Monitoring</h3>
+                                <div class="setting-row">
+                                    <div>
+                                        <div class="setting-name">Background Monitoring</div>
+                                        <div class="setting-value" id="autoReplyStatus">Disabled</div>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="autoReplyToggle" onchange="toggleAutoReply(this.checked)">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 10px;">
+                                    When enabled, OpenEgo checks for new messages every 60 seconds and suggests auto-replies. Uses non-blocking processing to prevent freezing.
+                                </p>
+                            </div>
+                            
                             <!-- Permissions Section for Auto-Pilot Send Access -->
                             <div class="settings-card" style="border: 1px solid #DE6D51;">
                                 <h3 style="color: #DE6D51;"><i class="fas fa-key"></i> Send Permissions <span class="badge" style="font-size: 10px; margin-left: 8px;">AUTO-PILOT REQUIRED</span></h3>
@@ -4810,6 +4828,11 @@
             
             document.getElementById(tab + 'Tab').classList.add('active');
             event.target.closest('.nav-item').classList.add('active');
+            
+            // Load settings when switching to settings tab
+            if (tab === 'settings') {
+                loadAutoReplySetting();
+            }
         }
         
         function approveMessage(btn) {
@@ -6029,7 +6052,59 @@
                 await ipcRenderer.invoke('start-message-monitor');
             }
 
-            updateActivityStatus('Monitoring inbox...', 'Checking every 30 seconds');
+            updateActivityStatus('Monitoring inbox...', 'Checking every 60 seconds');
+        }
+
+        // Auto-Reply Toggle Handler
+        async function toggleAutoReply(enabled) {
+            console.log('[Auto-Reply] Toggling:', enabled);
+            
+            const statusEl = document.getElementById('autoReplyStatus');
+            if (statusEl) {
+                statusEl.textContent = enabled ? 'Enabled' : 'Disabled';
+            }
+            
+            localStorage.setItem('openego_auto_reply', enabled ? 'true' : 'false');
+            
+            if (typeof require !== 'undefined') {
+                const { ipcRenderer } = require('electron');
+                
+                try {
+                    if (enabled) {
+                        await ipcRenderer.invoke('start-message-monitor');
+                        showToast('Auto-Reply enabled - checking every 60 seconds', 'success');
+                        console.log('[Auto-Reply] Monitor started');
+                    } else {
+                        await ipcRenderer.invoke('stop-message-monitor');
+                        showToast('Auto-Reply disabled', 'info');
+                        console.log('[Auto-Reply] Monitor stopped');
+                    }
+                } catch (e) {
+                    console.error('[Auto-Reply] Error:', e);
+                    showToast('Error: ' + e.message, 'error');
+                    // Revert toggle on error
+                    const toggle = document.getElementById('autoReplyToggle');
+                    if (toggle) toggle.checked = !enabled;
+                }
+            } else {
+                showToast('Auto-Reply requires the desktop app', 'error');
+            }
+        }
+        window.toggleAutoReply = toggleAutoReply;
+        
+        // Load auto-reply setting on startup
+        function loadAutoReplySetting() {
+            const enabled = localStorage.getItem('openego_auto_reply') === 'true';
+            const toggle = document.getElementById('autoReplyToggle');
+            const statusEl = document.getElementById('autoReplyStatus');
+            
+            if (toggle) toggle.checked = enabled;
+            if (statusEl) statusEl.textContent = enabled ? 'Enabled' : 'Disabled';
+            
+            // Auto-start if enabled (only in Electron)
+            if (enabled && typeof require !== 'undefined') {
+                setTimeout(() => toggleAutoReply(true), 2000); // Start after 2s delay
+            }
         }
 
         async function processNewMessage(message) {
