@@ -5925,22 +5925,43 @@ async function setupAutoReply(enabled) {
         }
         window.refreshInbox = refreshInbox;
         
+        // Test function to manually add a message to inbox
+        function testAddMessageToInbox() {
+            const testMessage = {
+                from: 'Test Sender',
+                preview: 'This is a test message to verify the inbox is working!',
+                source: 'email',
+                channel: 'email'
+            };
+            const testResponse = 'Thank you for your message! This is a test response from OpenEgo.';
+            const testClassification = {
+                classification: 'simple',
+                confidence: 0.95
+            };
+            
+            addMessageToInbox(testMessage, testResponse, testClassification);
+            showToast('Test message added to inbox!', 'success');
+        }
+        window.testAddMessageToInbox = testAddMessageToInbox;
+        
         function updateInboxBadge() {
             const badge = document.getElementById('inboxBadge');
             const messages = document.querySelectorAll('.message-card');
             const count = messages.length;
+            const emptyState = document.getElementById('emptyInbox');
+            const messageList = document.getElementById('messageList');
             
             if (count <= 0) {
                 if (badge) badge.style.display = 'none';
-                const emptyState = document.getElementById('emptyInbox');
-                const messageList = document.getElementById('messageList');
-                if (emptyState) emptyState.classList.remove('hidden');
-                if (messageList) messageList.classList.add('hidden');
+                if (emptyState) emptyState.style.display = 'block';
+                if (messageList) messageList.style.display = 'none';
             } else {
                 if (badge) {
                     badge.textContent = count;
                     badge.style.display = 'block';
                 }
+                if (emptyState) emptyState.style.display = 'none';
+                if (messageList) messageList.style.display = 'block';
             }
         }
         
@@ -6453,10 +6474,20 @@ async function setupAutoReply(enabled) {
 
         function addMessageToInbox(message, aiText, classification) {
             const inboxList = document.getElementById('messageList');
+            const emptyState = document.getElementById('emptyInbox');
+            
             if (!inboxList) {
                 console.error('[Inbox] messageList element not found');
                 return;
             }
+            
+            // Hide empty state when adding messages
+            if (emptyState) {
+                emptyState.style.display = 'none';
+            }
+            
+            // Show message list
+            inboxList.style.display = 'block';
 
             const sourceIcon = message.source === 'telegram' ? 'fab fa-telegram' : 'fas fa-envelope';
             
@@ -7226,6 +7257,15 @@ async function setupAutoReply(enabled) {
             const provider = localStorage.getItem('openego_provider') || 'ollama';
             const model = localStorage.getItem('openego_model') || 'llama3.1';
             updateCurrentModelDisplay(provider, model);
+            
+            // Initialize inbox state
+            updateInboxBadge();
+            
+            // Check if we should auto-start message monitoring
+            const autoReplyEnabled = localStorage.getItem('openego_auto_reply') === 'true';
+            if (autoReplyEnabled && typeof require !== 'undefined') {
+                setTimeout(startMessageMonitoring, 2000);
+            }
         });
     </script>
 </body>
