@@ -4887,6 +4887,20 @@
             document.body.appendChild(modal);
             alert('Modal appended successfully!');
             console.log('[Telegram] Modal added to DOM');
+            
+            // Debug: Check if modal is visible
+            const addedModal = document.getElementById('telegramSetupModal');
+            if (addedModal) {
+                const styles = window.getComputedStyle(addedModal);
+                alert('Modal found in DOM. Display: ' + styles.display + ', Visibility: ' + styles.visibility + ', Z-index: ' + styles.zIndex);
+                // Force show
+                addedModal.style.display = 'flex';
+                addedModal.style.visibility = 'visible';
+                addedModal.style.zIndex = '10000';
+                alert('Forced styles applied. Check if modal is visible now!');
+            } else {
+                alert('ERROR: Modal not found in DOM after append!');
+            }
             } catch(err) {
                 alert('Error in showTelegramSetupWizard: ' + err.message);
                 console.error('[Telegram] Error:', err);
