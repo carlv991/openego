@@ -10,7 +10,7 @@ const {
 } = require('./electron-modules');
 const { setupCommunicationScanner } = require('./communication-scanner');
 const { setupEmailScannerHandlers } = require('./email-scanner');
-const { setupMessageMonitor } = require('./message-monitor');
+const { setupMessageMonitor } = require('./message-monitor-safe');
 const { setupAIResponseHandlers } = require('./ai-response-generator');
 const { setupAppleMailHandlers } = require('./apple-mail-sender');
 const { setupTelegramSenderHandlers } = require('./telegram-sender');
