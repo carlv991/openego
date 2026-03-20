@@ -3262,7 +3262,7 @@
                                     </div>
                                     <div class="permission-status" id="telegramStatusContainer">
                                         <span class="status-badge pending" id="telegramStatusBadge">Not Set Up</span>
-                                        <button class="btn btn-secondary btn-small" id="telegramSetupBtn" onclick="alert('Button clicked!'); if(typeof showTelegramSetupWizard==='function'){showTelegramSetupWizard()}else{alert('Error: showTelegramSetupWizard not found')}; return false;">Set Up</button>
+                                        <button class="btn btn-secondary btn-small" id="telegramSetupBtn" onclick="alert('Button clicked!'); try{console.log('Before check:',typeof showTelegramSetupWizard);if(typeof showTelegramSetupWizard==='function'){alert('Function found, calling...');showTelegramSetupWizard()}else{alert('Error: showTelegramSetupWizard not found')} }catch(e){alert('Error: '+e.message)}; return false;">Set Up</button>
                                     </div>
                                 </div>
                                 
