@@ -6302,20 +6302,36 @@ async function setupAutoReply(enabled) {
         }
 
         async function processNewMessage(message) {
-            updateActivityStatus('Reading message...', 'From: ' + message.from);
+            updateActivityStatus('Analyzing message...', 'From: ' + message.from);
 
             let aiResponse = { success: true, text: 'Thanks for your message. Let me get back to you.' };
+            let classification = null;
 
             try {
                 if (typeof require !== 'undefined') {
                     const { ipcRenderer } = require('electron');
-                    aiResponse = await ipcRenderer.invoke('generate-response', message);
+                    const result = await ipcRenderer.invoke('openego-generate-response', {
+                        message: message.content || message.body || message.text,
+                        sender: message.from,
+                        channel: message.channel || 'email'
+                    });
+                    
+                    aiResponse = result;
+                    classification = result.metadata;
+                    
+                    // Show classification in status
+                    if (classification) {
+                        updateActivityStatus(
+                            classification.classification === 'complex' ? '🧠 Analyzing context...' : '✓ Simple message',
+                            classification.chainOfThought ? 'Retrieving conversation history' : 'Quick reply mode'
+                        );
+                    }
                 }
             } catch (e) {
                 console.error('[AI] Error:', e);
             }
 
-            addMessageToInbox(message, aiResponse.text || aiResponse);
+            addMessageToInbox(message, aiResponse.text || aiResponse.response || aiResponse, classification);
             updateInboxBadge();
 
             const mode = localStorage.getItem('openego_mode') || 'copilot';
@@ -6324,7 +6340,7 @@ async function setupAutoReply(enabled) {
             }
         }
 
-        function addMessageToInbox(message, aiText) {
+        function addMessageToInbox(message, aiText, classification) {
             const inboxList = document.getElementById('messageList');
             if (!inboxList) {
                 console.error('[Inbox] messageList element not found');
@@ -6332,6 +6348,20 @@ async function setupAutoReply(enabled) {
             }
 
             const sourceIcon = message.source === 'telegram' ? 'fab fa-telegram' : 'fas fa-envelope';
+            
+            // Classification badge
+            let classificationBadge = '';
+            if (classification) {
+                const badgeColor = classification.classification === 'complex' ? '#F59E0B' : '#10B981';
+                const badgeIcon = classification.classification === 'complex' ? '🧠' : '⚡';
+                const chainOfThoughtBadge = classification.chainOfThought ? '<span style="background: rgba(245, 158, 11, 0.2); color: #F59E0B; padding: 2px 8px; border-radius: 12px; font-size: 10px; margin-left: 8px;">Context Aware</span>' : '';
+                classificationBadge = `
+                    <span style="background: ${badgeColor}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; text-transform: uppercase;">
+                        ${badgeIcon} ${classification.classification}
+                    </span>
+                    ${chainOfThoughtBadge}
+                `;
+            }
 
             const card = document.createElement('div');
             card.className = 'message-card pending';
@@ -6339,9 +6369,10 @@ async function setupAutoReply(enabled) {
                 <div class="message-source">
                     <i class="${sourceIcon}"></i>
                     <span class="source-name">${message.from}</span>
+                    ${classificationBadge}
                     <span class="message-time">Just now</span>
                 </div>
-                <div class="message-preview">"${message.preview || 'New message'}"</div>
+                <div class="message-preview">"${message.preview || message.content || message.body || 'New message'}"</div>
                 <div class="ai-response-box">
                     <div class="ai-label"><i class="fas fa-robot"></i> OpenEgo suggests:</div>
                     <div class="ai-text">"${aiText}"</div>
@@ -6372,6 +6403,229 @@ async function setupAutoReply(enabled) {
         // Set default training mode
         if (!localStorage.getItem('openego_training_mode')) {
             localStorage.setItem('openego_training_mode', 'scratch');
+        }
+        
+        // ============== MESSAGE CLASSIFICATION UI ==============
+        
+        /**
+         * Show response notification with classification info
+         */
+        function showResponseNotification(data) {
+            const { 
+                originalMessage, 
+                generatedResponse, 
+                sender, 
+                channel, 
+                mode, 
+                actions, 
+                note,
+                classification,
+                confidence,
+                chainOfThought
+            } = data;
+            
+            const notificationId = 'notif-' + Date.now();
+            
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.id = notificationId;
+            notification.className = 'response-notification';
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                width: 420px;
+                max-height: 80vh;
+                background: var(--card-bg, rgba(30, 30, 30, 0.98));
+                border: 1px solid var(--accent, #DE6D51);
+                border-radius: 12px;
+                padding: 20px;
+                z-index: 10000;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+                overflow-y: auto;
+                font-family: system-ui, -apple-system, sans-serif;
+                backdrop-filter: blur(20px);
+            `;
+            
+            // Classification badge
+            const classificationBadge = classification ? `
+                <div style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                    <span style="
+                        background: ${classification === 'complex' ? '#F59E0B' : '#10B981'};
+                        color: white;
+                        padding: 4px 12px;
+                        border-radius: 20px;
+                        font-size: 11px;
+                        font-weight: 600;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                    ">${classification}</span>
+                    ${confidence ? `<span style="font-size: 11px; opacity: 0.6;">${Math.round(confidence * 100)}% confidence</span>` : ''}
+                    ${chainOfThought ? '<span style="font-size: 11px; color: #F59E0B;">🧠 Context analyzed</span>' : ''}
+                </div>
+            ` : '';
+            
+            // Build notification HTML
+            notification.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                    <div>
+                        <h3 style="margin: 0; font-size: 16px; color: var(--text-primary, #fff);">
+                            <i class="fas fa-comment-dots" style="color: var(--accent, #DE6D51); margin-right: 8px;"></i>
+                            New Message
+                        </h3>
+                        <p style="margin: 5px 0 0 0; font-size: 12px; opacity: 0.7;">
+                            <i class="fas fa-user" style="margin-right: 4px;"></i>${sender} 
+                            <span style="margin: 0 8px;">•</span>
+                            <i class="fas fa-${channel === 'telegram' ? 'paper-plane' : 'envelope'}" style="margin-right: 4px;"></i>${channel}
+                        </p>
+                    </div>
+                    <button onclick="document.getElementById('${notificationId}').remove()" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 20px; padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)" onmouseout="this.style.background='none'">×</button>
+                </div>
+                
+                ${classificationBadge}
+                
+                <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05);">
+                    <p style="margin: 0 0 6px 0; font-size: 10px; text-transform: uppercase; opacity: 0.5; letter-spacing: 0.5px;">Original Message</p>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-primary, #fff); line-height: 1.5;">${(originalMessage || '').substring(0, 200)}${(originalMessage || '').length > 200 ? '...' : ''}</p>
+                </div>
+                
+                <div style="background: rgba(222, 109, 81, 0.08); padding: 12px; border-radius: 8px; margin-bottom: 15px; border-left: 3px solid var(--accent, #DE6D51);">
+                    <p style="margin: 0 0 6px 0; font-size: 10px; text-transform: uppercase; opacity: 0.5; letter-spacing: 0.5px;">Generated Response</p>
+                    <p id="response-text-${notificationId}" style="margin: 0; font-size: 14px; color: var(--text-primary, #fff); white-space: pre-wrap; line-height: 1.5;">${generatedResponse}</p>
+                </div>
+                
+                ${note ? `<p style="margin: 0 0 15px 0; font-size: 12px; color: #F59E0B; font-style: italic; background: rgba(245, 158, 11, 0.1); padding: 8px 12px; border-radius: 6px;"><i class="fas fa-info-circle" style="margin-right: 6px;"></i>${note}</p>` : ''}
+                
+                <div style="display: flex; gap: 8px;">
+                    ${(actions || []).includes('copy') ? `
+                        <button onclick="copyResponseFromNotification('${notificationId}')" style="
+                            flex: 1;
+                            background: var(--accent, #DE6D51);
+                            color: white;
+                            border: none;
+                            padding: 10px 16px;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 13px;
+                            font-weight: 500;
+                            transition: transform 0.1s, opacity 0.2s;
+                        " onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'">
+                            <i class="fas fa-copy" style="margin-right: 6px;"></i> Copy
+                        </button>
+                    ` : ''}
+                    ${(actions || []).includes('edit') ? `
+                        <button onclick="editResponseInNotification('${notificationId}')" style="
+                            flex: 1;
+                            background: rgba(255,255,255,0.1);
+                            color: white;
+                            border: 1px solid rgba(255,255,255,0.2);
+                            padding: 10px 16px;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 13px;
+                            transition: background 0.2s;
+                        " onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                            <i class="fas fa-edit" style="margin-right: 6px;"></i> Edit
+                        </button>
+                    ` : ''}
+                    ${(actions || []).includes('send') ? `
+                        <button onclick="sendResponseFromNotification('${notificationId}', '${channel}', '${sender}')" style="
+                            flex: 1;
+                            background: #10B981;
+                            color: white;
+                            border: none;
+                            padding: 10px 16px;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 13px;
+                            font-weight: 500;
+                            transition: transform 0.1s, opacity 0.2s;
+                        " onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'">
+                            <i class="fas fa-paper-plane" style="margin-right: 6px;"></i> Send
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Auto-remove after 60 seconds if not interacted
+            setTimeout(() => {
+                const el = document.getElementById(notificationId);
+                if (el && el.parentNode) {
+                    el.style.opacity = '0.7';
+                    el.style.transition = 'opacity 0.5s';
+                }
+            }, 50000);
+            
+            setTimeout(() => {
+                const el = document.getElementById(notificationId);
+                if (el && el.parentNode) {
+                    el.remove();
+                }
+            }, 60000);
+        }
+        
+        async function copyResponseFromNotification(notificationId) {
+            const textEl = document.getElementById(`response-text-${notificationId}`);
+            if (textEl) {
+                const text = textEl.innerText;
+                if (typeof require !== 'undefined') {
+                    const { ipcRenderer } = require('electron');
+                    await ipcRenderer.invoke('openego-copy-to-clipboard', text);
+                } else {
+                    navigator.clipboard.writeText(text);
+                }
+                showToast('Response copied to clipboard!', 'success');
+            }
+        }
+        
+        function editResponseInNotification(notificationId) {
+            const textEl = document.getElementById(`response-text-${notificationId}`);
+            if (textEl) {
+                textEl.contentEditable = true;
+                textEl.focus();
+                textEl.style.background = 'rgba(255,255,255,0.1)';
+                textEl.style.padding = '8px';
+                textEl.style.borderRadius = '4px';
+                textEl.style.outline = 'none';
+                showToast('You can now edit the response. Click outside to finish.', 'info');
+                
+                textEl.addEventListener('blur', () => {
+                    textEl.contentEditable = false;
+                    textEl.style.background = 'transparent';
+                    textEl.style.padding = '0';
+                }, { once: true });
+            }
+        }
+        
+        async function sendResponseFromNotification(notificationId, channel, recipient) {
+            const textEl = document.getElementById(`response-text-${notificationId}`);
+            if (textEl && typeof require !== 'undefined') {
+                const { ipcRenderer } = require('electron');
+                const response = textEl.innerText;
+                
+                const result = await ipcRenderer.invoke('openego-send-message', {
+                    channel,
+                    recipient,
+                    message: response
+                });
+                
+                if (result.success) {
+                    showToast('Message sent!', 'success');
+                    document.getElementById(notificationId)?.remove();
+                } else {
+                    showToast('Failed to send: ' + result.error, 'error');
+                }
+            }
+        }
+        
+        // Listen for notifications from main process
+        if (typeof require !== 'undefined') {
+            const { ipcRenderer } = require('electron');
+            ipcRenderer.on('show-response-notification', (event, data) => {
+                showResponseNotification(data);
+            });
         }
     </script>
 </body>
