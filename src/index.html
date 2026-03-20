@@ -5930,10 +5930,16 @@
                             </div>
                         </div>
                         <div id="telegramStep3" style="display: none; text-align: center;">
-                            <div style="font-size: 4rem; margin-bottom: 20px;"><i class="fas fa-check"></i></div>
+                            <div style="font-size: 4rem; margin-bottom: 20px;"><i class="fas fa-check-circle" style="color: #10B981;"></i></div>
                             <h3 style="color: #10B981;">Connected!</h3>
                             <p style="color: var(--text-secondary); margin: 20px 0;">Your bot is ready for Auto-Pilot mode.</p>
-                            <button class="btn btn-primary" onclick="closeTelegramModal()">Done</button>
+                            <div style="display: flex; gap: 10px; justify-content: center;">
+                                <button class="btn btn-secondary" onclick="testTelegramConnection()">
+                                    <i class="fas fa-vial"></i> Test
+                                </button>
+                                <button class="btn btn-primary" onclick="closeTelegramModal()">Done</button>
+                            </div>
+                            <p id="telegramTestResult" style="margin-top: 15px; font-size: 0.9rem;"></p>
                         </div>
                         <div id="telegramLoading" style="display: none; text-align: center; padding: 40px;">
                             <div class="loading-spinner" style="width: 50px; height: 50px; margin: 0 auto 20px;"></div>
@@ -5982,6 +5988,16 @@
                     localStorage.setItem('openego_telegram_bot_name', data.result.first_name);
                     localStorage.setItem('openego_telegram_connected', 'true');
 
+                    // Also save to file for main process access
+                    if (typeof require !== 'undefined') {
+                        try {
+                            const { ipcRenderer } = require('electron');
+                            await ipcRenderer.invoke('save-telegram-token', token);
+                        } catch (e) {
+                            console.error('[Telegram] Error saving token to file:', e);
+                        }
+                    }
+
                     document.getElementById('telegramLoading').style.display = 'none';
                     document.getElementById('telegramStep3').style.display = 'block';
                     updateTelegramConnectionStatus();
@@ -6011,6 +6027,32 @@
             }
         }
         window.updateTelegramConnectionStatus = updateTelegramConnectionStatus;
+
+        async function testTelegramConnection() {
+            const resultEl = document.getElementById('telegramTestResult');
+            if (resultEl) {
+                resultEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+            }
+
+            if (typeof require === 'undefined') {
+                if (resultEl) resultEl.innerHTML = '<span style="color: #EF4444;">Requires desktop app</span>';
+                return;
+            }
+
+            try {
+                const { ipcRenderer } = require('electron');
+                const result = await ipcRenderer.invoke('test-telegram-connection');
+
+                if (result.success) {
+                    if (resultEl) resultEl.innerHTML = '<span style="color: #10B981;"><i class="fas fa-check"></i> ' + result.message + '</span>';
+                } else {
+                    if (resultEl) resultEl.innerHTML = '<span style="color: #EF4444;"><i class="fas fa-times"></i> ' + (result.error || 'Connection failed') + '</span>';
+                }
+            } catch (e) {
+                if (resultEl) resultEl.innerHTML = '<span style="color: #EF4444;"><i class="fas fa-times"></i> Error: ' + e.message + '</span>';
+            }
+        }
+        window.testTelegramConnection = testTelegramConnection;
 
         function disconnectTelegram() {
             if (confirm('Disconnect Telegram?')) {

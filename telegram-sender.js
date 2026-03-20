@@ -2,18 +2,35 @@ const { ipcMain } = require('electron');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const https = require('https');
 
 /**
  * Telegram Sender
  * Uses Telegram Bot API to send messages
+ * Compatible with Node.js (no external fetch dependency)
  */
+
+// Simple HTTPS request helper (Node.js native)
+function httpsRequest(url, options = {}) {
+  return new Promise((resolve, reject) => {
+    const client = url.startsWith('https:') ? https : require('http');
+    const req = client.request(url, options, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => resolve({ status: res.statusCode, body: data }));
+    });
+    req.on('error', reject);
+    if (options.body) req.write(options.body);
+    req.end();
+  });
+}
 
 class TelegramSender {
   constructor() {
     this.botToken = null;
     this.loadToken();
   }
-  
+
   loadToken() {
     try {
       // Load from file (main process)
@@ -25,7 +42,7 @@ class TelegramSender {
       console.log('[Telegram] No token found');
     }
   }
-  
+
   async sendMessage(chatId, text, options = {}) {
     if (!this.botToken) {
       return {
@@ -33,29 +50,30 @@ class TelegramSender {
         error: 'Telegram bot not configured. Please set up in Settings.'
       };
     }
-    
+
     try {
       const url = `https://api.telegram.org/bot${this.botToken}/sendMessage`;
-      
-      const body = {
+
+      const body = JSON.stringify({
         chat_id: chatId,
         text: text,
         parse_mode: options.parseMode || 'HTML',
         disable_notification: options.silent || false
-      };
-      
+      });
+
       console.log('[Telegram] Sending message to:', chatId);
-      
-      const response = await fetch(url, {
+
+      const response = await httpsRequest(url, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(body)
         },
-        body: JSON.stringify(body)
+        body: body
       });
-      
-      const data = await response.json();
-      
+
+      const data = JSON.parse(response.body);
+
       if (data.ok) {
         console.log('[Telegram] Message sent successfully');
         return {
@@ -67,7 +85,7 @@ class TelegramSender {
       } else {
         throw new Error(data.description || 'Unknown error');
       }
-      
+
     } catch (e) {
       console.error('[Telegram] Error sending message:', e);
       return {
@@ -77,17 +95,17 @@ class TelegramSender {
       };
     }
   }
-  
+
   async getUpdates(limit = 10) {
     if (!this.botToken) {
       return { success: false, error: 'Bot not configured' };
     }
-    
+
     try {
       const url = `https://api.telegram.org/bot${this.botToken}/getUpdates?limit=${limit}`;
-      const response = await fetch(url);
-      const data = await response.json();
-      
+      const response = await httpsRequest(url, { method: 'GET' });
+      const data = JSON.parse(response.body);
+
       if (data.ok) {
         return {
           success: true,
@@ -100,54 +118,36 @@ class TelegramSender {
       return { success: false, error: e.message };
     }
   }
-  
-  async getChatInfo(chatId) {
-    if (!this.botToken) {
-      return { success: false, error: 'Bot not configured' };
-    }
-    
-    try {
-      const url = `https://api.telegram.org/bot${this.botToken}/getChat?chat_id=${chatId}`;
-      const response = await fetch(url);
-      const data = await response.json();
-      
-      if (data.ok) {
-        return {
-          success: true,
-          chat: data.result
-        };
-      } else {
-        throw new Error(data.description);
-      }
-    } catch (e) {
-      return { success: false, error: e.message };
-    }
-  }
-  
+
   async replyToMessage(chatId, messageId, text) {
-    // Reply to a specific message
     if (!this.botToken) {
-      return { success: false, error: 'Bot not configured' };
+      return {
+        success: false,
+        error: 'Telegram bot not configured'
+      };
     }
-    
+
     try {
       const url = `https://api.telegram.org/bot${this.botToken}/sendMessage`;
-      
-      const body = {
+
+      const body = JSON.stringify({
         chat_id: chatId,
         text: text,
         reply_to_message_id: messageId,
         parse_mode: 'HTML'
-      };
-      
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
       });
-      
-      const data = await response.json();
-      
+
+      const response = await httpsRequest(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(body)
+        },
+        body: body
+      });
+
+      const data = JSON.parse(response.body);
+
       if (data.ok) {
         return {
           success: true,
@@ -157,7 +157,10 @@ class TelegramSender {
         throw new Error(data.description);
       }
     } catch (e) {
-      return { success: false, error: e.message };
+      return {
+        success: false,
+        error: e.message
+      };
     }
   }
 }
@@ -165,20 +168,34 @@ class TelegramSender {
 // Setup IPC handlers
 function setupTelegramSenderHandlers() {
   const sender = new TelegramSender();
-  
+
+  // Save Telegram token from renderer to file
+  ipcMain.handle('save-telegram-token', async (event, token) => {
+    try {
+      const tokenPath = path.join(os.homedir(), '.openego_telegram_token');
+      fs.writeFileSync(tokenPath, token);
+      sender.botToken = token; // Update in-memory token
+      console.log('[Telegram] Token saved to file');
+      return { success: true };
+    } catch (e) {
+      console.error('[Telegram] Error saving token:', e);
+      return { success: false, error: e.message };
+    }
+  });
+
   ipcMain.handle('send-telegram-message', async (event, chatId, text, options = {}) => {
     console.log('[Telegram] Send request:', { chatId, text: text.substring(0, 50) + '...' });
     return sender.sendMessage(chatId, text, options);
   });
-  
+
   ipcMain.handle('reply-telegram-message', async (event, chatId, messageId, text) => {
     return sender.replyToMessage(chatId, messageId, text);
   });
-  
+
   ipcMain.handle('get-telegram-updates', async () => {
     return sender.getUpdates();
   });
-  
+
   ipcMain.handle('test-telegram-connection', async () => {
     const updates = await sender.getUpdates(1);
     if (updates.success) {
