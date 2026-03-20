@@ -6209,18 +6209,18 @@
         window.saveEdit = saveEdit;
         window.exportPersona = exportPersona;
         window.sendResponseActual = sendResponseActual;
+        
+        // EMERGENCY FIX: Define missing functions (moved inside proper script tags)
+        function sendResponseActual(btn, autoSend) {
+            console.log('[Send] Using sendResponseActual');
+            return sendResponse(btn, autoSend);
+        }
+        window.sendResponseActual = sendResponseActual;
+        
+        // Set default training mode
+        if (!localStorage.getItem('openego_training_mode')) {
+            localStorage.setItem('openego_training_mode', 'scratch');
+        }
     </script>
 </body>
 </html>
-
-// EMERGENCY FIX: Define missing functions
-function sendResponseActual(btn, autoSend) {
-    console.log('[Send] Using sendResponseActual');
-    return sendResponse(btn, autoSend);
-}
-window.sendResponseActual = sendResponseActual;
-
-// Set default training mode
-if (!localStorage.getItem('openego_training_mode')) {
-    localStorage.setItem('openego_training_mode', 'scratch');
-}
