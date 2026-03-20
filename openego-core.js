@@ -332,7 +332,7 @@ class OpenEgoCore {
         
         const release = await response.json();
         const latestVersion = release.tag_name.replace('v', '');
-        const currentVersion = '0.1.64'; // Current app version
+        const currentVersion = '0.1.65'; // Current app version
         
         // Simple version comparison
         const latestParts = latestVersion.split('.').map(Number);
