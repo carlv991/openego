@@ -2927,11 +2927,11 @@
                     
                     <div class="sidebar-stats">
                         <div class="mini-stat">
-                            <span class="mini-stat-value">127</span>
+                            <span class="mini-stat-value" id="sidebarHandled">0</span>
                             <span class="mini-stat-label">Handled</span>
                         </div>
                         <div class="mini-stat">
-                            <span class="mini-stat-value">14.5h</span>
+                            <span class="mini-stat-value" id="sidebarSaved">0h</span>
                             <span class="mini-stat-label">Saved</span>
                         </div>
                     </div>
@@ -2953,71 +2953,16 @@
                         </div>
                         
                         <div class="message-list" id="messageList">
-                            <div class="message-card pending">
-                                <div class="message-source">
-                                    <i class="fas fa-envelope"></i>
-                                    <span class="source-name">client@company.com</span>
-                                    <span class="message-time">2 min ago</span>
-                                </div>
-                                <div class="message-preview">
-                                    "Can we schedule a call to discuss the proposal?"
-                                </div>
-                                <div class="ai-response-box">
-                                    <div class="ai-label">
-                                        <i class="fas fa-robot"></i> OpenEgo suggests:
-                                    </div>
-                                    <div class="ai-text">
-                                        "Absolutely! I'm free Thursday 2-4pm. What works for you?"
-                                    </div>
-                                </div>
-                                <div class="message-actions">
-                                    <button class="btn btn-primary action-btn" onclick="sendResponse(this)">
-                                        <i class="fas fa-paper-plane"></i> Send
-                                    </button>
-                                    <button class="btn btn-secondary action-btn" onclick="editResponse(this)">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </button>
-                                    <button class="btn btn-secondary action-btn" onclick="dismissMessage(this)">
-                                        <i class="fas fa-times"></i> Dismiss
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="message-card pending">
-                                <div class="message-source">
-                                    <i class="fab fa-telegram"></i>
-                                    <span class="source-name">@sarah_tech</span>
-                                    <span class="message-time">5 min ago</span>
-                                </div>
-                                <div class="message-preview">
-                                    "Hey! Quick question - are we still on for the demo tomorrow?"
-                                </div>
-                                <div class="ai-response-box">
-                                    <div class="ai-label">
-                                        <i class="fas fa-robot"></i> OpenEgo suggests:
-                                    </div>
-                                    <div class="ai-text">
-                                        "Yes, demo is confirmed for 2pm tomorrow! Looking forward to showing you the new features."
-                                    </div>
-                                </div>
-                                <div class="message-actions">
-                                    <button class="btn btn-primary action-btn" onclick="sendResponse(this)">
-                                        <i class="fas fa-paper-plane"></i> Send
-                                    </button>
-                                    <button class="btn btn-secondary action-btn" onclick="editResponse(this)">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </button>
-                                    <button class="btn btn-secondary action-btn" onclick="dismissMessage(this)">
-                                        <i class="fas fa-times"></i> Dismiss
-                                    </button>
-                                </div>
-                            </div>
+                            <!-- Messages will appear here when detected -->
                         </div>
                         
-                        <div class="empty-state hidden" id="emptyInbox">
-                            <i class="fas fa-check-circle"></i>
-                            <h3>All Caught Up!</h3>
-                            <p>No messages need your attention right now.</p>
+                        <div class="empty-state" id="emptyInbox">
+                            <i class="fas fa-inbox"></i>
+                            <h3>No Messages Yet</h3>
+                            <p>New messages will appear here when detected.</p>
+                            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 10px;">
+                                Make sure Full Disk Access is enabled in System Preferences.
+                            </p>
                         </div>
                     </div>
                     
@@ -3163,32 +3108,13 @@
                             <p class="subtitle">Recent actions and responses</p>
                         </div>
                         <div class="activity-list" id="activityList">
-                            <div class="activity-item">
-                                <div class="activity-icon sent">
-                                    <i class="fas fa-paper-plane"></i>
+                            <div class="activity-item" style="opacity: 0.6;">
+                                <div class="activity-icon" style="background: var(--glass-bg);">
+                                    <i class="fas fa-info" style="color: var(--text-secondary);"></i>
                                 </div>
                                 <div class="activity-content">
-                                    <div class="activity-title">Response sent to client@company.com</div>
-                                    <div class="activity-time">2 minutes ago</div>
-                                </div>
-                                <span class="activity-badge">Auto</span>
-                            </div>
-                            <div class="activity-item">
-                                <div class="activity-icon learned">
-                                    <i class="fas fa-brain"></i>
-                                </div>
-                                <div class="activity-content">
-                                    <div class="activity-title">Learned new pattern from your edit</div>
-                                    <div class="activity-time">15 minutes ago</div>
-                                </div>
-                            </div>
-                            <div class="activity-item">
-                                <div class="activity-icon received">
-                                    <i class="fas fa-envelope"></i>
-                                </div>
-                                <div class="activity-content">
-                                    <div class="activity-title">New email from investor@vc.com</div>
-                                    <div class="activity-time">1 hour ago</div>
+                                    <div class="activity-title">No activity yet</div>
+                                    <div class="activity-time">Activity will appear here when you start using OpenEgo</div>
                                 </div>
                             </div>
                         </div>
@@ -3206,48 +3132,41 @@
                                     <i class="fas fa-envelope"></i>
                                     <span>Emails Handled</span>
                                 </div>
-                                <div class="insight-value">127</div>
-                                <div class="insight-change">+12 this week</div>
+                                <div class="insight-value" id="insightEmails">0</div>
+                                <div class="insight-change">No data yet</div>
                             </div>
                             <div class="insight-card">
                                 <div class="insight-header">
                                     <i class="fas fa-clock"></i>
                                     <span>Time Saved</span>
                                 </div>
-                                <div class="insight-value">14.5h</div>
-                                <div class="insight-change">~2.1h per day</div>
+                                <div class="insight-value" id="insightTime">0h</div>
+                                <div class="insight-change">No data yet</div>
                             </div>
                             <div class="insight-card">
                                 <div class="insight-header">
                                     <i class="fas fa-bullseye"></i>
                                     <span>Accuracy</span>
                                 </div>
-                                <div class="insight-value">87%</div>
-                                <div class="insight-change">+5% from last week</div>
+                                <div class="insight-value" id="insightAccuracy">--</div>
+                                <div class="insight-change">Complete training to see accuracy</div>
                             </div>
                             <div class="insight-card">
                                 <div class="insight-header">
                                     <i class="fas fa-fire"></i>
                                     <span>Day Streak</span>
                                 </div>
-                                <div class="insight-value">12</div>
-                                <div class="insight-change">Keep it up!</div>
+                                <div class="insight-value" id="insightStreak">0</div>
+                                <div class="insight-change">Start using OpenEgo to build streak</div>
                             </div>
                         </div>
                         
                         <div class="chart-container">
                             <h3>Response Time Trends</h3>
-                            <div class="chart-placeholder">
-                                <div class="chart-bar" style="height: 40%"></div>
-                                <div class="chart-bar" style="height: 60%"></div>
-                                <div class="chart-bar" style="height: 45%"></div>
-                                <div class="chart-bar" style="height: 80%"></div>
-                                <div class="chart-bar" style="height: 65%"></div>
-                                <div class="chart-bar" style="height: 90%"></div>
-                                <div class="chart-bar active" style="height: 75%"></div>
-                            </div>
-                            <div class="chart-labels">
-                                <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                            <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                                <i class="fas fa-chart-bar" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.3;"></i>
+                                <p>No data available yet</p>
+                                <p style="font-size: 0.9rem; margin-top: 10px;">Start using OpenEgo to see your trends</p>
                             </div>
                         </div>
                     </div>
@@ -3263,9 +3182,9 @@
                                 <div class="setting-row">
                                     <div>
                                         <div class="setting-name">Current Model</div>
-                                        <div class="setting-value">GPT-4o via OpenAI</div>
+                                        <div class="setting-value" id="currentModelValue">Not configured</div>
                                     </div>
-                                    <button class="btn btn-secondary">Change</button>
+                                    <button class="btn btn-secondary" onclick="openSettingsModal()">Configure</button>
                                 </div>
                             </div>
                             
@@ -3276,10 +3195,10 @@
                                         <i class="fas fa-envelope"></i>
                                         <div>
                                             <div class="setting-name">Apple Mail</div>
-                                            <div class="setting-value">Active</div>
+                                            <div class="setting-value" id="appleMailStatus">Checking...</div>
                                         </div>
                                     </div>
-                                    <span class="status-tag connected">Connected</span>
+                                    <span class="status-tag" id="appleMailBadge" style="background: rgba(107, 114, 128, 0.15); color: #6B7280;">Unknown</span>
                                 </div>
                             </div>
                             
