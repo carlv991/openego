@@ -4316,6 +4316,7 @@
         // Generate AI response for training
         async function generateTrainingResponse(emailContent, index) {
             const responseDiv = document.getElementById(`responseText${index}`);
+            if (!responseDiv) { console.error("[Training] Element not found"); return; }
             
             // Get saved AI settings
             const provider = localStorage.getItem('openego_provider') || 'ollama';
@@ -4950,7 +4951,7 @@
                 updateActivityStatus('Co-pilot mode', 'Waiting for your approval');
             
             // Start real message monitoring (Phase 3)
-            startMessageMonitoring();
+            // startMessageMonitoring(); // Disabled for performance - user must start manually
             }
         }
         
@@ -5260,7 +5261,7 @@
                 updateActivityStatus('Co-pilot mode', 'Waiting for your approval');
             
             // Start real message monitoring (Phase 3)
-            startMessageMonitoring();
+            // startMessageMonitoring(); // Disabled for performance - user must start manually
             }
         }
         
@@ -6192,3 +6193,15 @@
     </script>
 </body>
 </html>
+
+// EMERGENCY FIX: Define missing functions
+function sendResponseActual(btn, autoSend) {
+    console.log('[Send] Using sendResponseActual');
+    return sendResponse(btn, autoSend);
+}
+window.sendResponseActual = sendResponseActual;
+
+// Set default training mode
+if (!localStorage.getItem('openego_training_mode')) {
+    localStorage.setItem('openego_training_mode', 'scratch');
+}
