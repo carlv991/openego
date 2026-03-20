@@ -3262,7 +3262,7 @@
                                     </div>
                                     <div class="permission-status" id="telegramStatusContainer">
                                         <span class="status-badge pending" id="telegramStatusBadge">Not Set Up</span>
-                                        <button class="btn btn-secondary btn-small" onclick="showTelegramSetupWizard()">Set Up</button>
+                                        <button class="btn btn-secondary btn-small" id="telegramSetupBtn" onclick="showTelegramSetupWizard(); console.log('[Telegram] Set Up clicked');">Set Up</button>
                                     </div>
                                 </div>
                                 
@@ -4826,6 +4826,182 @@
         function showSettings() {
             openSettingsModal();
         }
+        
+        // TELEGRAM SETUP FUNCTIONS (moved here to ensure early definition)
+        function showTelegramSetupWizard() {
+            console.log('[Telegram] Opening setup wizard');
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.id = 'telegramSetupModal';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 600px;">
+                    <div class="modal-header">
+                        <h2><i class="fab fa-telegram" style="color: #0088CC;"></i> Connect Telegram</h2>
+                        <button class="modal-close" onclick="closeTelegramModal()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="telegramStep1">
+                            <h3 style="margin-bottom: 15px; color: var(--accent);">Step 1: Create a Telegram Bot</h3>
+                            <div style="background: var(--bg-primary); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                                <ol style="color: var(--text-secondary); line-height: 2; margin-left: 20px;">
+                                    <li>Open Telegram on your phone or computer</li>
+                                    <li>Search for <strong>@BotFather</strong></li>
+                                    <li>Send: <code>/newbot</code></li>
+                                    <li>Name your bot (e.g., "OpenEgo Assistant")</li>
+                                    <li>Choose username ending in "bot"</li>
+                                    <li>Copy the <strong>API Token</strong></li>
+                                </ol>
+                            </div>
+                            <button class="btn btn-primary" onclick="showTelegramStep2()">I Have My Token <i class="fas fa-arrow-right"></i></button>
+                        </div>
+                        <div id="telegramStep2" style="display: none;">
+                            <h3 style="margin-bottom: 15px; color: var(--accent);">Step 2: Enter Bot Token</h3>
+                            <input type="text" id="telegramBotToken" placeholder="123456789:ABCdefGHIjkl..." style="width: 100%; padding: 12px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: monospace; margin-bottom: 20px;">
+                            <div style="display: flex; gap: 10px;">
+                                <button class="btn btn-secondary" onclick="showTelegramStep1()"><i class="fas fa-arrow-left"></i> Back</button>
+                                <button class="btn btn-primary" onclick="validateAndSaveTelegramToken()" style="flex: 1;"><i class="fas fa-plug"></i> Connect</button>
+                            </div>
+                        </div>
+                        <div id="telegramStep3" style="display: none; text-align: center;">
+                            <div style="font-size: 4rem; margin-bottom: 20px;"><i class="fas fa-check-circle" style="color: #10B981;"></i></div>
+                            <h3 style="color: #10B981;">Connected!</h3>
+                            <p style="color: var(--text-secondary); margin: 20px 0;">Your bot is ready for Auto-Pilot mode.</p>
+                            <div style="display: flex; gap: 10px; justify-content: center;">
+                                <button class="btn btn-secondary" onclick="testTelegramConnection()">
+                                    <i class="fas fa-vial"></i> Test
+                                </button>
+                                <button class="btn btn-primary" onclick="closeTelegramModal()">Done</button>
+                            </div>
+                            <p id="telegramTestResult" style="margin-top: 15px; font-size: 0.9rem;"></p>
+                        </div>
+                        <div id="telegramLoading" style="display: none; text-align: center; padding: 40px;">
+                            <div class="loading-spinner" style="width: 50px; height: 50px; margin: 0 auto 20px;"></div>
+                            <p>Connecting...</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            console.log('[Telegram] Modal added to DOM');
+        }
+        window.showTelegramSetupWizard = showTelegramSetupWizard;
+
+        function closeTelegramModal() {
+            const modal = document.getElementById('telegramSetupModal');
+            if (modal) modal.remove();
+        }
+        window.closeTelegramModal = closeTelegramModal;
+
+        function showTelegramStep1() {
+            const s1 = document.getElementById('telegramStep1');
+            const s2 = document.getElementById('telegramStep2');
+            if (s1) s1.style.display = 'block';
+            if (s2) s2.style.display = 'none';
+        }
+        window.showTelegramStep1 = showTelegramStep1;
+
+        function showTelegramStep2() {
+            const s1 = document.getElementById('telegramStep1');
+            const s2 = document.getElementById('telegramStep2');
+            if (s1) s1.style.display = 'none';
+            if (s2) s2.style.display = 'block';
+        }
+        window.showTelegramStep2 = showTelegramStep2;
+
+        async function validateAndSaveTelegramToken() {
+            const tokenInput = document.getElementById('telegramBotToken');
+            if (!tokenInput) return showToast('Error: Token input not found', 'error');
+            const token = tokenInput.value.trim();
+            if (!token) return showToast('Please enter token', 'error');
+
+            const loading = document.getElementById('telegramLoading');
+            const step2 = document.getElementById('telegramStep2');
+            const step3 = document.getElementById('telegramStep3');
+            
+            if (step2) step2.style.display = 'none';
+            if (loading) loading.style.display = 'block';
+
+            try {
+                const res = await fetch('https://api.telegram.org/bot' + token + '/getMe');
+                const data = await res.json();
+
+                if (data.ok) {
+                    localStorage.setItem('openego_telegram_token', token);
+                    localStorage.setItem('openego_telegram_bot_name', data.result.first_name);
+                    localStorage.setItem('openego_telegram_connected', 'true');
+
+                    if (typeof require !== 'undefined') {
+                        try {
+                            const { ipcRenderer } = require('electron');
+                            await ipcRenderer.invoke('save-telegram-token', token);
+                        } catch (e) {
+                            console.error('[Telegram] Error saving token to file:', e);
+                        }
+                    }
+
+                    if (loading) loading.style.display = 'none';
+                    if (step3) step3.style.display = 'block';
+                    updateTelegramConnectionStatus();
+                    showToast('Telegram connected!', 'success');
+                } else throw new Error('Invalid token');
+            } catch (e) {
+                if (loading) loading.style.display = 'none';
+                if (step2) step2.style.display = 'block';
+                showToast('Invalid token', 'error');
+            }
+        }
+        window.validateAndSaveTelegramToken = validateAndSaveTelegramToken;
+
+        async function testTelegramConnection() {
+            const resultEl = document.getElementById('telegramTestResult');
+            if (resultEl) resultEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+
+            if (typeof require === 'undefined') {
+                if (resultEl) resultEl.innerHTML = '<span style="color: #EF4444;">Requires desktop app</span>';
+                return;
+            }
+
+            try {
+                const { ipcRenderer } = require('electron');
+                const result = await ipcRenderer.invoke('test-telegram-connection');
+
+                if (result.success) {
+                    if (resultEl) resultEl.innerHTML = '<span style="color: #10B981;"><i class="fas fa-check"></i> ' + result.message + '</span>';
+                } else {
+                    if (resultEl) resultEl.innerHTML = '<span style="color: #EF4444;"><i class="fas fa-times"></i> ' + (result.error || 'Connection failed') + '</span>';
+                }
+            } catch (e) {
+                if (resultEl) resultEl.innerHTML = '<span style="color: #EF4444;"><i class="fas fa-times"></i> Error: ' + e.message + '</span>';
+            }
+        }
+        window.testTelegramConnection = testTelegramConnection;
+
+        function updateTelegramConnectionStatus() {
+            const isConnected = localStorage.getItem('openego_telegram_connected') === 'true';
+            const botName = localStorage.getItem('openego_telegram_bot_name');
+
+            const badge = document.getElementById('telegramStatusBadge');
+            const desc = document.getElementById('telegramDesc');
+            const container = document.getElementById('telegramStatusContainer');
+
+            if (isConnected && badge && desc && container) {
+                badge.textContent = 'Connected';
+                badge.className = 'status-badge connected';
+                desc.textContent = 'Bot: ' + botName;
+                container.innerHTML = '<span class="status-badge connected">Connected</span><button class="btn btn-secondary btn-small" onclick="disconnectTelegram()">Disconnect</button>';
+            }
+        }
+        window.updateTelegramConnectionStatus = updateTelegramConnectionStatus;
+
+        function disconnectTelegram() {
+            if (confirm('Disconnect Telegram?')) {
+                localStorage.removeItem('openego_telegram_token');
+                localStorage.removeItem('openego_telegram_bot_name');
+                localStorage.removeItem('openego_telegram_connected');
+                location.reload();
+            }
+        }
+        window.disconnectTelegram = disconnectTelegram;
         
         // Dashboard Functions
         function switchTab(tab) {
