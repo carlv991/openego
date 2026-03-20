@@ -1,4 +1,4 @@
-const { ipcMain } = require('electron');
+const { ipcMain, clipboard } = require('electron');
 const { AIResponseGenerator } = require('./ai-response-generator');
 const { PersonaEngine } = require('./persona-engine');
 const { CommunicationScanner } = require('./communication-scanner');
@@ -9,6 +9,8 @@ const os = require('os');
 /**
  * Core OpenEgo Controller
  * Orchestrates email scanning, persona training, and AI response generation
+ * Handles Co-Pilot vs Auto-Pilot modes
+ * Provides clipboard copy for unsupported platforms
  */
 
 class OpenEgoCore {
@@ -113,23 +115,114 @@ class OpenEgoCore {
       }
     });
 
-    // Send message via appropriate channel
-    ipcMain.handle('openego-send-message', async (event, sendData) => {
+    // Handle message response with Co-Pilot vs Auto-Pilot logic
+    ipcMain.handle('openego-handle-response', async (event, data) => {
       try {
-        console.log('[OpenEgo] Sending message...', sendData);
+        console.log('[OpenEgo] Handling response...', data);
         
-        const { channel, recipient, message, originalMessageId } = sendData;
+        const { message, response, channel, sender, mode } = data;
         
-        switch (channel) {
-          case 'email':
-            return await this.sendEmail(recipient, message, originalMessageId);
-          case 'telegram':
-            return await this.sendTelegram(recipient, message);
-          default:
-            return { success: false, error: `Unknown channel: ${channel}` };
+        // Define supported channels for auto-send
+        const autoSendChannels = ['email', 'telegram'];
+        const supportsAutoSend = autoSendChannels.includes(channel);
+        
+        // Co-Pilot Mode: Always show notification for approval
+        if (mode === 'copilot') {
+          console.log('[OpenEgo] Co-Pilot mode: Showing notification for approval');
+          
+          // Show in-app notification with copy/edit/send options
+          if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+            this.mainWindow.webContents.send('show-response-notification', {
+              originalMessage: message,
+              generatedResponse: response,
+              sender: sender,
+              channel: channel,
+              mode: 'copilot',
+              actions: supportsAutoSend ? ['copy', 'edit', 'send'] : ['copy', 'edit'],
+              timestamp: new Date().toISOString()
+            });
+          }
+          
+          // Also copy to clipboard for convenience
+          clipboard.writeText(response);
+          
+          return {
+            success: true,
+            mode: 'copilot',
+            action: 'notification',
+            message: 'Response generated and copied to clipboard. Review in notification.',
+            supportsAutoSend: supportsAutoSend
+          };
         }
+        
+        // Auto-Pilot Mode: Auto-send if supported, otherwise copy
+        if (mode === 'autopilot') {
+          if (!supportsAutoSend) {
+            // Platform doesn't support auto-send (WhatsApp, etc.)
+            console.log(`[OpenEgo] Auto-Pilot: ${channel} doesn't support auto-send, copying to clipboard`);
+            clipboard.writeText(response);
+            
+            // Show notification
+            if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+              this.mainWindow.webContents.send('show-response-notification', {
+                originalMessage: message,
+                generatedResponse: response,
+                sender: sender,
+                channel: channel,
+                mode: 'autopilot-copy',
+                actions: ['copy'],
+                note: `${channel} doesn't support auto-send. Response copied to clipboard.`,
+                timestamp: new Date().toISOString()
+              });
+            }
+            
+            return {
+              success: true,
+              mode: 'autopilot',
+              action: 'copy',
+              message: `${channel} doesn't support auto-send. Response copied to clipboard.`,
+              response: response
+            };
+          }
+          
+          // Auto-send for supported channels
+          console.log(`[OpenEgo] Auto-Pilot: Auto-sending via ${channel}`);
+          
+          let sendResult;
+          switch (channel) {
+            case 'email':
+              sendResult = await this.sendEmail(sender, response);
+              break;
+            case 'telegram':
+              sendResult = await this.sendTelegram(sender, response);
+              break;
+            default:
+              sendResult = { success: false, error: `Unknown channel: ${channel}` };
+          }
+          
+          return {
+            success: sendResult.success,
+            mode: 'autopilot',
+            action: 'auto-send',
+            channel: channel,
+            result: sendResult
+          };
+        }
+        
+        return { success: false, error: `Unknown mode: ${mode}` };
       } catch (e) {
-        console.error('[OpenEgo] Send message error:', e);
+        console.error('[OpenEgo] Handle response error:', e);
+        return { success: false, error: e.message };
+      }
+    });
+
+    // Copy to clipboard
+    ipcMain.handle('openego-copy-to-clipboard', async (event, text) => {
+      try {
+        clipboard.writeText(text);
+        console.log('[OpenEgo] Copied to clipboard');
+        return { success: true, message: 'Response copied to clipboard' };
+      } catch (e) {
         return { success: false, error: e.message };
       }
     });
@@ -179,6 +272,21 @@ class OpenEgoCore {
           hasAI,
           confidence: personaConfidence
         };
+      } catch (e) {
+        return { success: false, error: e.message };
+      }
+    });
+
+    // Save AI settings
+    ipcMain.handle('save-ai-settings', async (event, settings) => {
+      try {
+        const settingsPath = path.join(os.homedir(), '.openego_ai_settings.json');
+        fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
+        
+        // Reload settings in generator
+        this.aiGenerator.loadSettings();
+        
+        return { success: true };
       } catch (e) {
         return { success: false, error: e.message };
       }
@@ -242,18 +350,4 @@ class OpenEgoCore {
   }
 }
 
-    // Save AI settings
-    ipcMain.handle("save-ai-settings", async (event, settings) => {
-      try {
-        const settingsPath = path.join(os.homedir(), ".openego_ai_settings.json");
-        fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
-        
-        // Reload settings in generator
-        this.aiGenerator.loadSettings();
-        
-        return { success: true };
-      } catch (e) {
-        return { success: false, error: e.message };
-      }
-    });
 module.exports = { OpenEgoCore };
