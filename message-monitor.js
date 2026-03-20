@@ -354,11 +354,12 @@ function setupMessageMonitor(mainWindow) {
     return { emails, telegram };
   });
   
-  // Auto-start if in auto-pilot mode
-  const mode = 'copilot'; // Would read from settings
-  if (mode === 'autopilot' || mode === 'copilot') {
-    monitor.start();
-  }
+  // DISABLED: Auto-start causes freezing - user must manually start monitoring
+  // const mode = 'copilot'; 
+  // if (mode === 'autopilot' || mode === 'copilot') {
+  //   monitor.start();
+  // }
+  console.log('[Monitor] Auto-start disabled - user must manually start');
 }
 
 module.exports = { setupMessageMonitor, MessageMonitor };

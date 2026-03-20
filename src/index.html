@@ -5547,22 +5547,12 @@
         
         // Permission Setup Functions
         function setupMailPermissions() {
-            alert('<i class="fas fa-envelope"></i> Apple Mail Setup\n\nTo enable OpenEgo to send emails automatically:\n\n1. Open Script Editor on your Mac\n2. Grant OpenEgo permission to control Mail\n3. Test with a sample email\n\nNote: Apple requires manual approval for AppleScript automation.');
+            alert('Apple Mail Setup\n\nTo enable OpenEgo to send emails automatically:\n\n1. Open Script Editor on your Mac\n2. Grant OpenEgo permission to control Mail\n3. Test with a sample email\n\nNote: Apple requires manual approval for AppleScript automation.');
             showToast('Mail permissions - Coming in Phase 2', 'info');
         }
         window.setupMailPermissions = setupMailPermissions;
         
-        function setupTelegramPermissions() {
-            const token = prompt('Telegram Telegram Bot Setup\n\nEnter your Telegram Bot API Token:\n\nTo create a bot:\n1. Message @BotFather on Telegram\n2. Create a new bot\n3. Copy the API token here');
-            
-            if (token) {
-                localStorage.setItem('openego_telegram_token', token);
-                showToast('Telegram token saved!', 'success');
-                // Update UI to show connected
-                // TODO: Actually validate the token
-            }
-        }
-        window.setupTelegramPermissions = setupTelegramPermissions;
+        // setupTelegramPermissions moved below - using wizard version instead
         
         function setupSlackPermissions() {
             alert('Slack Slack Setup\n\nTo enable OpenEgo to send Slack messages:\n\n1. Create a Slack App at api.slack.com/apps\n2. Add OAuth scopes: chat:write, im:write\n3. Install app to your workspace\n4. Copy the Bot User OAuth Token\n\nNote: This will be implemented in Phase 2.');

@@ -32,49 +32,76 @@ let smartSuggestInterval = null;
 // Register retrain-persona handler directly in main.js to ensure it works
 ipcMain.handle('retrain-persona', async (event) => {
   console.log('[Main] Retrain persona handler called');
-  try {
-    const { PersonaEngine } = require('./persona-engine');
-    const { CommunicationScanner } = require('./communication-scanner');
-    
-    console.log('[Main] Creating scanner...');
-    const scanner = new CommunicationScanner(mainWindow);
-    
-    console.log('[Main] Starting email scan...');
-    const results = await scanner.scanMail();
-    console.log(`[Main] Scan complete: ${results?.emails?.length || 0} emails`);
-    
-    if (!results.emails || results.emails.length === 0) {
-      return { 
-        success: false, 
-        error: 'No emails found. Make sure you have emails in Apple Mail and Full Disk Access is granted.'
-      };
-    }
-    
-    console.log('[Main] Building persona...');
-    const engine = new PersonaEngine();
-    results.emails.forEach((email, index) => {
-      if (index % 50 === 0) {
-        console.log(`[Main] Analyzing ${index}/${results.emails.length}...`);
-      }
-      engine.analyzeEmail({
-        content: email.body || email.preview || email.content || '',
-        timestamp: new Date(email.date || Date.now())
+  
+  // Return immediately and process in background to prevent UI freezing
+  return new Promise(async (resolve) => {
+    try {
+      const { PersonaEngine } = require('./persona-engine');
+      const { CommunicationScanner } = require('./communication-scanner');
+      
+      console.log('[Main] Creating scanner...');
+      const scanner = new CommunicationScanner(mainWindow);
+      
+      // Use setImmediate to yield control back to the event loop
+      setImmediate(async () => {
+        try {
+          console.log('[Main] Starting email scan...');
+          const results = await scanner.scanMail();
+          console.log(`[Main] Scan complete: ${results?.emails?.length || 0} emails`);
+          
+          if (!results.emails || results.emails.length === 0) {
+            resolve({ 
+              success: false, 
+              error: 'No emails found. Make sure you have emails in Apple Mail and Full Disk Access is granted.'
+            });
+            return;
+          }
+          
+          console.log('[Main] Building persona...');
+          const engine = new PersonaEngine();
+          
+          // Process emails in chunks to prevent blocking
+          const processChunk = (startIdx) => {
+            const chunkSize = 25;
+            const endIdx = Math.min(startIdx + chunkSize, results.emails.length);
+            
+            for (let i = startIdx; i < endIdx; i++) {
+              engine.analyzeEmail({
+                content: results.emails[i].body || results.emails[i].preview || results.emails[i].content || '',
+                timestamp: new Date(results.emails[i].date || Date.now())
+              });
+            }
+            
+            if (endIdx < results.emails.length) {
+              // More emails to process - schedule next chunk
+              setTimeout(() => processChunk(endIdx), 10);
+            } else {
+              // Done processing
+              console.log('[Main] Saving persona...');
+              engine.savePersona();
+              
+              console.log('[Main] Retrain complete!');
+              resolve({ 
+                success: true, 
+                emailsAnalyzed: results.emails.length,
+                persona: engine.generatePersonaProfile()
+              });
+            }
+          };
+          
+          // Start processing
+          processChunk(0);
+          
+        } catch (e) {
+          console.error('[Main] Retrain error in background:', e);
+          resolve({ success: false, error: e.message, stack: e.stack });
+        }
       });
-    });
-    
-    console.log('[Main] Saving persona...');
-    engine.savePersona();
-    
-    console.log('[Main] Retrain complete!');
-    return { 
-      success: true, 
-      emailsAnalyzed: results.emails.length,
-      persona: engine.generatePersonaProfile()
-    };
-  } catch (e) {
-    console.error('[Main] Retrain error:', e);
-    return { success: false, error: e.message, stack: e.stack };
-  }
+    } catch (e) {
+      console.error('[Main] Retrain error:', e);
+      resolve({ success: false, error: e.message, stack: e.stack });
+    }
+  });
 });
 console.log('[Main] retrain-persona handler registered directly in main.js');
 

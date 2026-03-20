@@ -118,10 +118,10 @@ class CommunicationScanner {
             // Small delay to prevent blocking
             await this.delay(50);
             
-            // Clear some memory every 100 emails
-            if (processedCount % 100 === 0) {
-              global.gc && global.gc(); // Force garbage collection if available
-            }
+            // DISABLED: global.gc() causes freezing - let Node.js manage memory naturally
+            // if (processedCount % 100 === 0) {
+            //   global.gc && global.gc();
+            // }
           }
         } catch (e) {
           console.log(`[Scanner] Error processing file: ${e.message}`);
@@ -411,4 +411,4 @@ function setupCommunicationScanner(mainWindow) {
   console.log('[Scanner] Communication scanner initialized');
 }
 
-module.exports = { setupCommunicationScanner };
+module.exports = { setupCommunicationScanner, CommunicationScanner };
