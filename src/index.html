@@ -5633,9 +5633,11 @@ async function setupAutoReply(enabled) {
             const soundwaveContainer = document.getElementById('soundwaveContainer');
             
             if (isPaused) {
-                btn.innerHTML = '<i class="fas fa-play"></i> Resume';
-                liveIndicator.classList.remove('active');
-                liveIndicator.innerHTML = '<i class="fas fa-pause-circle"></i><span class="status-text">Paused</span>';
+                if (btn) btn.innerHTML = '<i class="fas fa-play"></i> Resume';
+                if (liveIndicator) {
+                    liveIndicator.classList.remove('active');
+                    liveIndicator.innerHTML = '<i class="fas fa-pause-circle"></i><span class="status-text">Paused</span>';
+                }
                 showToast('OpenEgo paused', 'info');
                 clearInterval(statusInterval);
                 
@@ -5645,9 +5647,11 @@ async function setupAutoReply(enabled) {
                     soundwaveContainer.classList.remove('reading', 'writing', 'thinking', 'idle', 'processing');
                 }
             } else {
-                btn.innerHTML = '<i class="fas fa-pause"></i> Pause';
-                liveIndicator.classList.add('active');
-                liveIndicator.innerHTML = '<span class="pulse-dot"></span><span class="status-text">Live</span>';
+                if (btn) btn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+                if (liveIndicator) {
+                    liveIndicator.classList.add('active');
+                    liveIndicator.innerHTML = '<span class="pulse-dot"></span><span class="status-text">Live</span>';
+                }
                 showToast('OpenEgo resumed', 'success');
                 startStatusAnimation();
                 
@@ -6776,15 +6780,8 @@ async function setupAutoReply(enabled) {
          * Open AI Model Configuration Modal
          */
         function openAIModelConfig() {
-            // Check if we're on dashboard or onboarding
-            const dashboardTab = document.getElementById('dashboardTab');
-            if (dashboardTab && dashboardTab.classList.contains('active')) {
-                // On dashboard - show AI config modal
-                showAIModelConfigModal();
-            } else {
-                // On onboarding - go to step 3 (AI Model selection)
-                goToStep(3);
-            }
+            // Always show the AI config modal
+            showAIModelConfigModal();
         }
         
         /**
