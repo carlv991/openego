@@ -596,6 +596,23 @@
             background: linear-gradient(to top, #10B981, #34D399);
         }
         
+        /* State-based colors for soundwave */
+        .soundwave-container.reading .soundwave-bar {
+            background: linear-gradient(to top, #3B82F6, #60A5FA);
+        }
+        
+        .soundwave-container.writing .soundwave-bar {
+            background: linear-gradient(to top, #8B5CF6, #A78BFA);
+        }
+        
+        .soundwave-container.thinking .soundwave-bar {
+            background: linear-gradient(to top, #F59E0B, #FBBF24);
+        }
+        
+        .soundwave-container.idle .soundwave-bar {
+            background: linear-gradient(to top, #DE6D51, #F97316);
+        }
+        
         .activity-text {
             display: flex;
             flex-direction: column;
@@ -5232,19 +5249,28 @@ async function setupAutoReply(enabled) {
         function updateActivityStatus(status, detail) {
             const activityLabel = document.querySelector('.activity-label');
             const activityDetail = document.querySelector('.activity-detail');
-            const soundwaveContainer = document.getElementById('soundwaveContainer');
+            const statusText = document.getElementById('statusText');
+            const statusDetail = document.getElementById('statusDetail');
             
+            // Update both sidebar and top bar
             if (activityLabel) activityLabel.textContent = status;
             if (activityDetail) activityDetail.textContent = detail;
+            if (statusText) statusText.textContent = status;
+            if (statusDetail) statusDetail.textContent = detail || '';
             
-            // Update soundwave animation based on activity
-            if (soundwaveContainer) {
-                soundwaveContainer.classList.remove('paused', 'processing');
-                
-                if (status.includes('Monitoring') || status.includes('Waiting')) {
-                    soundwaveContainer.classList.add('paused');
-                } else if (status.includes('Reading') || status.includes('Composing') || status.includes('Analyzing')) {
-                    soundwaveContainer.classList.add('processing');
+            // Update soundwave state based on activity
+            if (!isPaused) {
+                const statusLower = status.toLowerCase();
+                if (statusLower.includes('read') || statusLower.includes('analyz') || statusLower.includes('scan') || statusLower.includes('check')) {
+                    setSoundwaveState('reading');
+                } else if (statusLower.includes('writ') || statusLower.includes('generat') || statusLower.includes('draft') || statusLower.includes('compos')) {
+                    setSoundwaveState('writing');
+                } else if (statusLower.includes('think') || statusLower.includes('process') || statusLower.includes('context') || statusLower.includes('understand')) {
+                    setSoundwaveState('thinking');
+                } else if (statusLower.includes('send') || statusLower.includes('complet') || statusLower.includes('sent')) {
+                    setSoundwaveState('processing');
+                } else if (statusLower.includes('monitor') || statusLower.includes('wait') || statusLower.includes('idle')) {
+                    setSoundwaveState('idle');
                 }
             }
         }
@@ -5598,11 +5624,13 @@ async function setupAutoReply(enabled) {
         // Modern Dashboard Functions
         let isPaused = false;
         let statusInterval = null;
+        let currentWaveState = 'idle';
         
         function pauseOpenEgo() {
             isPaused = !isPaused;
             const btn = document.getElementById('pauseBtn');
             const liveIndicator = document.getElementById('statusLive');
+            const soundwaveContainer = document.getElementById('soundwaveContainer');
             
             if (isPaused) {
                 btn.innerHTML = '<i class="fas fa-play"></i> Resume';
@@ -5610,15 +5638,98 @@ async function setupAutoReply(enabled) {
                 liveIndicator.innerHTML = '<i class="fas fa-pause-circle"></i><span class="status-text">Paused</span>';
                 showToast('OpenEgo paused', 'info');
                 clearInterval(statusInterval);
+                
+                // Pause soundwave animation
+                if (soundwaveContainer) {
+                    soundwaveContainer.classList.add('paused');
+                    soundwaveContainer.classList.remove('reading', 'writing', 'thinking', 'idle', 'processing');
+                }
             } else {
                 btn.innerHTML = '<i class="fas fa-pause"></i> Pause';
                 liveIndicator.classList.add('active');
                 liveIndicator.innerHTML = '<span class="pulse-dot"></span><span class="status-text">Live</span>';
                 showToast('OpenEgo resumed', 'success');
                 startStatusAnimation();
+                
+                // Resume soundwave animation
+                if (soundwaveContainer) {
+                    soundwaveContainer.classList.remove('paused');
+                    // Restore previous state
+                    setSoundwaveState(currentWaveState || 'idle');
+                }
             }
         }
         window.pauseOpenEgo = pauseOpenEgo;
+        
+        /**
+         * Set soundwave animation state and color
+         * @param {string} state - 'idle', 'reading', 'writing', 'thinking', 'processing'
+         */
+        function setSoundwaveState(state) {
+            const soundwaveContainer = document.getElementById('soundwaveContainer');
+            if (!soundwaveContainer || isPaused) return;
+            
+            currentWaveState = state;
+            
+            // Remove all state classes
+            soundwaveContainer.classList.remove('idle', 'reading', 'writing', 'thinking', 'processing');
+            
+            // Add new state class
+            soundwaveContainer.classList.add(state);
+            
+            // Update animation speed based on state
+            const bars = soundwaveContainer.querySelectorAll('.soundwave-bar');
+            bars.forEach(bar => {
+                switch(state) {
+                    case 'reading':
+                        bar.style.animationDuration = '0.8s';
+                        break;
+                    case 'writing':
+                        bar.style.animationDuration = '0.4s';
+                        break;
+                    case 'thinking':
+                        bar.style.animationDuration = '1.5s';
+                        break;
+                    case 'processing':
+                        bar.style.animationDuration = '0.6s';
+                        break;
+                    default: // idle
+                        bar.style.animationDuration = '1.2s';
+                }
+            });
+        }
+        window.setSoundwaveState = setSoundwaveState;
+        
+        /**
+         * Update activity status with soundwave color change
+         */
+        function updateActivityStatusWithState(status, detail, state) {
+            const statusText = document.getElementById('statusText');
+            const statusDetail = document.getElementById('statusDetail');
+            
+            if (statusText) statusText.textContent = status;
+            if (statusDetail) statusDetail.textContent = detail || '';
+            
+            // Set soundwave state based on status text
+            if (state) {
+                setSoundwaveState(state);
+            } else {
+                // Auto-detect state from status text
+                const statusLower = status.toLowerCase();
+                if (statusLower.includes('read') || statusLower.includes('analyz') || statusLower.includes('scan')) {
+                    setSoundwaveState('reading');
+                } else if (statusLower.includes('writ') || statusLower.includes('generat') || statusLower.includes('draft')) {
+                    setSoundwaveState('writing');
+                } else if (statusLower.includes('think') || statusLower.includes('process') || statusLower.includes('context')) {
+                    setSoundwaveState('thinking');
+                } else if (statusLower.includes('send') || statusLower.includes('complet')) {
+                    setSoundwaveState('processing');
+                } else {
+                    setSoundwaveState('idle');
+                }
+            }
+        }
+        window.updateActivityStatusWithState = updateActivityStatusWithState;
         
         function startStatusAnimation() {
             if (statusInterval) clearInterval(statusInterval);
