@@ -2648,7 +2648,7 @@
                     <span id="messagesCheck" style="color: var(--text-secondary);">⏳</span>
                 </div>
                 <div class="status-item" id="telegramStatus">
-                    <span style="font-size: 1.5rem;">✈️</span>
+                    <span style="font-size: 1.5rem;"><i class="fab fa-telegram"></i></span>
                     <div style="flex: 1;">
                         <div>Scanning Telegram...</div>
                         <div style="color: var(--text-secondary); font-size: 0.9rem;" id="telegramCount">Checking access...</div>
@@ -3693,7 +3693,13 @@
                         <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 10px;">Click Continue to set up your AI model.</p>
                     </div>
                 `;
-                document.getElementById('step4').insertBefore(msgDiv, document.querySelector('.button-group'));
+                const step4 = document.getElementById('step4');
+                const buttonGroup = step4.querySelector('.button-group');
+                if (buttonGroup && buttonGroup.parentNode === step4) {
+                    step4.insertBefore(msgDiv, buttonGroup);
+                } else {
+                    step4.appendChild(msgDiv);
+                }
                 return;
             }
             
@@ -4428,7 +4434,7 @@
                         let scanList = [];
                         if (sources.mail) scanList.push('<i class="fas fa-envelope"></i> Apple Mail');
                         if (sources.messages) scanList.push('<i class="fas fa-comment"></i> Messages');
-                        if (sources.telegram) scanList.push('✈️ Telegram');
+                        if (sources.telegram) scanList.push('Telegram');
                         if (sources.whatsapp) scanList.push('<i class="fas fa-mobile-alt"></i> WhatsApp');
                         if (sources.viber) scanList.push('<i class="fas fa-comment"></i> Viber');
                         if (sources.documents) scanList.push('<i class="fas fa-file"></i> Documents');
