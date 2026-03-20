@@ -4829,7 +4829,9 @@
         
         // TELEGRAM SETUP FUNCTIONS (moved here to ensure early definition)
         function showTelegramSetupWizard() {
+            alert('Entering showTelegramSetupWizard');
             console.log('[Telegram] Opening setup wizard');
+            try {
             const modal = document.createElement('div');
             modal.className = 'modal-overlay';
             modal.id = 'telegramSetupModal';
@@ -4881,8 +4883,14 @@
                     </div>
                 </div>
             `;
+            alert('Modal HTML created, appending to body...');
             document.body.appendChild(modal);
+            alert('Modal appended successfully!');
             console.log('[Telegram] Modal added to DOM');
+            } catch(err) {
+                alert('Error in showTelegramSetupWizard: ' + err.message);
+                console.error('[Telegram] Error:', err);
+            }
         }
         window.showTelegramSetupWizard = showTelegramSetupWizard;
 
