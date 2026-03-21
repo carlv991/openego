@@ -1,5 +1,7 @@
 const { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, dialog, Notification } = require('electron');
 const path = require('path');
+const fs = require('fs');
+const os = require('os');
 const { autoUpdater } = require('electron-updater');
 const { 
   setupFullDiskAccessHandlers, 
@@ -177,8 +179,26 @@ function createWindow() {
     console.log('[Main] AI response handlers ready');
     
     // Initialize OpenEgo Core Controller
-    openegoCore = new OpenEgoCore(mainWindow);
-    console.log('[Main] OpenEgo Core initialized');
+    try {
+      openegoCore = new OpenEgoCore(mainWindow);
+      console.log('[Main] OpenEgo Core initialized');
+    } catch (e) {
+      console.error('[Main] OpenEgo Core initialization failed:', e);
+    }
+    
+    // Fallback: Register save-ai-settings handler directly in case OpenEgoCore fails
+    ipcMain.handle('save-ai-settings', async (event, settings) => {
+      try {
+        const settingsPath = path.join(os.homedir(), '.openego_ai_settings.json');
+        fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
+        console.log('[Main] AI settings saved to', settingsPath);
+        return { success: true };
+      } catch (e) {
+        console.error('[Main] Error saving AI settings:', e);
+        return { success: false, error: e.message };
+      }
+    });
+    
     ipcHandlersRegistered = true;
     console.log('[Main] All IPC handlers registered');
   }
