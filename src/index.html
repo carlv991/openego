@@ -6953,28 +6953,11 @@ async function setupAutoReply(enabled) {
                         } else {
                             // Better error message for common issues
                             let errorMsg = testResult.error || 'Unknown error';
-                            let userFriendlyMsg = '';
                             
-                            if (errorMsg.includes('Not authorized') || errorMsg.includes('-1743')) {
-                                userFriendlyMsg = 
-                                    '❌ Permission Not Granted\n\n' +
-                                    'Apple Mail is not allowing OpenEgo to access your emails.\n\n' +
-                                    'To fix this:\n' +
-                                    '1. Open System Preferences → Security & Privacy → Privacy\n' +
-                                    '2. Click "Full Disk Access" on the left\n' +
-                                    '3. Click the lock to make changes (enter your password)\n' +
-                                    '4. Check the box next to "OpenEgo"\n' +
-                                    '5. Restart OpenEgo and try again\n\n' +
-                                    'Note: You may also need to grant permission in Mail app preferences.';
-                            } else if (errorMsg.includes('Mail app not running')) {
-                                userFriendlyMsg = 
-                                    '❌ Mail App Not Running\n\n' +
-                                    'Please open the Mail app first, then try again.';
-                            } else {
-                                userFriendlyMsg = '❌ Error: ' + errorMsg;
-                            }
+                            // Show full error for debugging
+                            console.error('[Mail Test] Full error:', errorMsg);
                             
-                            alert(userFriendlyMsg);
+                            alert('❌ Mail Access Failed\n\n' + errorMsg);
                         }
                     }
                 } else {

@@ -171,57 +171,107 @@ ipcMain.handle('test-mail-access', async () => {
       return { success: false, error: 'Apple Mail only available on macOS' };
     }
     
-    const { spawn } = require('child_process');
+    const { exec } = require('child_process');
+    const util = require('util');
+    const execAsync = util.promisify(exec);
     
-    // AppleScript to get inbox count and latest subject
+    // First check if Mail is running
+    try {
+      const { stdout: mailCheck } = await execAsync(
+        'osascript -e \'tell application "System Events" to return (name of processes) contains "Mail"\'',
+        { timeout: 5000 }
+      );
+      if (mailCheck.trim() !== 'true') {
+        return { success: false, error: 'Mail app is not running. Please open Mail and try again.' };
+      }
+    } catch (e) {
+      console.log('[Main] Mail running check failed:', e.message);
+    }
+    
+    // Simple script to test access first
+    try {
+      const { stdout: accountCheck } = await execAsync(
+        'osascript -e \'tell application "Mail" to count of accounts\' 2>&1',
+        { timeout: 10000 }
+      );
+      const accountCount = parseInt(accountCheck.trim()) || 0;
+      console.log('[Main] Found', accountCount, 'Mail accounts');
+      
+      if (accountCount === 0) {
+        return { success: false, error: 'No email accounts configured in Mail app.' };
+      }
+    } catch (e) {
+      console.error('[Main] Account check error:', e.message);
+      if (e.message.includes('Not authorized') || e.stderr?.includes('Not authorized')) {
+        return { success: false, error: 'Full Disk Access not granted. Please enable it in System Preferences > Security & Privacy > Privacy > Full Disk Access.' };
+      }
+    }
+    
+    // Now get inbox info - use a simpler approach
     const script = `tell application "Mail"
-	set inboxCount to 0
-	set latestSubject to "No messages"
-	try
-		set inboxCount to count of messages in inbox
-		if inboxCount > 0 then
-			set latestSubject to subject of first message in inbox
-		end if
-	end try
-	return inboxCount & "|" & latestSubject
+  set inboxCount to 0
+  set latestSubject to "No messages"
+  try
+    set inboxCount to (count of messages in inbox)
+    if inboxCount > 0 then
+      set latestSubject to subject of message 1 of inbox
+    end if
+  on error errMsg
+    return "0|Error: " & errMsg
+  end try
+  return (inboxCount as string) & "|" & latestSubject
 end tell`;
     
-    return new Promise((resolve) => {
-      const child = spawn('osascript', ['-e', script], { timeout: 10000 });
-      let stdout = '';
-      let stderr = '';
-      
-      child.stdout.on('data', (data) => {
-        stdout += data.toString();
-      });
-      
-      child.stderr.on('data', (data) => {
-        stderr += data.toString();
-      });
-      
-      child.on('close', (code) => {
-        if (code !== 0 || stderr) {
-          console.error('[Main] test-mail-access error:', stderr);
-          resolve({ success: false, error: stderr || 'AppleScript failed' });
-          return;
-        }
-        
-        const parts = stdout.trim().split('|');
-        resolve({
-          success: true,
-          emailCount: parseInt(parts[0]) || 0,
-          latestSubject: parts[1] || 'No messages'
-        });
-      });
-      
-      child.on('error', (err) => {
-        console.error('[Main] test-mail-access spawn error:', err);
-        resolve({ success: false, error: err.message });
-      });
-    });
+    console.log('[Main] Executing Mail AppleScript...');
+    const { stdout, stderr } = await execAsync(
+      `osascript -e '${script}'`,
+      { timeout: 10000 }
+    );
+    
+    if (stderr) {
+      console.error('[Main] AppleScript stderr:', stderr);
+    }
+    
+    const result = stdout.trim();
+    console.log('[Main] AppleScript result:', result);
+    
+    // Parse result
+    const pipeIndex = result.indexOf('|');
+    if (pipeIndex === -1) {
+      return { success: false, error: 'Invalid response from Mail: ' + result };
+    }
+    
+    const count = parseInt(result.substring(0, pipeIndex)) || 0;
+    const subject = result.substring(pipeIndex + 1);
+    
+    if (subject.startsWith('Error:')) {
+      return { success: false, error: subject };
+    }
+    
+    return {
+      success: true,
+      emailCount: count,
+      latestSubject: subject
+    };
+    
   } catch (e) {
     console.error('[Main] test-mail-access error:', e);
-    return { success: false, error: e.message };
+    
+    // Check for specific error types
+    const errorMsg = e.message || e.stderr || 'Unknown error';
+    
+    if (errorMsg.includes('Not authorized') || errorMsg.includes('-1743')) {
+      return { 
+        success: false, 
+        error: 'Full Disk Access not granted. OpenEgo needs permission to read your emails.\n\nGo to: System Preferences → Security & Privacy → Privacy → Full Disk Access\nAdd OpenEgo to the list and restart the app.' 
+      };
+    }
+    
+    if (errorMsg.includes('Can\'t get')) {
+      return { success: false, error: 'Unable to access Mail inbox. Make sure Mail app is open and has email accounts configured.' };
+    }
+    
+    return { success: false, error: errorMsg };
   }
 });
 
