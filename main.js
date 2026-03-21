@@ -172,8 +172,11 @@ ipcMain.handle('test-mail-access', async () => {
     }
     
     const { exec } = require('child_process');
+    const fs = require('fs');
+    const path = require('path');
     const util = require('util');
     const execAsync = util.promisify(exec);
+    const os = require('os');
     
     // First check if Mail is running
     try {
@@ -207,52 +210,66 @@ ipcMain.handle('test-mail-access', async () => {
       }
     }
     
-    // Now get inbox info - use a simpler approach
-    const script = `tell application "Mail"
-  set inboxCount to 0
-  set latestSubject to "No messages"
-  try
-    set inboxCount to (count of messages in inbox)
-    if inboxCount > 0 then
-      set latestSubject to subject of message 1 of inbox
-    end if
-  on error errMsg
-    return "0|Error: " & errMsg
-  end try
-  return (inboxCount as string) & "|" & latestSubject
+    // Write AppleScript to temp file to avoid quoting issues
+    const scriptContent = `tell application "Mail"
+	set inboxCount to 0
+	set latestSubject to "No messages"
+	try
+		set inboxCount to (count of messages in inbox)
+		if inboxCount > 0 then
+			set latestSubject to subject of message 1 of inbox
+		end if
+	on error errMsg
+		return "0|Error: " & errMsg
+	end try
+	return (inboxCount as string) & "|" & latestSubject
 end tell`;
     
-    console.log('[Main] Executing Mail AppleScript...');
-    const { stdout, stderr } = await execAsync(
-      `osascript -e '${script}'`,
-      { timeout: 10000 }
-    );
+    const tempScriptPath = path.join(os.tmpdir(), 'openego_mail_check.scpt');
+    fs.writeFileSync(tempScriptPath, scriptContent, 'utf8');
     
-    if (stderr) {
-      console.error('[Main] AppleScript stderr:', stderr);
+    console.log('[Main] Executing Mail AppleScript from temp file...');
+    
+    try {
+      const { stdout, stderr } = await execAsync(
+        `osascript "${tempScriptPath}"`,
+        { timeout: 10000 }
+      );
+      
+      // Clean up temp file
+      try { fs.unlinkSync(tempScriptPath); } catch (e) {}
+      
+      if (stderr) {
+        console.error('[Main] AppleScript stderr:', stderr);
+      }
+      
+      const result = stdout.trim();
+      console.log('[Main] AppleScript result:', result);
+      
+      // Parse result
+      const pipeIndex = result.indexOf('|');
+      if (pipeIndex === -1) {
+        return { success: false, error: 'Invalid response from Mail: ' + result };
+      }
+      
+      const count = parseInt(result.substring(0, pipeIndex)) || 0;
+      const subject = result.substring(pipeIndex + 1);
+      
+      if (subject.startsWith('Error:')) {
+        return { success: false, error: subject.substring(7) };
+      }
+      
+      return {
+        success: true,
+        emailCount: count,
+        latestSubject: subject
+      };
+      
+    } catch (execError) {
+      // Clean up temp file on error
+      try { fs.unlinkSync(tempScriptPath); } catch (e) {}
+      throw execError;
     }
-    
-    const result = stdout.trim();
-    console.log('[Main] AppleScript result:', result);
-    
-    // Parse result
-    const pipeIndex = result.indexOf('|');
-    if (pipeIndex === -1) {
-      return { success: false, error: 'Invalid response from Mail: ' + result };
-    }
-    
-    const count = parseInt(result.substring(0, pipeIndex)) || 0;
-    const subject = result.substring(pipeIndex + 1);
-    
-    if (subject.startsWith('Error:')) {
-      return { success: false, error: subject };
-    }
-    
-    return {
-      success: true,
-      emailCount: count,
-      latestSubject: subject
-    };
     
   } catch (e) {
     console.error('[Main] test-mail-access error:', e);
