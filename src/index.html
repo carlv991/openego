@@ -2896,18 +2896,38 @@
                 </div>
                 
                 <div class="status-center">
-                    <div class="mode-switcher-top">
-                        <button class="mode-btn" id="topModeBtn" onclick="toggleMode()">
-                            <i class="fas fa-user-astronaut"></i>
-                            <span id="topModeLabel">CO-PILOT</span>
-                        </button>
+                    <div class="mode-toggles" style="display: flex; gap: 20px; align-items: center;">
+                        <!-- Co-Pilot Toggle -->
+                        <div class="mode-toggle-item" style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
+                            <span style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Co-Pilot</span>
+                            <label class="toggle-switch" style="transform: scale(0.9);">
+                                <input type="checkbox" id="copilotToggle" onchange="toggleModeSwitch('copilot')">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        
+                        <!-- Auto-Pilot Toggle -->
+                        <div class="mode-toggle-item" style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
+                            <span style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Auto-Pilot</span>
+                            <label class="toggle-switch" style="transform: scale(0.9);">
+                                <input type="checkbox" id="autopilotToggle" onchange="toggleModeSwitch('autopilot')">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        
+                        <!-- Learning Toggle -->
+                        <div class="mode-toggle-item" style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
+                            <span style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Learning</span>
+                            <label class="toggle-switch" style="transform: scale(0.9);">
+                                <input type="checkbox" id="learningToggle" onchange="toggleModeSwitch('learning')">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
                     </div>
                 </div>
                 
                 <div class="status-actions">
-                    <button class="status-btn" onclick="pauseOpenEgo()" id="pauseBtn">
-                        <i class="fas fa-pause"></i> Pause
-                    </button>
+                    <span id="statusIndicator" style="font-size: 12px; color: var(--text-secondary);">App Off</span>
                 </div>
             </div>
             
@@ -5230,72 +5250,136 @@ async function setupAutoReply(enabled) {
         
         // Learning mode - background persona training only
         let learningModeInterval = null;
+        let autoPilotMonitorInterval = null;
         
-        function toggleMode() {
-            const current = localStorage.getItem('openego_mode') || 'copilot';
-            // Cycle through: copilot -> autopilot -> learning -> copilot
-            let newMode;
-            if (current === 'copilot') {
-                newMode = 'autopilot';
-            } else if (current === 'autopilot') {
-                newMode = 'learning';
-            } else {
-                newMode = 'copilot';
+        /**
+         * Toggle individual mode switches
+         * @param {string} mode - 'copilot', 'autopilot', or 'learning'
+         */
+        function toggleModeSwitch(mode) {
+            const copilotToggle = document.getElementById('copilotToggle');
+            const autopilotToggle = document.getElementById('autopilotToggle');
+            const learningToggle = document.getElementById('learningToggle');
+            const statusIndicator = document.getElementById('statusIndicator');
+            const soundwaveContainer = document.getElementById('soundwaveContainer');
+            
+            // Get current states
+            const copilotEnabled = copilotToggle?.checked || false;
+            const autopilotEnabled = autopilotToggle?.checked || false;
+            const learningEnabled = learningToggle?.checked || false;
+            
+            // Ensure only one main mode is active (copilot or autopilot, not both)
+            if (mode === 'copilot' && copilotEnabled) {
+                // Turn off autopilot if copilot is enabled
+                if (autopilotToggle) autopilotToggle.checked = false;
+            } else if (mode === 'autopilot' && autopilotEnabled) {
+                // Turn off copilot if autopilot is enabled
+                if (copilotToggle) copilotToggle.checked = false;
             }
-            localStorage.setItem('openego_mode', newMode);
             
-            // Update top mode button
-            const topModeBtn = document.getElementById('topModeBtn');
-            const topModeLabel = document.getElementById('topModeLabel');
+            // Recalculate states after potential changes
+            const finalCopilot = copilotToggle?.checked || false;
+            const finalAutopilot = autopilotToggle?.checked || false;
+            const finalLearning = learningToggle?.checked || false;
             
-            if (topModeBtn && topModeLabel) {
-                // Reset classes
-                topModeBtn.classList.remove('autopilot', 'learning');
-                
-                if (newMode === 'autopilot') {
-                    topModeBtn.classList.add('autopilot');
-                    topModeLabel.textContent = 'AUTO-PILOT';
-                    topModeBtn.innerHTML = '<i class="fas fa-robot"></i><span id="topModeLabel">AUTO-PILOT</span>';
-                } else if (newMode === 'learning') {
-                    topModeBtn.classList.add('learning');
-                    topModeLabel.textContent = 'LEARNING';
-                    topModeBtn.innerHTML = '<i class="fas fa-brain"></i><span id="topModeLabel">LEARNING</span>';
-                } else {
-                    topModeLabel.textContent = 'CO-PILOT';
-                    topModeBtn.innerHTML = '<i class="fas fa-user-astronaut"></i><span id="topModeLabel">CO-PILOT</span>';
+            // Save states
+            localStorage.setItem('openego_copilot_enabled', finalCopilot ? 'true' : 'false');
+            localStorage.setItem('openego_autopilot_enabled', finalAutopilot ? 'true' : 'false');
+            localStorage.setItem('openego_learning_enabled', finalLearning ? 'true' : 'false');
+            
+            // Determine if any mode is active
+            const anyModeActive = finalCopilot || finalAutopilot || finalLearning;
+            
+            // Update status indicator
+            if (statusIndicator) {
+                if (!anyModeActive) {
+                    statusIndicator.textContent = 'App Off';
+                    statusIndicator.style.color = '#6B7280';
+                } else if (finalAutopilot) {
+                    statusIndicator.textContent = 'Auto-Pilot';
+                    statusIndicator.style.color = '#10B981';
+                } else if (finalCopilot) {
+                    statusIndicator.textContent = 'Co-Pilot';
+                    statusIndicator.style.color = '#3B82F6';
+                } else if (finalLearning) {
+                    statusIndicator.textContent = 'Learning';
+                    statusIndicator.style.color = '#8B5CF6';
                 }
             }
             
-            // Update legacy mode display if exists
-            const currentModeEl = document.getElementById('currentMode');
-            if (currentModeEl) {
-                if (newMode === 'autopilot') {
-                    currentModeEl.textContent = '<i class="fas fa-robot"></i> Auto-Pilot';
-                } else if (newMode === 'learning') {
-                    currentModeEl.textContent = '<i class="fas fa-brain"></i> Learning';
+            // Handle soundwave animation
+            if (soundwaveContainer) {
+                if (!anyModeActive) {
+                    soundwaveContainer.classList.add('paused');
                 } else {
-                    currentModeEl.textContent = '<i class="fas fa-eye"></i> Co-Pilot';
+                    soundwaveContainer.classList.remove('paused');
                 }
             }
             
             // Handle mode-specific behavior
-            if (newMode === 'autopilot') {
+            if (finalAutopilot) {
                 stopLearningMode();
-                checkAutoPilotMode();
                 startAutoPilotMonitor();
                 updateActivityStatus('Auto-pilot active', 'Automatically sending responses');
-                showToast('Switched to Auto-Pilot mode', 'success');
-            } else if (newMode === 'learning') {
-                stopAutoPilotMonitor();
-                startLearningMode();
-                updateActivityStatus('Learning mode active', 'Background persona training across all channels');
-                showToast('Switched to Learning mode - no notifications', 'info');
-            } else {
+                showToast('Auto-Pilot enabled', 'success');
+            } else if (finalCopilot) {
                 stopAutoPilotMonitor();
                 stopLearningMode();
                 updateActivityStatus('Co-pilot mode', 'Waiting for your approval');
-                showToast('Switched to Co-Pilot mode', 'success');
+                showToast('Co-Pilot enabled', 'success');
+            } else if (finalLearning) {
+                stopAutoPilotMonitor();
+                startLearningMode();
+                updateActivityStatus('Learning mode active', 'Background persona training');
+                showToast('Learning mode enabled', 'info');
+            } else {
+                // All modes off - stop everything
+                stopAutoPilotMonitor();
+                stopLearningMode();
+                updateActivityStatus('App paused', 'All modes disabled');
+                showToast('OpenEgo paused - all modes off', 'info');
             }
+        }
+        
+        /**
+         * Load saved mode toggle states
+         */
+        function loadModeToggles() {
+            const copilotToggle = document.getElementById('copilotToggle');
+            const autopilotToggle = document.getElementById('autopilotToggle');
+            const learningToggle = document.getElementById('learningToggle');
+            
+            const copilotEnabled = localStorage.getItem('openego_copilot_enabled') === 'true';
+            const autopilotEnabled = localStorage.getItem('openego_autopilot_enabled') === 'true';
+            const learningEnabled = localStorage.getItem('openego_learning_enabled') === 'true';
+            
+            if (copilotToggle) copilotToggle.checked = copilotEnabled;
+            if (autopilotToggle) autopilotToggle.checked = autopilotEnabled;
+            if (learningToggle) learningToggle.checked = learningEnabled;
+            
+            // Update UI based on loaded states
+            if (copilotEnabled || autopilotEnabled || learningEnabled) {
+                const statusIndicator = document.getElementById('statusIndicator');
+                if (statusIndicator) {
+                    if (autopilotEnabled) {
+                        statusIndicator.textContent = 'Auto-Pilot';
+                        statusIndicator.style.color = '#10B981';
+                    } else if (copilotEnabled) {
+                        statusIndicator.textContent = 'Co-Pilot';
+                        statusIndicator.style.color = '#3B82F6';
+                    } else if (learningEnabled) {
+                        statusIndicator.textContent = 'Learning';
+                        statusIndicator.style.color = '#8B5CF6';
+                    }
+                }
+            }
+        }
+        
+        // Legacy toggle function - kept for compatibility
+        function toggleMode() {
+            // This function is now replaced by individual toggles
+            // Redirect to enable Co-Pilot if called
+            toggleModeSwitch('copilot');
         }
         
         /**
@@ -5633,36 +5717,8 @@ async function setupAutoReply(enabled) {
             document.querySelector('.stars').style.display = 'none';
             document.querySelector('.gear-icon').style.display = 'none';
             
-            // Load saved mode
-            const mode = localStorage.getItem('openego_mode') || 'copilot';
-            
-            // Update top mode button
-            const topModeBtn = document.getElementById('topModeBtn');
-            if (topModeBtn) {
-                topModeBtn.classList.remove('autopilot', 'learning');
-                
-                if (mode === 'autopilot') {
-                    topModeBtn.classList.add('autopilot');
-                    topModeBtn.innerHTML = '<i class="fas fa-robot"></i><span id="topModeLabel">AUTO-PILOT</span>';
-                } else if (mode === 'learning') {
-                    topModeBtn.classList.add('learning');
-                    topModeBtn.innerHTML = '<i class="fas fa-brain"></i><span id="topModeLabel">LEARNING</span>';
-                } else {
-                    topModeBtn.innerHTML = '<i class="fas fa-user-astronaut"></i><span id="topModeLabel">CO-PILOT</span>';
-                }
-            }
-            
-            // Update legacy mode display if exists
-            const currentModeEl = document.getElementById('currentMode');
-            if (currentModeEl) {
-                if (mode === 'autopilot') {
-                    currentModeEl.textContent = '<i class="fas fa-robot"></i> Auto-Pilot';
-                } else if (mode === 'learning') {
-                    currentModeEl.textContent = '<i class="fas fa-brain"></i> Learning';
-                } else {
-                    currentModeEl.textContent = '<i class="fas fa-eye"></i> Co-Pilot';
-                }
-            }
+            // Load mode toggle states
+            loadModeToggles();
             
             // Load saved theme
             loadTheme();
@@ -5670,18 +5726,21 @@ async function setupAutoReply(enabled) {
             // Load persona if available
             loadPersonaDisplay();
             
-            // Start mode-specific behavior
-            if (mode === 'autopilot') {
+            // Start mode-specific behavior based on toggles
+            const copilotEnabled = localStorage.getItem('openego_copilot_enabled') === 'true';
+            const autopilotEnabled = localStorage.getItem('openego_autopilot_enabled') === 'true';
+            const learningEnabled = localStorage.getItem('openego_learning_enabled') === 'true';
+            
+            if (autopilotEnabled) {
                 startAutoPilotMonitor();
                 updateActivityStatus('Auto-pilot active', 'Automatically sending responses');
-            } else if (mode === 'learning') {
+            } else if (copilotEnabled) {
+                updateActivityStatus('Co-pilot mode', 'Waiting for your approval');
+            } else if (learningEnabled) {
                 startLearningMode();
                 updateActivityStatus('Learning mode active', 'Background persona training only');
             } else {
-                updateActivityStatus('Co-pilot mode', 'Waiting for your approval');
-            
-            // Start real message monitoring (Phase 3)
-            // startMessageMonitoring(); // Disabled for performance - user must start manually
+                updateActivityStatus('App paused', 'All modes disabled - use toggles to enable');
             }
         }
         
@@ -7526,6 +7585,8 @@ async function setupAutoReply(enabled) {
         window.checkTelegramStatus = checkTelegramStatus;
         window.testAIConnection = testAIConnection;
         window.updateAIModelStatus = updateAIModelStatus;
+        window.toggleModeSwitch = toggleModeSwitch;
+        window.loadModeToggles = loadModeToggles;
         
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', () => {
@@ -7542,6 +7603,9 @@ async function setupAutoReply(enabled) {
             
             // Initialize inbox state
             updateInboxBadge();
+            
+            // Load mode toggles
+            loadModeToggles();
             
             // Check if we should auto-start message monitoring
             const autoReplyEnabled = localStorage.getItem('openego_auto_reply') === 'true';
