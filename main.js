@@ -193,45 +193,39 @@ function createWindow() {
   // Setup IPC handlers (only once)
   if (!ipcHandlersRegistered) {
     console.log('[Main] Setting up IPC handlers...');
-    setupFullDiskAccessHandlers();
-    console.log('[Main] Full Disk Access handlers ready');
-    setupScanningHandlers(mainWindow);
-    console.log('[Main] Scanning handlers ready');
-    setupLocalAIHandlers();
-    console.log('[Main] Local AI handlers ready');
-    setupFeedbackHandlers();
-    console.log('[Main] Feedback handlers ready');
     
-    // Setup AI Training with error handling
-    try {
-      setupAITrainingHandlers();
-      console.log('[Main] AI Training handlers ready');
-    } catch (e) {
-      console.error('[Main] AI Training handlers failed:', e);
-    }
+    // Set flag immediately to prevent duplicate registration even if errors occur
+    ipcHandlersRegistered = true;
     
-    setupCommunicationScanner(mainWindow);
-    console.log('[Main] Communication scanner ready');
-    setupEmailScannerHandlers(mainWindow);
-    console.log('[Main] Email scanner handlers ready');
+    // Helper to safely setup handlers with duplicate protection
+    const safeSetup = (name, setupFn) => {
+      try {
+        setupFn();
+        console.log(`[Main] ${name} handlers ready`);
+      } catch (e) {
+        if (e.message && e.message.includes('second handler')) {
+          console.log(`[Main] ${name} handlers already registered, skipping`);
+        } else {
+          console.error(`[Main] ${name} handlers failed:`, e.message);
+        }
+      }
+    };
     
-    // Setup new message monitor and AI response handlers
-    setupMessageMonitor(mainWindow);
-    console.log('[Main] Message monitor ready');
-    setupAIResponseHandlers();
-    setupAppleMailHandlers();
-    console.log('[Main] Apple Mail handlers ready');
-    setupTelegramSenderHandlers();
-    setupTrainingEngine();
-    console.log('[Main] Training engine ready');
-    setupSmartFeatures();
-    console.log('[Main] Smart features ready');
-    setupMultiChannelHandlers();
-    console.log('[Main] Multi-channel handlers ready');
-    setupErrorRecoveryHandlers();
-    console.log('[Main] Error recovery ready');
-    console.log('[Main] Telegram sender handlers ready');
-    console.log('[Main] AI response handlers ready');
+    safeSetup('Full Disk Access', setupFullDiskAccessHandlers);
+    safeSetup('Scanning', () => setupScanningHandlers(mainWindow));
+    safeSetup('Local AI', setupLocalAIHandlers);
+    safeSetup('Feedback', setupFeedbackHandlers);
+    safeSetup('AI Training', setupAITrainingHandlers);
+    safeSetup('Communication Scanner', () => setupCommunicationScanner(mainWindow));
+    safeSetup('Email Scanner', () => setupEmailScannerHandlers(mainWindow));
+    safeSetup('Message Monitor', () => setupMessageMonitor(mainWindow));
+    safeSetup('AI Response', setupAIResponseHandlers);
+    safeSetup('Apple Mail', setupAppleMailHandlers);
+    safeSetup('Telegram Sender', setupTelegramSenderHandlers);
+    safeSetup('Training Engine', setupTrainingEngine);
+    safeSetup('Smart Features', setupSmartFeatures);
+    safeSetup('Multi-Channel', setupMultiChannelHandlers);
+    safeSetup('Error Recovery', setupErrorRecoveryHandlers);
     
     // Initialize OpenEgo Core Controller
     try {
@@ -241,7 +235,6 @@ function createWindow() {
       console.error('[Main] OpenEgo Core initialization failed:', e);
     }
     
-    ipcHandlersRegistered = true;
     console.log('[Main] All IPC handlers registered');
   }
   
