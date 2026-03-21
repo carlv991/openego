@@ -3020,6 +3020,23 @@
                             <p class="subtitle">Real-time AI learning your unique communication style</p>
                         </div>
 
+                        <!-- No Data Warning Banner -->
+                        <div id="personaNoDataBanner" style="display: none; background: rgba(245, 158, 11, 0.1); border: 1px solid #F59E0B; border-radius: 12px; padding: 20px; margin-bottom: 30px;">
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <div style="font-size: 32px;">⚠️</div>
+                                <div style="flex: 1;">
+                                    <h4 style="margin: 0 0 8px 0; color: #F59E0B;">No Data Available Yet</h4>
+                                    <p style="margin: 0; color: var(--text-secondary); font-size: 14px;">
+                                        OpenEgo needs access to your communication data to learn your style. 
+                                        Without permissions, your digital twin cannot be trained.
+                                    </p>
+                                </div>
+                                <button class="btn btn-secondary" onclick="setupDataSources()" style="white-space: nowrap;">
+                                    <i class="fas fa-plug"></i> Connect Data Sources
+                                </button>
+                            </div>
+                        </div>
+
                         <!-- Persona Live Status Card -->
                         <div class="persona-live-status" style="background: linear-gradient(135deg, rgba(222, 109, 81, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%); border: 1px solid var(--accent); border-radius: 16px; padding: 24px; margin-bottom: 30px;">
                             <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 20px;">
@@ -5608,6 +5625,43 @@ async function setupAutoReply(enabled) {
             }
         }
         
+        /**
+         * Open data source setup dialog
+         */
+        function setupDataSources() {
+            const choice = confirm(
+                'Connect Data Sources\n\n' +
+                'Choose a data source to train your persona:\n\n' +
+                'Click OK to set up Apple Mail (recommended)\n' +
+                'Click Cancel to manually add messages'
+            );
+            
+            if (choice) {
+                setupMailPermissions();
+            } else {
+                // Manual input option
+                const manual = confirm(
+                    'Manual Training\n\n' +
+                    'You can paste example messages to train your persona.\n\n' +
+                    'This is less effective than connecting Mail/Telegram, but works if you prefer privacy.\n\n' +
+                    'Open manual input?'
+                );
+                
+                if (manual) {
+                    // Open manual training modal
+                    alert(
+                        '📝 Manual Training Mode\n\n' +
+                        'Coming soon!\n\n' +
+                        'For now, please:\n' +
+                        '1. Go to Settings tab\n' +
+                        '2. Click "Retrain from Messages"\n' +
+                        '3. Follow the prompts'
+                    );
+                }
+            }
+        }
+        window.setupDataSources = setupDataSources;
+        
         // Load and display persona data with comprehensive metrics
         async function loadPersonaDisplay() {
             console.log('[Persona] Loading persona display...');
@@ -5799,6 +5853,16 @@ async function setupAutoReply(enabled) {
             
             // Update learning timeline
             updateLearningTimeline(metrics);
+            
+            // Show/hide no data banner
+            const noDataBanner = document.getElementById('personaNoDataBanner');
+            if (noDataBanner) {
+                if (metrics.totalMessages === 0 && metrics.confidenceScore === 0) {
+                    noDataBanner.style.display = 'block';
+                } else {
+                    noDataBanner.style.display = 'none';
+                }
+            }
         }
         
         function updateDimensionBar(dimension, value) {
@@ -6209,29 +6273,109 @@ async function setupAutoReply(enabled) {
         }
         
         async function retrainPersona() {
-            showToast('Starting persona retraining...', 'info');
+            // First check if we have mail permissions
+            const { ipcRenderer } = require('electron');
+            
+            showToast('Checking permissions...', 'info');
             
             try {
-                if (typeof require === 'undefined') {
-                    showToast('Cannot retrain in browser mode', 'error');
+                const permStatus = await ipcRenderer.invoke('check-mail-permissions');
+                
+                if (!permStatus.granted) {
+                    const setup = confirm(
+                        '🔐 Full Disk Access Required\n\n' +
+                        'To retrain from your email history, OpenEgo needs Full Disk Access to read Apple Mail.\n\n' +
+                        'Would you like to set this up now?'
+                    );
+                    
+                    if (setup) {
+                        await setupMailPermissions();
+                    }
                     return;
                 }
                 
-                const { ipcRenderer } = require('electron');
+                // Show progress dialog
+                const progressDialog = document.createElement('div');
+                progressDialog.id = 'retrainProgressDialog';
+                progressDialog.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0,0,0,0.8);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 100000;
+                `;
+                progressDialog.innerHTML = `
+                    <div style="background: var(--card-bg); padding: 40px; border-radius: 16px; max-width: 500px; text-align: center; border: 1px solid var(--accent);">
+                        <div style="font-size: 48px; margin-bottom: 20px;">🧠</div>
+                        <h3 style="margin: 0 0 15px 0; color: var(--accent);">Training Your Persona</h3>
+                        <p style="color: var(--text-secondary); margin-bottom: 25px;">Reading your emails and learning your communication style...</p>
+                        <div style="background: rgba(255,255,255,0.1); height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 15px;">
+                            <div id="retrainProgressBar" style="height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), #F97316); border-radius: 4px; transition: width 0.3s;"></div>
+                        </div>
+                        <p id="retrainStatus" style="font-size: 14px; color: var(--text-secondary); margin: 0;">Initializing...</p>
+                    </div>
+                `;
+                document.body.appendChild(progressDialog);
+                
+                // Update progress function
+                const updateProgress = (percent, status) => {
+                    const bar = document.getElementById('retrainProgressBar');
+                    const statusText = document.getElementById('retrainStatus');
+                    if (bar) bar.style.width = percent + '%';
+                    if (statusText) statusText.textContent = status;
+                };
+                
+                showToast('Starting persona retraining...', 'info');
+                updateProgress(10, 'Connecting to Apple Mail...');
                 
                 // Call the retrain-persona IPC handler
                 const result = await ipcRenderer.invoke('retrain-persona');
                 
                 if (result.success) {
-                    showToast(`Retraining complete! Analyzed ${result.emailsAnalyzed} emails.`, 'success');
-                    // Reload the persona display
-                    loadPersonaDisplay();
+                    updateProgress(100, `Complete! Analyzed ${result.emailsAnalyzed} emails`);
+                    
+                    setTimeout(() => {
+                        progressDialog.remove();
+                        showToast(`Retraining complete! Analyzed ${result.emailsAnalyzed} emails.`, 'success');
+                        
+                        // Show detailed results
+                        const confidenceGain = result.confidence || 0;
+                        alert(
+                            '✅ Persona Training Complete!\n\n' +
+                            `📧 Emails Analyzed: ${result.emailsAnalyzed}\n` +
+                            `🎯 Confidence Score: ${Math.round(confidenceGain)}%\n\n` +
+                            'Your digital twin is now better at mimicking your style!'
+                        );
+                        
+                        // Reload the persona display
+                        loadPersonaDisplay();
+                    }, 1000);
                 } else {
+                    progressDialog.remove();
                     showToast('Retraining failed: ' + (result.error || 'Unknown error'), 'error');
+                    
+                    if (result.error?.includes('Full Disk Access')) {
+                        alert(
+                            '❌ Full Disk Access Required\n\n' +
+                            'OpenEgo needs permission to read your emails.\n\n' +
+                            'Please:\n' +
+                            '1. Go to System Preferences → Security & Privacy → Privacy → Full Disk Access\n' +
+                            '2. Add OpenEgo to the list\n' +
+                            '3. Try again'
+                        );
+                    }
                 }
             } catch (e) {
                 console.error('[Retrain] Error:', e);
                 showToast('Error retraining: ' + e.message, 'error');
+                
+                const progressDialog = document.getElementById('retrainProgressDialog');
+                if (progressDialog) progressDialog.remove();
             }
         }
         
@@ -6771,9 +6915,72 @@ async function setupAutoReply(enabled) {
         window.resetAllData = resetAllData;
         
         // Permission Setup Functions
-        function setupMailPermissions() {
-            alert('Apple Mail Setup\n\nTo enable OpenEgo to send emails automatically:\n\n1. Open Script Editor on your Mac\n2. Grant OpenEgo permission to control Mail\n3. Test with a sample email\n\nNote: Apple requires manual approval for AppleScript automation.');
-            showToast('Mail permissions - Coming in Phase 2', 'info');
+        async function setupMailPermissions() {
+            console.log('[Mail Setup] Starting Apple Mail permission check...');
+            
+            if (typeof require === 'undefined') {
+                alert('Mail setup requires the OpenEgo desktop app.\n\nPlease download the Mac app from our website.');
+                return;
+            }
+            
+            try {
+                const { ipcRenderer } = require('electron');
+                
+                // Check current permission status
+                const status = await ipcRenderer.invoke('check-mail-permissions');
+                
+                if (status.granted) {
+                    // Already have permission
+                    const testNow = confirm(
+                        '✅ Apple Mail Access Already Granted!\n\n' +
+                        'OpenEgo can read your emails.\n\n' +
+                        'Would you like to test by reading your most recent email?'
+                    );
+                    
+                    if (testNow) {
+                        showToast('Testing Apple Mail access...', 'info');
+                        const testResult = await ipcRenderer.invoke('test-mail-access');
+                        
+                        if (testResult.success) {
+                            alert(
+                                '✅ Success!\n\n' +
+                                `Found ${testResult.emailCount} emails in your inbox.\n` +
+                                `Latest: "${testResult.latestSubject}"\n\n` +
+                                'OpenEgo is ready to learn from your emails!'
+                            );
+                            showToast('Apple Mail connected successfully!', 'success');
+                            await checkAppleMailStatus(); // Update UI
+                        } else {
+                            alert('❌ Error: ' + testResult.error);
+                        }
+                    }
+                } else {
+                    // Need to request permission
+                    const request = confirm(
+                        '🔐 Apple Mail Permission Required\n\n' +
+                        'OpenEgo needs Full Disk Access to read your emails and learn your communication style.\n\n' +
+                        'You will be redirected to System Preferences to grant permission.\n\n' +
+                        'Grant access to OpenEgo in:\n' +
+                        'System Preferences → Security & Privacy → Privacy → Full Disk Access\n\n' +
+                        'Proceed?'
+                    );
+                    
+                    if (request) {
+                        // Open System Preferences
+                        await ipcRenderer.invoke('open-full-disk-access-settings');
+                        
+                        showToast(
+                            'Please grant Full Disk Access to OpenEgo in System Preferences, ' +
+                            'then return here and check status again.',
+                            'info',
+                            10000
+                        );
+                    }
+                }
+            } catch (e) {
+                console.error('[Mail Setup] Error:', e);
+                alert('Error checking mail permissions: ' + e.message);
+            }
         }
         window.setupMailPermissions = setupMailPermissions;
         

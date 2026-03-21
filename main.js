@@ -164,6 +164,59 @@ ipcMain.handle('check-mail-permissions', async () => {
 });
 console.log('[Main] check-mail-permissions handler registered directly in main.js');
 
+// Test mail access and get email count
+ipcMain.handle('test-mail-access', async () => {
+  try {
+    if (process.platform !== 'darwin') {
+      return { success: false, error: 'Apple Mail only available on macOS' };
+    }
+    
+    const { exec } = require('child_process');
+    const util = require('util');
+    const execAsync = util.promisify(exec);
+    
+    // Get inbox message count and latest subject
+    const script = `
+      tell application "Mail"
+        set inboxCount to 0
+        set latestSubject to "No messages"
+        try
+          set inboxCount to count of messages in inbox
+          if inboxCount > 0 then
+            set latestSubject to subject of first message in inbox
+          end if
+        end try
+        return inboxCount & "|" & latestSubject
+      end tell
+    `;
+    
+    const { stdout } = await execAsync(`osascript -e '${script}'`, { timeout: 10000 });
+    const parts = stdout.trim().split('|');
+    
+    return {
+      success: true,
+      emailCount: parseInt(parts[0]) || 0,
+      latestSubject: parts[1] || 'No messages'
+    };
+  } catch (e) {
+    console.error('[Main] test-mail-access error:', e);
+    return { success: false, error: e.message };
+  }
+});
+
+// Open Full Disk Access settings
+ipcMain.handle('open-full-disk-access-settings', async () => {
+  try {
+    const { shell } = require('electron');
+    // Open System Preferences to Security & Privacy > Privacy > Full Disk Access
+    shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles');
+    return { success: true };
+  } catch (e) {
+    console.error('[Main] open-full-disk-access-settings error:', e);
+    return { success: false, error: e.message };
+  }
+});
+
 function createWindow() {
   // Prevent creating multiple windows
   if (mainWindow && !mainWindow.isDestroyed()) {
