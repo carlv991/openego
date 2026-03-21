@@ -5280,7 +5280,7 @@ async function setupAutoReply(enabled) {
             } else if (newMode === 'learning') {
                 stopAutoPilotMonitor();
                 startLearningMode();
-                updateActivityStatus('Learning mode active', 'Background persona training only');
+                updateActivityStatus('Learning mode active', 'Background persona training across all channels');
                 showToast('Switched to Learning mode - no notifications', 'info');
             } else {
                 stopAutoPilotMonitor();
@@ -5292,7 +5292,7 @@ async function setupAutoReply(enabled) {
         
         /**
          * Start Learning Mode - background persona training only
-         * Checks for new emails once per hour to learn persona
+         * Checks for new messages across all channels once per hour to learn persona
          * No notifications, no UI updates, pure background
          */
         function startLearningMode() {
@@ -5320,17 +5320,17 @@ async function setupAutoReply(enabled) {
         }
         
         async function performLearningScan() {
-            console.log('[Learning Mode] Performing background scan...');
+            console.log('[Learning Mode] Performing background scan across all channels...');
             
             try {
                 if (typeof require !== 'undefined') {
                     const { ipcRenderer } = require('electron');
                     
-                    // Scan for new emails silently (no notifications)
+                    // Scan for new messages across all connected channels silently (no notifications)
                     const result = await ipcRenderer.invoke('openego-scan-and-train');
                     
                     if (result.success) {
-                        console.log(`[Learning Mode] Scanned ${result.emailsAnalyzed} emails, confidence: ${Math.round(result.confidence)}%`);
+                        console.log(`[Learning Mode] Processed ${result.messagesAnalyzed || result.emailsAnalyzed} messages, confidence: ${Math.round(result.confidence)}%`);
                         
                         // Update persona silently (no UI notifications)
                         if (result.confidence > 80) {
