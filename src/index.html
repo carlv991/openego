@@ -2897,6 +2897,15 @@
                 
                 <div class="status-center">
                     <div class="mode-toggles" style="display: flex; gap: 20px; align-items: center;">
+                        <!-- Learning Toggle -->
+                        <div class="mode-toggle-item" style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
+                            <span style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Learning</span>
+                            <label class="toggle-switch" style="transform: scale(0.9);">
+                                <input type="checkbox" id="learningToggle" onchange="toggleModeSwitch('learning')">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+
                         <!-- Co-Pilot Toggle -->
                         <div class="mode-toggle-item" style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
                             <span style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Co-Pilot</span>
@@ -2905,21 +2914,12 @@
                                 <span class="toggle-slider"></span>
                             </label>
                         </div>
-                        
+
                         <!-- Auto-Pilot Toggle -->
                         <div class="mode-toggle-item" style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
                             <span style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Auto-Pilot</span>
                             <label class="toggle-switch" style="transform: scale(0.9);">
                                 <input type="checkbox" id="autopilotToggle" onchange="toggleModeSwitch('autopilot')">
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                        
-                        <!-- Learning Toggle -->
-                        <div class="mode-toggle-item" style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
-                            <span style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Learning</span>
-                            <label class="toggle-switch" style="transform: scale(0.9);">
-                                <input type="checkbox" id="learningToggle" onchange="toggleModeSwitch('learning')">
                                 <span class="toggle-slider"></span>
                             </label>
                         </div>
@@ -5262,7 +5262,23 @@ async function setupAutoReply(enabled) {
             const learningToggle = document.getElementById('learningToggle');
             const statusIndicator = document.getElementById('statusIndicator');
             const soundwaveContainer = document.getElementById('soundwaveContainer');
-            
+
+            // Show warning for Auto-Pilot
+            if (mode === 'autopilot' && autopilotToggle?.checked) {
+                const confirmed = confirm(
+                    '⚠️ WARNING: Auto-Pilot Mode\n\n' +
+                    'Auto-Pilot will automatically send responses without your approval.\n\n' +
+                    '• Messages will be sent immediately\n' +
+                    '• No preview or confirmation step\n' +
+                    '• Use with caution\n\n' +
+                    'Are you sure you want to enable Auto-Pilot?'
+                );
+                if (!confirmed) {
+                    autopilotToggle.checked = false;
+                    return;
+                }
+            }
+
             // Get current states
             const copilotEnabled = copilotToggle?.checked || false;
             const autopilotEnabled = autopilotToggle?.checked || false;
