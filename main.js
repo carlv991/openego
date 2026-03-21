@@ -171,33 +171,54 @@ ipcMain.handle('test-mail-access', async () => {
       return { success: false, error: 'Apple Mail only available on macOS' };
     }
     
-    const { exec } = require('child_process');
-    const util = require('util');
-    const execAsync = util.promisify(exec);
+    const { spawn } = require('child_process');
     
-    // Get inbox message count and latest subject
-    const script = `
-      tell application "Mail"
-        set inboxCount to 0
-        set latestSubject to "No messages"
-        try
-          set inboxCount to count of messages in inbox
-          if inboxCount > 0 then
-            set latestSubject to subject of first message in inbox
-          end if
-        end try
-        return inboxCount & "|" & latestSubject
-      end tell
-    `;
+    // AppleScript to get inbox count and latest subject
+    const script = `tell application "Mail"
+	set inboxCount to 0
+	set latestSubject to "No messages"
+	try
+		set inboxCount to count of messages in inbox
+		if inboxCount > 0 then
+			set latestSubject to subject of first message in inbox
+		end if
+	end try
+	return inboxCount & "|" & latestSubject
+end tell`;
     
-    const { stdout } = await execAsync(`osascript -e '${script}'`, { timeout: 10000 });
-    const parts = stdout.trim().split('|');
-    
-    return {
-      success: true,
-      emailCount: parseInt(parts[0]) || 0,
-      latestSubject: parts[1] || 'No messages'
-    };
+    return new Promise((resolve) => {
+      const child = spawn('osascript', ['-e', script], { timeout: 10000 });
+      let stdout = '';
+      let stderr = '';
+      
+      child.stdout.on('data', (data) => {
+        stdout += data.toString();
+      });
+      
+      child.stderr.on('data', (data) => {
+        stderr += data.toString();
+      });
+      
+      child.on('close', (code) => {
+        if (code !== 0 || stderr) {
+          console.error('[Main] test-mail-access error:', stderr);
+          resolve({ success: false, error: stderr || 'AppleScript failed' });
+          return;
+        }
+        
+        const parts = stdout.trim().split('|');
+        resolve({
+          success: true,
+          emailCount: parseInt(parts[0]) || 0,
+          latestSubject: parts[1] || 'No messages'
+        });
+      });
+      
+      child.on('error', (err) => {
+        console.error('[Main] test-mail-access spawn error:', err);
+        resolve({ success: false, error: err.message });
+      });
+    });
   } catch (e) {
     console.error('[Main] test-mail-access error:', e);
     return { success: false, error: e.message };
