@@ -3571,6 +3571,7 @@
                 modal.style.display = 'flex';
             }
         }
+        window.openSettingsModal = openSettingsModal;
         
         // Close settings modal and return to previous step
         function closeSettingsModal() {
@@ -3582,6 +3583,7 @@
             
             console.log(`Closing settings - returning to step ${stepBeforeSettings}`);
         }
+        window.closeSettingsModal = closeSettingsModal;
         
         // Make initUser available globally
         window.initUser = initUser;
@@ -3995,6 +3997,8 @@
             currentStep = step;
             updateProgress();
         }
+        window.prevStep = prevStep;
+        window.nextStep = nextStep;
         
         function selectModel(card) {
             document.querySelectorAll('.model-card').forEach(c => c.classList.remove('selected'));
@@ -4006,6 +4010,7 @@
             localStorage.setItem('openego_provider', provider);
             localStorage.setItem('openego_model', model);
         }
+        window.selectModel = selectModel;
         
         // Check Ollama status
         async function checkOllamaStatus() {
@@ -4326,7 +4331,8 @@ async function setupAutoReply(enabled) {
             // Load real emails for training after a short delay
             setTimeout(loadRealEmailsForTraining, 500);
         }
-        
+        window.startTraining = startTraining;
+
         // Load real emails for training test
         async function loadRealEmailsForTraining() {
             const container = document.getElementById('scenarioContainer');
@@ -4519,6 +4525,7 @@ async function setupAutoReply(enabled) {
             document.getElementById('permissionRequest').style.display = 'block';
             document.getElementById('step2Continue').style.display = 'none';
         }
+        window.showPermissionRequest = showPermissionRequest;
         
         async function requestFullDiskAccess() {
             // Get selected sources
@@ -4611,7 +4618,8 @@ async function setupAutoReply(enabled) {
                 }, 1500);
             }
         }
-        
+        window.requestFullDiskAccess = requestFullDiskAccess;
+
         async function checkPermissionStatus() {
             const btn = document.querySelector('#permissionRequest button');
             btn.innerHTML = '<span class="loading-spinner"></span> Checking permission...';
