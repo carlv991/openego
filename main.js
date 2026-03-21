@@ -186,22 +186,28 @@ function createWindow() {
       console.error('[Main] OpenEgo Core initialization failed:', e);
     }
     
-    // Fallback: Register save-ai-settings handler directly in case OpenEgoCore fails
-    ipcMain.handle('save-ai-settings', async (event, settings) => {
-      try {
-        const settingsPath = path.join(os.homedir(), '.openego_ai_settings.json');
-        fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
-        console.log('[Main] AI settings saved to', settingsPath);
-        return { success: true };
-      } catch (e) {
-        console.error('[Main] Error saving AI settings:', e);
-        return { success: false, error: e.message };
-      }
-    });
-    
     ipcHandlersRegistered = true;
     console.log('[Main] All IPC handlers registered');
   }
+  
+  // Register save-ai-settings handler (outside conditional to ensure it's always available)
+  // Remove any existing handler first to prevent duplicate registration errors
+  try {
+    ipcMain.removeHandler('save-ai-settings');
+  } catch (e) {
+    // Handler might not exist yet, ignore error
+  }
+  ipcMain.handle('save-ai-settings', async (event, settings) => {
+    try {
+      const settingsPath = path.join(os.homedir(), '.openego_ai_settings.json');
+      fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
+      console.log('[Main] AI settings saved to', settingsPath);
+      return { success: true };
+    } catch (e) {
+      console.error('[Main] Error saving AI settings:', e);
+      return { success: false, error: e.message };
+    }
+  });
 
   // Setup menu bar (top right)
   setupMenuBar();
