@@ -13,6 +13,7 @@
     "start": "electron .",
     "build": "electron-builder",
     "build:mac": "electron-builder --mac",
+    "build:mac:zip": "electron-builder --mac zip",
     "postinstall": "electron-builder install-app-deps",
     "release": "npm run build:mac && npm version patch"
   },
