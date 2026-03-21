@@ -3017,132 +3017,216 @@
                     <div class="tab-content" id="personaTab">
                         <div class="dashboard-header">
                             <h2><i class="fas fa-user-circle"></i> My Communication Persona</h2>
-                            <p class="subtitle">What OpenEgo has learned about your style</p>
+                            <p class="subtitle">Real-time AI learning your unique communication style</p>
                         </div>
-                        
-                        <div class="persona-overview">
-                            <div class="persona-avatar-large">
-                                <span id="personaEmoji">🎭</span>
-                            </div>
-                            <div class="persona-info">
-                                <h3 id="personaTitle">Your Unique Voice</h3>
-                                <p id="personaDescription">Based on analysis of your emails and messages</p>
-                                <div class="persona-tags" id="personaTags">
-                                    <span class="persona-tag">Professional</span>
-                                    <span class="persona-tag">Concise</span>
-                                    <span class="persona-tag">Direct</span>
+
+                        <!-- Persona Live Status Card -->
+                        <div class="persona-live-status" style="background: linear-gradient(135deg, rgba(222, 109, 81, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%); border: 1px solid var(--accent); border-radius: 16px; padding: 24px; margin-bottom: 30px;">
+                            <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 20px;">
+                                <div class="persona-avatar-large" style="width: 80px; height: 80px; font-size: 40px;">
+                                    <span id="personaEmoji">🧙</span>
                                 </div>
-                                
-                                <!-- Confidence Bar -->
-                                <div class="persona-confidence">
-                                    <div class="confidence-header">
-                                        <span class="confidence-label">OpenEgo Confidence</span>
-                                        <span class="confidence-status" id="confidenceStatus">Learning</span>
+                                <div style="flex: 1;">
+                                    <h3 id="personaTitle" style="margin: 0 0 8px 0; font-size: 24px;">Your Digital Twin</h3>
+                                    <p id="personaDescription" style="margin: 0; color: var(--text-secondary);">Learning from <span id="messagesAnalyzedCount">0</span> messages across all channels</p>
+                                    <div class="persona-tags" id="personaTags" style="margin-top: 12px;">
+                                        <span class="persona-tag" style="background: rgba(16, 185, 129, 0.2); color: #10B981;">Live Training</span>
                                     </div>
-                                    <div class="confidence-bar-container">
-                                        <div class="confidence-bar-bg">
-                                            <div class="confidence-bar-fill" id="confidenceBarFill" style="width: 25%;"></div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 48px; font-weight: 700; color: var(--accent);" id="confidenceBigNumber">0%</div>
+                                    <div style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;">Accuracy Score</div>
+                                </div>
+                            </div>
+
+                            <!-- Multi-dimensional Confidence -->
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                                <div class="confidence-dimension">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                        <span style="font-size: 13px; color: var(--text-secondary);"><i class="fas fa-brain"></i> Vocabulary Match</span>
+                                        <span id="vocabScore" style="font-size: 13px; font-weight: 600;">0%</span>
+                                    </div>
+                                    <div style="height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                                        <div id="vocabBar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #DE6D51, #F97316); border-radius: 3px; transition: width 0.5s ease;"></div>
+                                    </div>
+                                </div>
+                                <div class="confidence-dimension">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                        <span style="font-size: 13px; color: var(--text-secondary);"><i class="fas fa-comment-dots"></i> Tone Match</span>
+                                        <span id="toneScore" style="font-size: 13px; font-weight: 600;">0%</span>
+                                    </div>
+                                    <div style="height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                                        <div id="toneBar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #8B5CF6, #A78BFA); border-radius: 3px; transition: width 0.5s ease;"></div>
+                                    </div>
+                                </div>
+                                <div class="confidence-dimension">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                        <span style="font-size: 13px; color: var(--text-secondary);"><i class="fas fa-bullseye"></i> Context Accuracy</span>
+                                        <span id="contextScore" style="font-size: 13px; font-weight: 600;">0%</span>
+                                    </div>
+                                    <div style="height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                                        <div id="contextBar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #10B981, #34D399); border-radius: 3px; transition: width 0.5s ease;"></div>
+                                    </div>
+                                </div>
+                                <div class="confidence-dimension">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                        <span style="font-size: 13px; color: var(--text-secondary);"><i class="fas fa-chart-line"></i> Learning Rate</span>
+                                        <span id="learningRateScore" style="font-size: 13px; font-weight: 600;">0%</span>
+                                    </div>
+                                    <div style="height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                                        <div id="learningRateBar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #3B82F6, #60A5FA); border-radius: 3px; transition: width 0.5s ease;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Learning Progress Timeline -->
+                        <div class="persona-progress-timeline" style="background: var(--card-bg); border-radius: 16px; padding: 24px; margin-bottom: 30px;">
+                            <h4 style="margin: 0 0 20px 0; display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-chart-line" style="color: var(--accent);"></i>
+                                Learning Progress
+                            </h4>
+                            <div id="learningTimeline" style="display: flex; gap: 16px; overflow-x: auto; padding-bottom: 10px;">
+                                <!-- Timeline items will be injected here -->
+                                <div style="text-align: center; min-width: 80px; opacity: 0.5;">
+                                    <div style="width: 40px; height: 40px; background: var(--glass-bg); border-radius: 50%; margin: 0 auto 8px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="fas fa-seedling"></i>
+                                    </div>
+                                    <div style="font-size: 11px; color: var(--text-secondary);">Started</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Communication Style Radar -->
+                        <div class="persona-radar-section" style="background: var(--card-bg); border-radius: 16px; padding: 24px; margin-bottom: 30px;">
+                            <h4 style="margin: 0 0 20px 0; display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-radar" style="color: var(--accent);"></i>
+                                Communication Style Analysis
+                            </h4>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                                <div>
+                                    <canvas id="personaRadarChart" width="300" height="300" style="max-width: 100%;"></canvas>
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 16px;">
+                                    <div class="style-metric">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                            <span style="font-size: 14px;"><i class="fas fa-balance-scale" style="color: #DE6D51; margin-right: 8px;"></i>Formality</span>
+                                            <span id="formalityValue" style="font-weight: 600;">50%</span>
                                         </div>
-                                        <div class="confidence-labels">
-                                            <span>Not Confident</span>
-                                            <span id="confidencePercent">25%</span>
-                                            <span>Confident</span>
+                                        <div style="height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden;">
+                                            <div id="formalityBar" style="height: 100%; width: 50%; background: linear-gradient(90deg, #DE6D51, #F97316); border-radius: 4px; transition: width 0.5s ease;"></div>
                                         </div>
+                                        <p id="formalityDesc" style="margin: 6px 0 0 0; font-size: 12px; color: var(--text-secondary);">Balanced professional tone</p>
                                     </div>
-                                    <p class="confidence-description" id="confidenceDescription">
-                                        Still learning your style. Use the app more to improve accuracy.
-                                    </p>
+                                    <div class="style-metric">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                            <span style="font-size: 14px;"><i class="fas fa-bolt" style="color: #F59E0B; margin-right: 8px;"></i>Enthusiasm</span>
+                                            <span id="enthusiasmValue" style="font-weight: 600;">50%</span>
+                                        </div>
+                                        <div style="height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden;">
+                                            <div id="enthusiasmBar" style="height: 100%; width: 50%; background: linear-gradient(90deg, #F59E0B, #FBBF24); border-radius: 4px; transition: width 0.5s ease;"></div>
+                                        </div>
+                                        <p id="enthusiasmDesc" style="margin: 6px 0 0 0; font-size: 12px; color: var(--text-secondary);">Measured energy level</p>
+                                    </div>
+                                    <div class="style-metric">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                            <span style="font-size: 14px;"><i class="fas fa-compress-alt" style="color: #8B5CF6; margin-right: 8px;"></i>Directness</span>
+                                            <span id="directnessValue" style="font-weight: 600;">50%</span>
+                                        </div>
+                                        <div style="height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden;">
+                                            <div id="directnessBar" style="height: 100%; width: 50%; background: linear-gradient(90deg, #8B5CF6, #A78BFA); border-radius: 4px; transition: width 0.5s ease;"></div>
+                                        </div>
+                                        <p id="directnessDesc" style="margin: 6px 0 0 0; font-size: 12px; color: var(--text-secondary);">Gets to the point</p>
+                                    </div>
+                                    <div class="style-metric">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                            <span style="font-size: 14px;"><i class="fas fa-smile" style="color: #10B981; margin-right: 8px;"></i>Emoji Usage</span>
+                                            <span id="emojiValue" style="font-weight: 600;">50%</span>
+                                        </div>
+                                        <div style="height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden;">
+                                            <div id="emojiBar" style="height: 100%; width: 50%; background: linear-gradient(90deg, #10B981, #34D399); border-radius: 4px; transition: width 0.5s ease;"></div>
+                                        </div>
+                                        <p id="emojiDesc" style="margin: 6px 0 0 0; font-size: 12px; color: var(--text-secondary);">Occasional emoji use</p>
+                                    </div>
+                                    <div class="style-metric">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                            <span style="font-size: 14px;"><i class="fas fa-align-left" style="color: #3B82F6; margin-right: 8px;"></i>Response Length</span>
+                                            <span id="responseLengthValue" style="font-weight: 600;">50%</span>
+                                        </div>
+                                        <div style="height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden;">
+                                            <div id="responseLengthBar" style="height: 100%; width: 50%; background: linear-gradient(90deg, #3B82F6, #60A5FA); border-radius: 4px; transition: width 0.5s ease;"></div>
+                                        </div>
+                                        <p id="responseLengthDesc" style="margin: 6px 0 0 0; font-size: 12px; color: var(--text-secondary);">Concise communicator</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        
-                        <div class="persona-stats-grid">
-                            <div class="persona-stat-card">
-                                <div class="persona-stat-header">
-                                    <i class="fas fa-balance-scale"></i>
-                                    <span>Formality</span>
+
+                        <!-- Recent Learning Insights -->
+                        <div class="persona-insights-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                            <div class="insight-card" style="background: var(--card-bg); border-radius: 16px; padding: 20px;">
+                                <h4 style="margin: 0 0 16px 0; display: flex; align-items: center; gap: 10px; font-size: 16px;">
+                                    <i class="fas fa-hand-paper" style="color: var(--accent);"></i>
+                                    Common Greetings
+                                </h4>
+                                <div class="persona-phrases" id="commonGreetings" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                    <span class="persona-phrase" style="background: var(--glass-bg); padding: 8px 16px; border-radius: 20px; font-size: 13px;">Loading...</span>
                                 </div>
-                                <div class="persona-progress">
-                                    <div class="persona-progress-bar">
-                                        <div class="persona-progress-fill" id="formalityBar" style="width: 70%"></div>
-                                    </div>
-                                    <span class="persona-progress-value" id="formalityValue">70%</span>
-                                </div>
-                                <p class="persona-stat-desc" id="formalityDesc">Professional but approachable</p>
                             </div>
-                            
-                            <div class="persona-stat-card">
-                                <div class="persona-stat-header">
-                                    <i class="fas fa-bolt"></i>
-                                    <span>Enthusiasm</span>
+
+                            <div class="insight-card" style="background: var(--card-bg); border-radius: 16px; padding: 20px;">
+                                <h4 style="margin: 0 0 16px 0; display: flex; align-items: center; gap: 10px; font-size: 16px;">
+                                    <i class="fas fa-sign-out-alt" style="color: var(--accent);"></i>
+                                    Common Sign-offs
+                                </h4>
+                                <div class="persona-phrases" id="commonSignoffs" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                    <span class="persona-phrase" style="background: var(--glass-bg); padding: 8px 16px; border-radius: 20px; font-size: 13px;">Loading...</span>
                                 </div>
-                                <div class="persona-progress">
-                                    <div class="persona-progress-bar">
-                                        <div class="persona-progress-fill" id="enthusiasmBar" style="width: 45%"></div>
-                                    </div>
-                                    <span class="persona-progress-value" id="enthusiasmValue">45%</span>
-                                </div>
-                                <p class="persona-stat-desc" id="enthusiasmDesc">Measured and thoughtful</p>
                             </div>
-                            
-                            <div class="persona-stat-card">
-                                <div class="persona-stat-header">
-                                    <i class="fas fa-smile"></i>
-                                    <span>Emoji Usage</span>
+
+                            <div class="insight-card" style="background: var(--card-bg); border-radius: 16px; padding: 20px;">
+                                <h4 style="margin: 0 0 16px 0; display: flex; align-items: center; gap: 10px; font-size: 16px;">
+                                    <i class="fas fa-tags" style="color: var(--accent);"></i>
+                                    Top Vocabulary
+                                </h4>
+                                <div class="persona-phrases" id="topVocabulary" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                    <span class="persona-phrase" style="background: var(--glass-bg); padding: 8px 16px; border-radius: 20px; font-size: 13px;">Analyzing...</span>
                                 </div>
-                                <div class="persona-progress">
-                                    <div class="persona-progress-bar">
-                                        <div class="persona-progress-fill" id="emojiBar" style="width: 15%"></div>
-                                    </div>
-                                    <span class="persona-progress-value" id="emojiValue">15%</span>
-                                </div>
-                                <p class="persona-stat-desc" id="emojiDesc">Rarely uses emojis</p>
                             </div>
-                            
-                            <div class="persona-stat-card">
-                                <div class="persona-stat-header">
-                                    <i class="fas fa-comments"></i>
-                                    <span>Response Length</span>
+
+                            <div class="insight-card" style="background: var(--card-bg); border-radius: 16px; padding: 20px;">
+                                <h4 style="margin: 0 0 16px 0; display: flex; align-items: center; gap: 10px; font-size: 16px;">
+                                    <i class="fas fa-bullseye" style="color: var(--accent);"></i>
+                                    Accuracy Feedback
+                                </h4>
+                                <div style="display: flex; align-items: center; gap: 16px;">
+                                    <div style="text-align: center;">
+                                        <div id="thumbsUpCount" style="font-size: 32px; font-weight: 700; color: #10B981;">0</div>
+                                        <div style="font-size: 12px; color: var(--text-secondary);"><i class="fas fa-thumbs-up"></i> Good</div>
+                                    </div>
+                                    <div style="flex: 1; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden;">
+                                        <div id="feedbackRatioBar" style="height: 100%; width: 50%; background: linear-gradient(90deg, #10B981, #EF4444); border-radius: 4px;"></div>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <div id="thumbsDownCount" style="font-size: 32px; font-weight: 700; color: #EF4444;">0</div>
+                                        <div style="font-size: 12px; color: var(--text-secondary);"><i class="fas fa-thumbs-down"></i> Needs Work</div>
+                                    </div>
                                 </div>
-                                <div class="persona-metric" id="responseLength">45 words avg</div>
-                                <p class="persona-stat-desc">Concise and to-the-point</p>
+                                <p style="margin: 12px 0 0 0; font-size: 12px; color: var(--text-secondary); text-align: center;">
+                                    Rate AI responses to improve accuracy
+                                </p>
                             </div>
                         </div>
-                        
-                        <div class="persona-sections">
-                            <div class="persona-section">
-                                <h4><i class="fas fa-hand-paper"></i> Common Greetings</h4>
-                                <div class="persona-phrases" id="commonGreetings">
-                                    <span class="persona-phrase">Hey</span>
-                                    <span class="persona-phrase">Hi there</span>
-                                    <span class="persona-phrase">Hello</span>
-                                </div>
-                            </div>
-                            
-                            <div class="persona-section">
-                                <h4><i class="fas fa-sign-out-alt"></i> Common Sign-offs</h4>
-                                <div class="persona-phrases" id="commonSignoffs">
-                                    <span class="persona-phrase">Best</span>
-                                    <span class="persona-phrase">Thanks</span>
-                                    <span class="persona-phrase">Cheers</span>
-                                </div>
-                            </div>
-                            
-                            <div class="persona-section">
-                                <h4><i class="fas fa-tags"></i> Frequent Topics</h4>
-                                <div class="persona-phrases" id="frequentTopics">
-                                    <span class="persona-phrase">Meetings</span>
-                                    <span class="persona-phrase">Proposals</span>
-                                    <span class="persona-phrase">Deadlines</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="persona-actions">
-                            <button class="btn btn-secondary" onclick="retrainPersona()">
-                                <i class="fas fa-sync-alt"></i> Retrain from Emails
+
+                        <!-- Action Buttons -->
+                        <div class="persona-actions" style="display: flex; gap: 12px; flex-wrap: wrap;">
+                            <button class="btn btn-secondary" onclick="retrainPersona()" style="flex: 1; min-width: 180px;">
+                                <i class="fas fa-sync-alt"></i> Retrain from Messages
                             </button>
-                            <button class="btn btn-primary" onclick="exportPersona()">
+                            <button class="btn btn-secondary" onclick="testPersonaAccuracy()" style="flex: 1; min-width: 180px;">
+                                <i class="fas fa-vial"></i> Test Accuracy
+                            </button>
+                            <button class="btn btn-primary" onclick="exportPersona()" style="flex: 1; min-width: 180px;">
                                 <i class="fas fa-download"></i> Export Persona
                             </button>
                         </div>
@@ -5524,74 +5608,535 @@ async function setupAutoReply(enabled) {
             }
         }
         
-        // Load and display persona data
+        // Load and display persona data with comprehensive metrics
         async function loadPersonaDisplay() {
+            console.log('[Persona] Loading persona display...');
+            
             try {
-                // Check if persona engine data exists
-                const personaPath = `${os.homedir()}/.openego_persona.json`;
-                const fs = require('fs');
+                let personaData = null;
+                let stats = {
+                    totalMessages: 0,
+                    vocabularySize: 0,
+                    avgMessageLength: 0,
+                    trainingSessions: 0,
+                    lastTrainingDate: null
+                };
                 
-                if (fs.existsSync(personaPath)) {
-                    const data = JSON.parse(fs.readFileSync(personaPath, 'utf8'));
-                    updatePersonaUI(data.persona);
-                } else {
-                    // Show default/empty state
-                    console.log('[Persona] No persona data found yet');
+                // Try to load from file first (Electron mode)
+                if (typeof require !== 'undefined') {
+                    try {
+                        const fs = require('fs');
+                        const os = require('os');
+                        const path = require('path');
+                        
+                        const personaPath = path.join(os.homedir(), '.openego_persona.json');
+                        if (fs.existsSync(personaPath)) {
+                            const fileData = JSON.parse(fs.readFileSync(personaPath, 'utf8'));
+                            personaData = fileData.persona || fileData;
+                            stats.totalMessages = fileData.totalEmails || fileData.totalMessages || 0;
+                            stats.lastTrainingDate = fileData.lastUpdated;
+                            console.log('[Persona] Loaded from file:', stats.totalMessages, 'messages');
+                        }
+                    } catch (e) {
+                        console.log('[Persona] Could not load from file:', e.message);
+                    }
                 }
+                
+                // Fallback to localStorage
+                if (!personaData) {
+                    const localData = localStorage.getItem('openego_persona');
+                    if (localData) {
+                        try {
+                            personaData = JSON.parse(localData);
+                            stats.totalMessages = parseInt(localStorage.getItem('openego_message_count') || '0');
+                            console.log('[Persona] Loaded from localStorage:', stats.totalMessages, 'messages');
+                        } catch (e) {
+                            console.error('[Persona] Error parsing localStorage data:', e);
+                        }
+                    }
+                }
+                
+                // Get feedback stats
+                const edits = JSON.parse(localStorage.getItem('openego_edits') || '[]');
+                const goodResponses = edits.filter(e => e.rating === 'good').length;
+                const badResponses = edits.filter(e => e.rating === 'bad').length;
+                
+                // Calculate comprehensive metrics
+                const metrics = calculatePersonaMetrics(personaData, stats, goodResponses, badResponses);
+                
+                // Update all UI elements
+                updatePersonaDashboard(metrics);
+                
             } catch (e) {
-                console.error('[Persona] Error loading persona:', e);
+                console.error('[Persona] Error loading persona display:', e);
+                showDefaultPersonaState();
             }
         }
         
-        function updatePersonaUI(persona) {
-            if (!persona) return;
+        /**
+         * Calculate comprehensive persona metrics
+         */
+        function calculatePersonaMetrics(persona, stats, goodResponses, badResponses) {
+            const totalMessages = stats.totalMessages || 0;
             
-            // Update stats
-            document.getElementById('formalityValue').textContent = persona.communicationStyle?.formality || '50%';
-            document.getElementById('formalityBar').style.width = persona.communicationStyle?.formality || '50%';
+            // Base confidence calculation
+            let confidenceScore = 0;
             
-            document.getElementById('enthusiasmValue').textContent = persona.communicationStyle?.enthusiasm || '50%';
-            document.getElementById('enthusiasmBar').style.width = persona.communicationStyle?.enthusiasm || '50%';
+            // Data volume score (0-30 points)
+            if (totalMessages >= 1000) confidenceScore += 30;
+            else if (totalMessages >= 500) confidenceScore += 25;
+            else if (totalMessages >= 200) confidenceScore += 20;
+            else if (totalMessages >= 50) confidenceScore += 15;
+            else if (totalMessages >= 10) confidenceScore += 10;
+            else confidenceScore += 5;
             
-            document.getElementById('emojiValue').textContent = persona.communicationStyle?.emojiUsage || '0%';
-            document.getElementById('emojiBar').style.width = persona.communicationStyle?.emojiUsage || '0%';
+            // Vocabulary diversity (0-20 points)
+            const vocabSize = persona?.vocabulary?.length || persona?.summary?.vocabularySize || 0;
+            const vocabScore = Math.min((vocabSize / 500) * 20, 20);
+            confidenceScore += vocabScore;
             
-            document.getElementById('responseLength').textContent = 
-                `${persona.summary?.avgEmailLength || 45} words avg`;
+            // Pattern richness (0-20 points)
+            const hasGreetings = (persona?.preferences?.commonGreetings?.length || 0) > 0;
+            const hasSignoffs = (persona?.preferences?.commonSignoffs?.length || 0) > 0;
+            const hasTopics = (persona?.preferences?.frequentTopics?.length || 0) > 0;
+            const hasTraits = (persona?.preferences?.traits?.length || 0) > 0;
+            confidenceScore += (hasGreetings + hasSignoffs + hasTopics + hasTraits) * 5;
             
-            // Update tags
-            const tagsContainer = document.getElementById('personaTags');
-            if (persona.preferences?.traits) {
-                tagsContainer.innerHTML = persona.preferences.traits
-                    .map(tag => `<span class="persona-tag">${tag}</span>`)
-                    .join('');
+            // User feedback score (0-20 points)
+            const totalFeedback = goodResponses + badResponses;
+            if (totalFeedback > 0) {
+                const accuracyRate = goodResponses / totalFeedback;
+                confidenceScore += accuracyRate * 20;
             }
+            
+            // Style data completeness (0-10 points)
+            const hasStyle = persona?.communicationStyle ? true : false;
+            confidenceScore += hasStyle ? 10 : 0;
+            
+            // Cap at 100
+            confidenceScore = Math.min(Math.round(confidenceScore), 100);
+            
+            // Calculate individual dimension scores
+            const vocabMatch = Math.min(Math.round((vocabSize / 1000) * 100), 100);
+            const toneMatch = hasStyle ? Math.round((persona.communicationStyle.consistency || 0.5) * 100) : 50;
+            const contextAccuracy = totalFeedback > 0 
+                ? Math.round((goodResponses / totalFeedback) * 100) 
+                : 50;
+            const learningRate = Math.min(Math.round((totalMessages / 100) * 100), 100);
+            
+            return {
+                confidenceScore,
+                totalMessages,
+                vocabSize,
+                vocabMatch,
+                toneMatch,
+                contextAccuracy,
+                learningRate,
+                goodResponses,
+                badResponses,
+                feedbackTotal: totalFeedback,
+                persona,
+                hasData: !!persona,
+                style: persona?.communicationStyle || {
+                    formality: '50%',
+                    enthusiasm: '50%',
+                    emojiUsage: '50%',
+                    directness: '50%',
+                    responseLength: '50%'
+                },
+                preferences: persona?.preferences || {
+                    commonGreetings: ['Hey', 'Hi', 'Hello'],
+                    commonSignoffs: ['Best', 'Thanks'],
+                    frequentTopics: ['General'],
+                    traits: ['Professional']
+                },
+                vocabulary: persona?.vocabulary || persona?.summary?.topWords || []
+            };
+        }
+        
+        /**
+         * Update the persona dashboard with calculated metrics
+         */
+        function updatePersonaDashboard(metrics) {
+            // Update main confidence number
+            const confidenceBigNumber = document.getElementById('confidenceBigNumber');
+            if (confidenceBigNumber) {
+                animateNumber(confidenceBigNumber, 0, metrics.confidenceScore, 1000, '%');
+            }
+            
+            // Update dimension bars
+            updateDimensionBar('vocab', metrics.vocabMatch);
+            updateDimensionBar('tone', metrics.toneMatch);
+            updateDimensionBar('context', metrics.contextAccuracy);
+            updateDimensionBar('learningRate', metrics.learningRate);
+            
+            // Update message count
+            const messagesCount = document.getElementById('messagesAnalyzedCount');
+            if (messagesCount) {
+                messagesCount.textContent = metrics.totalMessages.toLocaleString();
+            }
+            
+            // Update style metrics
+            updateStyleMetric('formality', metrics.style.formality || '50%', metrics.style);
+            updateStyleMetric('enthusiasm', metrics.style.enthusiasm || '50%', metrics.style);
+            updateStyleMetric('directness', metrics.style.directness || '60%', metrics.style);
+            updateStyleMetric('emoji', metrics.style.emojiUsage || '20%', metrics.style);
+            updateStyleMetric('responseLength', metrics.style.responseLength || '50%', metrics.style);
             
             // Update phrases
-            if (persona.preferences?.commonGreetings) {
-                document.getElementById('commonGreetings').innerHTML = 
-                    persona.preferences.commonGreetings
-                        .map(g => `<span class="persona-phrase">${g}</span>`)
-                        .join('');
-            }
+            updatePhrases('commonGreetings', metrics.preferences.commonGreetings);
+            updatePhrases('commonSignoffs', metrics.preferences.commonSignoffs);
+            updatePhrases('topVocabulary', metrics.vocabulary.slice(0, 10));
             
-            if (persona.preferences?.commonSignoffs) {
-                document.getElementById('commonSignoffs').innerHTML = 
-                    persona.preferences.commonSignoffs
-                        .map(s => `<span class="persona-phrase">${s}</span>`)
-                        .join('');
-            }
+            // Update feedback stats
+            updateFeedbackStats(metrics.goodResponses, metrics.badResponses);
             
-            if (persona.preferences?.frequentTopics) {
-                document.getElementById('frequentTopics').innerHTML = 
-                    persona.preferences.frequentTopics
-                        .map(t => `<span class="persona-phrase">${t}</span>`)
-                        .join('');
-            }
+            // Update persona title based on confidence
+            updatePersonaTitle(metrics.confidenceScore);
             
-            // Update confidence bar
-            updateConfidenceBar(persona);
+            // Draw radar chart
+            drawPersonaRadarChart(metrics);
+            
+            // Update learning timeline
+            updateLearningTimeline(metrics);
         }
+        
+        function updateDimensionBar(dimension, value) {
+            const scoreEl = document.getElementById(`${dimension}Score`);
+            const barEl = document.getElementById(`${dimension}Bar`);
+            
+            if (scoreEl) scoreEl.textContent = `${value}%`;
+            if (barEl) barEl.style.width = `${value}%`;
+        }
+        
+        function updateStyleMetric(metric, value, style) {
+            const valueEl = document.getElementById(`${metric}Value`);
+            const barEl = document.getElementById(`${metric}Bar`);
+            const descEl = document.getElementById(`${metric}Desc`);
+            
+            const numValue = parseInt(value) || 50;
+            
+            if (valueEl) valueEl.textContent = value;
+            if (barEl) barEl.style.width = value;
+            
+            // Update description based on value
+            if (descEl) {
+                const descriptions = {
+                    formality: {
+                        low: 'Casual and friendly',
+                        mid: 'Professional but approachable',
+                        high: 'Very formal and structured'
+                    },
+                    enthusiasm: {
+                        low: 'Measured and calm',
+                        mid: 'Balanced energy',
+                        high: 'Very enthusiastic'
+                    },
+                    directness: {
+                        low: 'Indirect and diplomatic',
+                        mid: 'Gets to the point',
+                        high: 'Very direct and concise'
+                    },
+                    emoji: {
+                        low: 'Rarely uses emojis',
+                        mid: 'Occasional emoji use',
+                        high: 'Frequent emoji use'
+                    },
+                    responseLength: {
+                        low: 'Very concise (1-2 sentences)',
+                        mid: 'Moderate length (3-5 sentences)',
+                        high: 'Detailed responses'
+                    }
+                };
+                
+                const desc = descriptions[metric];
+                if (desc) {
+                    if (numValue < 33) descEl.textContent = desc.low;
+                    else if (numValue < 66) descEl.textContent = desc.mid;
+                    else descEl.textContent = desc.high;
+                }
+            }
+        }
+        
+        function updatePhrases(elementId, phrases) {
+            const el = document.getElementById(elementId);
+            if (el && phrases && phrases.length > 0) {
+                el.innerHTML = phrases
+                    .map(p => `<span class="persona-phrase" style="background: var(--glass-bg); padding: 8px 16px; border-radius: 20px; font-size: 13px; animation: fadeIn 0.3s ease;">${p}</span>`)
+                    .join('');
+            }
+        }
+        
+        function updateFeedbackStats(good, bad) {
+            const goodEl = document.getElementById('thumbsUpCount');
+            const badEl = document.getElementById('thumbsDownCount');
+            const ratioBar = document.getElementById('feedbackRatioBar');
+            
+            if (goodEl) goodEl.textContent = good;
+            if (badEl) badEl.textContent = bad;
+            
+            if (ratioBar) {
+                const total = good + bad;
+                if (total > 0) {
+                    const goodRatio = (good / total) * 100;
+                    ratioBar.style.width = `${goodRatio}%`;
+                    ratioBar.style.background = `linear-gradient(90deg, #10B981 ${goodRatio}%, #EF4444 ${goodRatio}%)`;
+                } else {
+                    ratioBar.style.width = '50%';
+                    ratioBar.style.background = 'linear-gradient(90deg, #6B7280, #6B7280)';
+                }
+            }
+        }
+        
+        function updatePersonaTitle(confidence) {
+            const titleEl = document.getElementById('personaTitle');
+            const emojiEl = document.getElementById('personaEmoji');
+            
+            const titles = [
+                { min: 0, max: 20, title: 'Digital Newborn', emoji: '👶' },
+                { min: 20, max: 40, title: 'Digital Student', emoji: '📚' },
+                { min: 40, max: 60, title: 'Digital Apprentice', emoji: '🎓' },
+                { min: 60, max: 80, title: 'Digital Twin', emoji: '🧙' },
+                { min: 80, max: 95, title: 'Digital Master', emoji: '👑' },
+                { min: 95, max: 100, title: 'Digital Genius', emoji: '🚀' }
+            ];
+            
+            const match = titles.find(t => confidence >= t.min && confidence < t.max) || titles[0];
+            
+            if (titleEl) titleEl.textContent = `Your ${match.title}`;
+            if (emojiEl) emojiEl.textContent = match.emoji;
+        }
+        
+        function animateNumber(element, start, end, duration, suffix = '') {
+            const startTime = performance.now();
+            
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Easing function
+                const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+                const current = Math.round(start + (end - start) * easeOutQuart);
+                
+                element.textContent = current + suffix;
+                
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                }
+            }
+            
+            requestAnimationFrame(update);
+        }
+        
+        function drawPersonaRadarChart(metrics) {
+            const canvas = document.getElementById('personaRadarChart');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = Math.min(centerX, centerY) - 40;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Data points
+            const data = [
+                metrics.vocabMatch / 100,
+                metrics.toneMatch / 100,
+                metrics.contextAccuracy / 100,
+                metrics.learningRate / 100,
+                metrics.confidenceScore / 100
+            ];
+            
+            const labels = ['Vocabulary', 'Tone', 'Context', 'Learning', 'Overall'];
+            const numAxes = data.length;
+            const angleStep = (Math.PI * 2) / numAxes;
+            
+            // Draw background grid
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 1;
+            
+            for (let i = 1; i <= 5; i++) {
+                ctx.beginPath();
+                for (let j = 0; j < numAxes; j++) {
+                    const angle = j * angleStep - Math.PI / 2;
+                    const r = (radius / 5) * i;
+                    const x = centerX + Math.cos(angle) * r;
+                    const y = centerY + Math.sin(angle) * r;
+                    if (j === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.closePath();
+                ctx.stroke();
+            }
+            
+            // Draw axes
+            for (let i = 0; i < numAxes; i++) {
+                const angle = i * angleStep - Math.PI / 2;
+                const x = centerX + Math.cos(angle) * radius;
+                const y = centerY + Math.sin(angle) * radius;
+                
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+                
+                // Draw labels
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.font = '12px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                const labelX = centerX + Math.cos(angle) * (radius + 25);
+                const labelY = centerY + Math.sin(angle) * (radius + 25);
+                ctx.fillText(labels[i], labelX, labelY);
+            }
+            
+            // Draw data
+            ctx.beginPath();
+            for (let i = 0; i < numAxes; i++) {
+                const angle = i * angleStep - Math.PI / 2;
+                const r = radius * data[i];
+                const x = centerX + Math.cos(angle) * r;
+                const y = centerY + Math.sin(angle) * r;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(222, 109, 81, 0.3)';
+            ctx.fill();
+            ctx.strokeStyle = '#DE6D51';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw data points
+            for (let i = 0; i < numAxes; i++) {
+                const angle = i * angleStep - Math.PI / 2;
+                const r = radius * data[i];
+                const x = centerX + Math.cos(angle) * r;
+                const y = centerY + Math.sin(angle) * r;
+                
+                ctx.beginPath();
+                ctx.arc(x, y, 4, 0, Math.PI * 2);
+                ctx.fillStyle = '#DE6D51';
+                ctx.fill();
+            }
+        }
+        
+        function updateLearningTimeline(metrics) {
+            const timeline = document.getElementById('learningTimeline');
+            if (!timeline) return;
+            
+            // Create timeline items based on training progress
+            const items = [];
+            
+            // Starting point
+            items.push({
+                icon: 'fa-seedling',
+                label: 'Started',
+                color: '#10B981'
+            });
+            
+            if (metrics.totalMessages >= 10) {
+                items.push({
+                    icon: 'fa-envelope',
+                    label: '10 Messages',
+                    color: '#3B82F6'
+                });
+            }
+            
+            if (metrics.totalMessages >= 50) {
+                items.push({
+                    icon: 'fa-brain',
+                    label: 'Patterns Found',
+                    color: '#8B5CF6'
+                });
+            }
+            
+            if (metrics.totalMessages >= 100) {
+                items.push({
+                    icon: 'fa-chart-line',
+                    label: '100 Messages',
+                    color: '#F59E0B'
+                });
+            }
+            
+            if (metrics.totalMessages >= 500) {
+                items.push({
+                    icon: 'fa-crown',
+                    label: 'Expert Mode',
+                    color: '#DE6D51'
+                });
+            }
+            
+            // Render timeline
+            timeline.innerHTML = items.map((item, index) => `
+                <div style="text-align: center; min-width: 80px; ${index === items.length - 1 ? 'opacity: 1;' : 'opacity: 0.7;'}">
+                    <div style="width: 40px; height: 40px; background: ${item.color}; border-radius: 50%; margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px;">
+                        <i class="fas ${item.icon}"></i>
+                    </div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">${item.label}</div>
+                </div>
+            `).join('');
+        }
+        
+        function showDefaultPersonaState() {
+            // Show empty state
+            document.getElementById('confidenceBigNumber').textContent = '0%';
+            document.getElementById('messagesAnalyzedCount').textContent = '0';
+            document.getElementById('personaTitle').textContent = 'Your Digital Twin';
+            document.getElementById('personaEmoji').textContent = '👶';
+        }
+        
+        /**
+         * Test persona accuracy with sample message
+         */
+        async function testPersonaAccuracy() {
+            const testMessage = prompt('Enter a test message to see how your persona responds:');
+            if (!testMessage) return;
+            
+            showToast('Generating persona-based response...', 'info');
+            
+            try {
+                if (typeof require !== 'undefined') {
+                    const { ipcRenderer } = require('electron');
+                    const result = await ipcRenderer.invoke('generate-response-for-message', {
+                        message: testMessage,
+                        sender: 'Test',
+                        platform: 'test'
+                    });
+                    
+                    if (result.success) {
+                        // Show comparison
+                        const response = confirm(
+                            `Original message: "${testMessage}"\n\n` +
+                            `Your persona's response:\n"${result.text}"\n\n` +
+                            `Does this sound like you?\n\n` +
+                            `Click OK if it's good, Cancel if it needs improvement.`
+                        );
+                        
+                        // Store feedback
+                        const edits = JSON.parse(localStorage.getItem('openego_edits') || '[]');
+                        edits.push({
+                            timestamp: new Date().toISOString(),
+                            testMessage,
+                            aiResponse: result.text,
+                            rating: response ? 'good' : 'bad'
+                        });
+                        localStorage.setItem('openego_edits', JSON.stringify(edits));
+                        
+                        // Reload display to update stats
+                        loadPersonaDisplay();
+                        
+                        showToast(response ? 'Thanks! Glad it sounds like you.' : 'Thanks! We\'ll work on improving.', 'success');
+                    }
+                }
+            } catch (e) {
+                console.error('[Test Accuracy] Error:', e);
+                showToast('Error testing accuracy', 'error');
+            }
+        }
+        window.testPersonaAccuracy = testPersonaAccuracy;
         
         function updateConfidenceBar(persona) {
             // Calculate confidence based on data available
