@@ -7402,12 +7402,21 @@ async function setupAutoReply(enabled) {
          * Test AI connection to verify API key is valid
          */
         async function testAIConnection() {
+            console.log('[Test Connection] Button clicked');
+            
             const btn = document.getElementById('testAIConnectionBtn');
             const resultEl = document.getElementById('aiConnectionResult');
+            
+            if (!btn) {
+                console.error('[Test Connection] Button not found');
+                return;
+            }
             
             const provider = localStorage.getItem('openego_provider');
             const model = localStorage.getItem('openego_model');
             const apiKey = localStorage.getItem('openego_api_key');
+            
+            console.log('[Test Connection] Provider:', provider, 'Model:', model);
             
             if (!provider || !apiKey) {
                 resultEl.textContent = '❌ No API key configured';
@@ -7505,6 +7514,8 @@ async function setupAutoReply(enabled) {
         window.checkForAppUpdatesFixed = checkForAppUpdatesFixed;
         window.initializeSendPermissions = initializeSendPermissions;
         window.checkTelegramStatus = checkTelegramStatus;
+        window.testAIConnection = testAIConnection;
+        window.updateAIModelStatus = updateAIModelStatus;
         
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', () => {
