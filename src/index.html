@@ -668,6 +668,16 @@
             background: rgba(16, 185, 129, 0.25);
         }
         
+        .mode-btn.learning {
+            background: rgba(139, 92, 246, 0.15);
+            border-color: rgba(139, 92, 246, 0.3);
+            color: #8B5CF6;
+        }
+        
+        .mode-btn.learning:hover {
+            background: rgba(139, 92, 246, 0.25);
+        }
+        
         .status-item {
             display: flex;
             align-items: center;
@@ -5210,9 +5220,20 @@ async function setupAutoReply(enabled) {
             document.getElementById('inboxBadge').textContent = cards.length;
         }
         
+        // Learning mode - background persona training only
+        let learningModeInterval = null;
+        
         function toggleMode() {
             const current = localStorage.getItem('openego_mode') || 'copilot';
-            const newMode = current === 'copilot' ? 'autopilot' : 'copilot';
+            // Cycle through: copilot -> autopilot -> learning -> copilot
+            let newMode;
+            if (current === 'copilot') {
+                newMode = 'autopilot';
+            } else if (current === 'autopilot') {
+                newMode = 'learning';
+            } else {
+                newMode = 'copilot';
+            }
             localStorage.setItem('openego_mode', newMode);
             
             // Update top mode button
@@ -5220,12 +5241,18 @@ async function setupAutoReply(enabled) {
             const topModeLabel = document.getElementById('topModeLabel');
             
             if (topModeBtn && topModeLabel) {
+                // Reset classes
+                topModeBtn.classList.remove('autopilot', 'learning');
+                
                 if (newMode === 'autopilot') {
                     topModeBtn.classList.add('autopilot');
                     topModeLabel.textContent = 'AUTO-PILOT';
                     topModeBtn.innerHTML = '<i class="fas fa-robot"></i><span id="topModeLabel">AUTO-PILOT</span>';
+                } else if (newMode === 'learning') {
+                    topModeBtn.classList.add('learning');
+                    topModeLabel.textContent = 'LEARNING';
+                    topModeBtn.innerHTML = '<i class="fas fa-brain"></i><span id="topModeLabel">LEARNING</span>';
                 } else {
-                    topModeBtn.classList.remove('autopilot');
                     topModeLabel.textContent = 'CO-PILOT';
                     topModeBtn.innerHTML = '<i class="fas fa-user-astronaut"></i><span id="topModeLabel">CO-PILOT</span>';
                 }
@@ -5234,23 +5261,87 @@ async function setupAutoReply(enabled) {
             // Update legacy mode display if exists
             const currentModeEl = document.getElementById('currentMode');
             if (currentModeEl) {
-                currentModeEl.textContent = newMode === 'autopilot' ? '<i class="fas fa-robot"></i> Auto-Pilot' : '<i class="fas fa-eye"></i> Co-Pilot';
+                if (newMode === 'autopilot') {
+                    currentModeEl.textContent = '<i class="fas fa-robot"></i> Auto-Pilot';
+                } else if (newMode === 'learning') {
+                    currentModeEl.textContent = '<i class="fas fa-brain"></i> Learning';
+                } else {
+                    currentModeEl.textContent = '<i class="fas fa-eye"></i> Co-Pilot';
+                }
             }
             
-            showToast(`Switched to ${newMode === 'autopilot' ? 'Auto-Pilot' : 'Co-Pilot'} mode`, 'success');
-            
-            // Handle autopilot monitoring
+            // Handle mode-specific behavior
             if (newMode === 'autopilot') {
-                // Immediately check for pending messages
+                stopLearningMode();
                 checkAutoPilotMode();
-                // Start continuous monitoring
                 startAutoPilotMonitor();
                 updateActivityStatus('Auto-pilot active', 'Automatically sending responses');
+                showToast('Switched to Auto-Pilot mode', 'success');
+            } else if (newMode === 'learning') {
+                stopAutoPilotMonitor();
+                startLearningMode();
+                updateActivityStatus('Learning mode active', 'Background persona training only');
+                showToast('Switched to Learning mode - no notifications', 'info');
             } else {
+                stopAutoPilotMonitor();
+                stopLearningMode();
                 updateActivityStatus('Co-pilot mode', 'Waiting for your approval');
+                showToast('Switched to Co-Pilot mode', 'success');
+            }
+        }
+        
+        /**
+         * Start Learning Mode - background persona training only
+         * Checks for new emails once per hour to learn persona
+         * No notifications, no UI updates, pure background
+         */
+        function startLearningMode() {
+            if (learningModeInterval) {
+                clearInterval(learningModeInterval);
+            }
             
-            // Start real message monitoring (Phase 3)
-            // startMessageMonitoring(); // Disabled for performance - user must start manually
+            console.log('[Learning Mode] Starting background persona training...');
+            
+            // Do one initial scan
+            performLearningScan();
+            
+            // Then scan every hour (3600000 ms)
+            learningModeInterval = setInterval(() => {
+                performLearningScan();
+            }, 3600000);
+        }
+        
+        function stopLearningMode() {
+            if (learningModeInterval) {
+                clearInterval(learningModeInterval);
+                learningModeInterval = null;
+                console.log('[Learning Mode] Stopped');
+            }
+        }
+        
+        async function performLearningScan() {
+            console.log('[Learning Mode] Performing background scan...');
+            
+            try {
+                if (typeof require !== 'undefined') {
+                    const { ipcRenderer } = require('electron');
+                    
+                    // Scan for new emails silently (no notifications)
+                    const result = await ipcRenderer.invoke('openego-scan-and-train');
+                    
+                    if (result.success) {
+                        console.log(`[Learning Mode] Scanned ${result.emailsAnalyzed} emails, confidence: ${Math.round(result.confidence)}%`);
+                        
+                        // Update persona silently (no UI notifications)
+                        if (result.confidence > 80) {
+                            console.log('[Learning Mode] Persona training improved');
+                        }
+                    } else {
+                        console.log('[Learning Mode] Scan completed with no new data');
+                    }
+                }
+            } catch (e) {
+                console.error('[Learning Mode] Scan error:', e);
             }
         }
         
@@ -5540,11 +5631,15 @@ async function setupAutoReply(enabled) {
             // Update top mode button
             const topModeBtn = document.getElementById('topModeBtn');
             if (topModeBtn) {
+                topModeBtn.classList.remove('autopilot', 'learning');
+                
                 if (mode === 'autopilot') {
                     topModeBtn.classList.add('autopilot');
                     topModeBtn.innerHTML = '<i class="fas fa-robot"></i><span id="topModeLabel">AUTO-PILOT</span>';
+                } else if (mode === 'learning') {
+                    topModeBtn.classList.add('learning');
+                    topModeBtn.innerHTML = '<i class="fas fa-brain"></i><span id="topModeLabel">LEARNING</span>';
                 } else {
-                    topModeBtn.classList.remove('autopilot');
                     topModeBtn.innerHTML = '<i class="fas fa-user-astronaut"></i><span id="topModeLabel">CO-PILOT</span>';
                 }
             }
@@ -5552,7 +5647,13 @@ async function setupAutoReply(enabled) {
             // Update legacy mode display if exists
             const currentModeEl = document.getElementById('currentMode');
             if (currentModeEl) {
-                currentModeEl.textContent = mode === 'autopilot' ? '<i class="fas fa-robot"></i> Auto-Pilot' : '<i class="fas fa-eye"></i> Co-Pilot';
+                if (mode === 'autopilot') {
+                    currentModeEl.textContent = '<i class="fas fa-robot"></i> Auto-Pilot';
+                } else if (mode === 'learning') {
+                    currentModeEl.textContent = '<i class="fas fa-brain"></i> Learning';
+                } else {
+                    currentModeEl.textContent = '<i class="fas fa-eye"></i> Co-Pilot';
+                }
             }
             
             // Load saved theme
@@ -5561,10 +5662,13 @@ async function setupAutoReply(enabled) {
             // Load persona if available
             loadPersonaDisplay();
             
-            // Start autopilot monitoring if in autopilot mode
+            // Start mode-specific behavior
             if (mode === 'autopilot') {
                 startAutoPilotMonitor();
                 updateActivityStatus('Auto-pilot active', 'Automatically sending responses');
+            } else if (mode === 'learning') {
+                startLearningMode();
+                updateActivityStatus('Learning mode active', 'Background persona training only');
             } else {
                 updateActivityStatus('Co-pilot mode', 'Waiting for your approval');
             
