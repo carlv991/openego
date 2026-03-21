@@ -172,123 +172,91 @@ ipcMain.handle('test-mail-access', async () => {
     }
     
     const { exec } = require('child_process');
-    const fs = require('fs');
-    const path = require('path');
     const util = require('util');
     const execAsync = util.promisify(exec);
-    const os = require('os');
     
-    // First check if Mail is running
-    try {
-      const { stdout: mailCheck } = await execAsync(
-        'osascript -e \'tell application "System Events" to return (name of processes) contains "Mail"\'',
-        { timeout: 5000 }
-      );
-      if (mailCheck.trim() !== 'true') {
-        return { success: false, error: 'Mail app is not running. Please open Mail and try again.' };
-      }
-    } catch (e) {
-      console.log('[Main] Mail running check failed:', e.message);
-    }
+    console.log('[Main] Testing Mail access...');
     
-    // Simple script to test access first
+    // Try simple command first - just count accounts (this tests permissions)
     try {
-      const { stdout: accountCheck } = await execAsync(
-        'osascript -e \'tell application "Mail" to count of accounts\' 2>&1',
+      const { stdout: accountCheck, stderr: accountErr } = await execAsync(
+        'osascript -e "tell application \\"Mail\\" to count of accounts"',
         { timeout: 10000 }
       );
+      
+      if (accountErr) {
+        console.log('[Main] Account check stderr:', accountErr);
+      }
+      
       const accountCount = parseInt(accountCheck.trim()) || 0;
       console.log('[Main] Found', accountCount, 'Mail accounts');
       
       if (accountCount === 0) {
-        return { success: false, error: 'No email accounts configured in Mail app.' };
+        return { success: false, error: 'No email accounts configured in Mail app. Please add an email account first.' };
       }
     } catch (e) {
-      console.error('[Main] Account check error:', e.message);
-      if (e.message.includes('Not authorized') || e.stderr?.includes('Not authorized')) {
-        return { success: false, error: 'Full Disk Access not granted. Please enable it in System Preferences > Security & Privacy > Privacy > Full Disk Access.' };
+      console.error('[Main] Account check error:', e.message, e.stderr);
+      
+      if (e.stderr && e.stderr.includes('Not authorized')) {
+        return { 
+          success: false, 
+          error: 'Full Disk Access not granted.\n\nPlease:\n1. Open System Preferences → Security & Privacy → Privacy\n2. Click "Full Disk Access"\n3. Add OpenEgo to the list\n4. Restart OpenEgo' 
+        };
       }
+      
+      if (e.message.includes('Mail got an error') || e.stderr?.includes('Mail got an error')) {
+        return { 
+          success: false, 
+          error: 'Apple Mail is not responding. Please make sure Mail app is open and try again.' 
+        };
+      }
+      
+      return { success: false, error: 'Cannot access Mail: ' + (e.stderr || e.message) };
     }
     
-    // Write AppleScript to temp file to avoid quoting issues
-    const scriptContent = `tell application "Mail"
-	set inboxCount to 0
-	set latestSubject to "No messages"
-	try
-		set inboxCount to (count of messages in inbox)
-		if inboxCount > 0 then
-			set latestSubject to subject of message 1 of inbox
-		end if
-	on error errMsg
-		return "0|Error: " & errMsg
-	end try
-	return (inboxCount as string) & "|" & latestSubject
-end tell`;
-    
-    const tempScriptPath = path.join(os.tmpdir(), 'openego_mail_check.scpt');
-    fs.writeFileSync(tempScriptPath, scriptContent, 'utf8');
-    
-    console.log('[Main] Executing Mail AppleScript from temp file...');
-    
+    // Now get inbox count - use a very simple one-liner
     try {
-      const { stdout, stderr } = await execAsync(
-        `osascript "${tempScriptPath}"`,
+      const { stdout: countResult, stderr: countErr } = await execAsync(
+        'osascript -e "tell application \\"Mail\\" to count of messages in inbox"',
         { timeout: 10000 }
       );
       
-      // Clean up temp file
-      try { fs.unlinkSync(tempScriptPath); } catch (e) {}
-      
-      if (stderr) {
-        console.error('[Main] AppleScript stderr:', stderr);
+      if (countErr) {
+        console.log('[Main] Inbox count stderr:', countErr);
       }
       
-      const result = stdout.trim();
-      console.log('[Main] AppleScript result:', result);
+      const inboxCount = parseInt(countResult.trim()) || 0;
+      console.log('[Main] Inbox count:', inboxCount);
       
-      // Parse result
-      const pipeIndex = result.indexOf('|');
-      if (pipeIndex === -1) {
-        return { success: false, error: 'Invalid response from Mail: ' + result };
-      }
-      
-      const count = parseInt(result.substring(0, pipeIndex)) || 0;
-      const subject = result.substring(pipeIndex + 1);
-      
-      if (subject.startsWith('Error:')) {
-        return { success: false, error: subject.substring(7) };
+      // Get latest subject if there are emails
+      let latestSubject = 'No messages';
+      if (inboxCount > 0) {
+        try {
+          const { stdout: subjectResult } = await execAsync(
+            'osascript -e "tell application \\"Mail\\" to subject of message 1 of inbox"',
+            { timeout: 10000 }
+          );
+          latestSubject = subjectResult.trim();
+        } catch (subErr) {
+          console.log('[Main] Could not get subject:', subErr.message);
+          latestSubject = '(Subject unavailable)';
+        }
       }
       
       return {
         success: true,
-        emailCount: count,
-        latestSubject: subject
+        emailCount: inboxCount,
+        latestSubject: latestSubject
       };
       
-    } catch (execError) {
-      // Clean up temp file on error
-      try { fs.unlinkSync(tempScriptPath); } catch (e) {}
-      throw execError;
+    } catch (e) {
+      console.error('[Main] Inbox access error:', e.message);
+      return { success: false, error: 'Cannot read inbox: ' + (e.stderr || e.message) };
     }
     
   } catch (e) {
     console.error('[Main] test-mail-access error:', e);
-    
-    // Check for specific error types
-    const errorMsg = e.message || e.stderr || 'Unknown error';
-    
-    if (errorMsg.includes('Not authorized') || errorMsg.includes('-1743')) {
-      return { 
-        success: false, 
-        error: 'Full Disk Access not granted. OpenEgo needs permission to read your emails.\n\nGo to: System Preferences → Security & Privacy → Privacy → Full Disk Access\nAdd OpenEgo to the list and restart the app.' 
-      };
-    }
-    
-    if (errorMsg.includes('Can\'t get')) {
-      return { success: false, error: 'Unable to access Mail inbox. Make sure Mail app is open and has email accounts configured.' };
-    }
-    
-    return { success: false, error: errorMsg };
+    return { success: false, error: 'Unexpected error: ' + e.message };
   }
 });
 
