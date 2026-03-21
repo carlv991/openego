@@ -7073,7 +7073,9 @@ async function setupAutoReply(enabled) {
                     // Update UI
                     localStorage.setItem('openego_provider', provider);
                     localStorage.setItem('openego_model', model);
+                    localStorage.setItem('openego_api_key', apiKey);
                     updateCurrentModelDisplay(provider, model);
+                    updateAIModelStatus();
                     
                     showAIConfigStatus('success', 'API key verified and saved!');
                     setTimeout(closeAIModelConfigModal, 1500);
