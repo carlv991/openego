@@ -123,6 +123,47 @@ ipcMain.handle('save-ai-settings', async (event, settings) => {
 });
 console.log('[Main] save-ai-settings handler registered directly in main.js');
 
+// Register check-mail-permissions handler at top level
+ipcMain.handle('check-mail-permissions', async () => {
+  try {
+    if (process.platform !== 'darwin') {
+      return { granted: false, error: 'Apple Mail only available on macOS' };
+    }
+    
+    // Check if we can access Mail app
+    const { exec } = require('child_process');
+    const util = require('util');
+    const execAsync = util.promisify(exec);
+    
+    const script = `osascript -e 'tell application "System Events" to return (name of processes) contains "Mail"'`;
+    
+    try {
+      const { stdout } = await execAsync(script, { timeout: 5000 });
+      const mailRunning = stdout.trim() === 'true';
+      
+      if (!mailRunning) {
+        return { granted: false, error: 'Mail app not running' };
+      }
+      
+      // Try to access Mail
+      const accessScript = `osascript -e 'tell application "Mail" to return (count of accounts) > 0' 2>&1 || echo "ACCESS_DENIED"`;
+      const { stdout: accessOut } = await execAsync(accessScript, { timeout: 5000 });
+      
+      if (accessOut.includes('ACCESS_DENIED') || accessOut.includes('error')) {
+        return { granted: false, error: 'Full Disk Access needed' };
+      }
+      
+      return { granted: true };
+    } catch (e) {
+      return { granted: false, error: 'Permission check failed' };
+    }
+  } catch (e) {
+    console.error('[Main] check-mail-permissions error:', e);
+    return { granted: false, error: e.message };
+  }
+});
+console.log('[Main] check-mail-permissions handler registered directly in main.js');
+
 function createWindow() {
   // Prevent creating multiple windows
   if (mainWindow && !mainWindow.isDestroyed()) {

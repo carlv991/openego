@@ -3201,7 +3201,16 @@
                                         <div class="setting-name">Current Model</div>
                                         <div class="setting-value" id="currentModelValue">Not configured</div>
                                     </div>
-                                    <button class="btn btn-secondary" onclick="openAIModelConfig()">Configure</button>
+                                    <div style="display: flex; gap: 10px; align-items: center;">
+                                        <span id="aiModelStatus" class="status-tag" style="background: rgba(107, 114, 128, 0.15); color: #6B7280;">Not Configured</span>
+                                        <button class="btn btn-secondary" onclick="openAIModelConfig()">Configure</button>
+                                    </div>
+                                </div>
+                                <div class="setting-row" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border);">
+                                    <button class="btn btn-secondary" onclick="testAIConnection()" id="testAIConnectionBtn">
+                                        <i class="fas fa-plug"></i> Test Connection
+                                    </button>
+                                    <span id="aiConnectionResult" style="font-size: 0.9rem; color: var(--text-secondary);"></span>
                                 </div>
                             </div>
                             
@@ -7100,12 +7109,30 @@ async function setupAutoReply(enabled) {
             if (typeof require === 'undefined') {
                 statusEl.textContent = 'Requires desktop app';
                 badgeEl.textContent = 'N/A';
+                badgeEl.style.background = 'rgba(107, 114, 128, 0.15)';
+                badgeEl.style.color = '#6B7280';
+                return;
+            }
+            
+            // Check if we're on macOS
+            if (navigator.platform.indexOf('Mac') === -1 && navigator.userAgent.indexOf('Mac') === -1) {
+                statusEl.textContent = 'macOS only';
+                badgeEl.textContent = 'N/A';
+                badgeEl.style.background = 'rgba(107, 114, 128, 0.15)';
+                badgeEl.style.color = '#6B7280';
                 return;
             }
             
             try {
                 const { ipcRenderer } = require('electron');
-                const result = await ipcRenderer.invoke('check-mail-permissions');
+                
+                // Set a timeout for the check
+                const timeoutPromise = new Promise((_, reject) => {
+                    setTimeout(() => reject(new Error('Timeout')), 5000);
+                });
+                
+                const checkPromise = ipcRenderer.invoke('check-mail-permissions');
+                const result = await Promise.race([checkPromise, timeoutPromise]);
                 
                 if (result.granted) {
                     statusEl.textContent = 'Connected';
@@ -7113,16 +7140,25 @@ async function setupAutoReply(enabled) {
                     badgeEl.style.background = 'rgba(16, 185, 129, 0.15)';
                     badgeEl.style.color = '#10B981';
                 } else {
-                    statusEl.textContent = 'Permission needed';
+                    statusEl.textContent = result.error || 'Permission needed';
                     badgeEl.textContent = 'Setup Required';
                     badgeEl.style.background = 'rgba(245, 158, 11, 0.15)';
                     badgeEl.style.color = '#F59E0B';
                 }
             } catch (e) {
-                statusEl.textContent = 'Check failed';
+                console.error('[Apple Mail Check] Error:', e);
+                statusEl.textContent = 'Check failed - click to retry';
                 badgeEl.textContent = 'Error';
                 badgeEl.style.background = 'rgba(239, 68, 68, 0.15)';
                 badgeEl.style.color = '#EF4444';
+                
+                // Make it clickable to retry
+                statusEl.style.cursor = 'pointer';
+                statusEl.onclick = () => {
+                    statusEl.onclick = null;
+                    statusEl.style.cursor = 'default';
+                    checkAppleMailStatus();
+                };
             }
         }
         
@@ -7229,6 +7265,130 @@ async function setupAutoReply(enabled) {
             checkTelegramStatus();
             checkAppleMailStatus();
         }
+        
+        // ============== AI MODEL STATUS & TEST CONNECTION ==============
+        
+        /**
+         * Update AI Model status display
+         */
+        function updateAIModelStatus() {
+            const provider = localStorage.getItem('openego_provider');
+            const model = localStorage.getItem('openego_model');
+            const apiKey = localStorage.getItem('openego_api_key');
+            const statusEl = document.getElementById('aiModelStatus');
+            
+            if (!statusEl) return;
+            
+            if (provider && model && apiKey) {
+                statusEl.textContent = 'Active';
+                statusEl.style.background = 'rgba(16, 185, 129, 0.15)';
+                statusEl.style.color = '#10B981';
+            } else if (provider && provider === 'ollama') {
+                statusEl.textContent = 'Local Mode';
+                statusEl.style.background = 'rgba(59, 130, 246, 0.15)';
+                statusEl.style.color = '#3B82F6';
+            } else {
+                statusEl.textContent = 'Not Configured';
+                statusEl.style.background = 'rgba(107, 114, 128, 0.15)';
+                statusEl.style.color = '#6B7280';
+            }
+        }
+        
+        /**
+         * Test AI connection to verify API key is valid
+         */
+        async function testAIConnection() {
+            const btn = document.getElementById('testAIConnectionBtn');
+            const resultEl = document.getElementById('aiConnectionResult');
+            
+            const provider = localStorage.getItem('openego_provider');
+            const model = localStorage.getItem('openego_model');
+            const apiKey = localStorage.getItem('openego_api_key');
+            
+            if (!provider || !apiKey) {
+                resultEl.textContent = '❌ No API key configured';
+                resultEl.style.color = '#EF4444';
+                return;
+            }
+            
+            if (btn) {
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+                btn.disabled = true;
+            }
+            resultEl.textContent = '';
+            
+            try {
+                let isValid = false;
+                let errorMsg = '';
+                
+                switch(provider) {
+                    case 'openai':
+                        const openaiRes = await fetch('https://api.openai.com/v1/models', {
+                            headers: { 'Authorization': `Bearer ${apiKey}` }
+                        });
+                        isValid = openaiRes.ok;
+                        if (!isValid) {
+                            const err = await openaiRes.json();
+                            errorMsg = err.error?.message || 'Invalid API key';
+                        }
+                        break;
+                        
+                    case 'anthropic':
+                        const anthropicRes = await fetch('https://api.anthropic.com/v1/models', {
+                            headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' }
+                        });
+                        isValid = anthropicRes.ok;
+                        if (!isValid) {
+                            const err = await anthropicRes.json();
+                            errorMsg = err.error?.message || 'Invalid API key';
+                        }
+                        break;
+                        
+                    case 'google':
+                        const googleRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+                        isValid = googleRes.ok;
+                        if (!isValid) {
+                            errorMsg = 'Invalid API key';
+                        }
+                        break;
+                        
+                    case 'ollama':
+                        const ollamaRes = await fetch('http://localhost:11434/api/tags');
+                        isValid = ollamaRes.ok;
+                        if (!isValid) {
+                            errorMsg = 'Ollama not running';
+                        }
+                        break;
+                        
+                    default:
+                        errorMsg = 'Unknown provider';
+                }
+                
+                if (isValid) {
+                    resultEl.textContent = '✅ Connection successful!';
+                    resultEl.style.color = '#10B981';
+                    updateAIModelStatus();
+                } else {
+                    resultEl.textContent = `❌ ${errorMsg}`;
+                    resultEl.style.color = '#EF4444';
+                }
+            } catch (e) {
+                resultEl.textContent = `❌ Error: ${e.message}`;
+                resultEl.style.color = '#EF4444';
+            } finally {
+                if (btn) {
+                    btn.innerHTML = '<i class="fas fa-plug"></i> Test Connection';
+                    btn.disabled = false;
+                }
+            }
+        }
+        
+        // Override updateCurrentModelDisplay to also update status
+        const originalUpdateCurrentModelDisplay = updateCurrentModelDisplay;
+        window.updateCurrentModelDisplay = function(provider, model) {
+            originalUpdateCurrentModelDisplay(provider, model);
+            updateAIModelStatus();
+        };
         
         // Expose functions globally
         window.openAIModelConfig = openAIModelConfig;
