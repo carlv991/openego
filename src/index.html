@@ -543,7 +543,28 @@
                             <option value="">Select...</option>
                             <option value="openai">OpenAI</option>
                             <option value="anthropic">Anthropic (Claude)</option>
-                            <option value="google">Google AI</option>
+                        </select>
+                    </div>
+                    <div class="settings-item" id="openaiModelRow" style="display: none;">
+                        <div>
+                            <div>OpenAI Model</div>
+                            <div style="font-size: 0.85rem; color: var(--text-secondary);">Select model</div>
+                        </div>
+                        <select id="openaiModel" style="padding: 8px 12px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 8px; color: var(--text);">
+                            <option value="gpt-4o-mini">GPT-4o Mini (Fast, Cheap)</option>
+                            <option value="gpt-4o">GPT-4o (Best Quality)</option>
+                            <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                        </select>
+                    </div>
+                    <div class="settings-item" id="anthropicModelRow" style="display: none;">
+                        <div>
+                            <div>Anthropic Model</div>
+                            <div style="font-size: 0.85rem; color: var(--text-secondary);">Select model</div>
+                        </div>
+                        <select id="anthropicModel" style="padding: 8px 12px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 8px; color: var(--text);">
+                            <option value="claude-3-haiku-20240307">Claude Haiku (Fast, Cheap)</option>
+                            <option value="claude-3-sonnet-20240229">Claude Sonnet (Balanced)</option>
+                            <option value="claude-3-opus-20240229">Claude Opus (Best Quality)</option>
                         </select>
                     </div>
                     <div class="settings-item">
@@ -737,6 +758,8 @@
         
         // ==================== SETTINGS ====================
         
+        let appSettings = {};
+        
         function openSettings() {
             document.getElementById('settingsModal').classList.add('active');
         }
@@ -745,24 +768,96 @@
             document.getElementById('settingsModal').classList.remove('active');
         }
         
-        function loadSettings() {
-            const settings = JSON.parse(localStorage.getItem('openego_settings') || '{}');
-            if (settings.aiProvider) {
-                document.getElementById('aiProvider').value = settings.aiProvider;
-            }
-            if (settings.apiKey) {
-                document.getElementById('apiKey').value = settings.apiKey;
+        async function loadSettings() {
+            try {
+                if (typeof require !== 'undefined') {
+                    const { ipcRenderer } = require('electron');
+                    const result = await ipcRenderer.invoke('get-settings');
+                    if (result.success && result.settings) {
+                        appSettings = result.settings;
+                        if (appSettings.aiProvider) {
+                            document.getElementById('aiProvider').value = appSettings.aiProvider;
+                        }
+                        if (appSettings.apiKey) {
+                            document.getElementById('apiKey').value = appSettings.apiKey;
+                        }
+                        if (appSettings.model) {
+                            updateModelDropdown(appSettings.aiProvider, appSettings.model);
+                        }
+                    }
+                } else {
+                    // Browser fallback
+                    const settings = JSON.parse(localStorage.getItem('openego_settings') || '{}');
+                    appSettings = settings;
+                    if (settings.aiProvider) {
+                        document.getElementById('aiProvider').value = settings.aiProvider;
+                    }
+                    if (settings.apiKey) {
+                        document.getElementById('apiKey').value = settings.apiKey;
+                    }
+                }
+            } catch (e) {
+                console.log('Could not load settings:', e);
             }
         }
         
-        function saveSettings() {
-            const settings = {
-                aiProvider: document.getElementById('aiProvider').value,
-                apiKey: document.getElementById('apiKey').value
+        async function saveSettings() {
+            const provider = document.getElementById('aiProvider').value;
+            const apiKey = document.getElementById('apiKey').value;
+            
+            // Get selected model based on provider
+            let model = '';
+            if (provider === 'openai') {
+                model = document.getElementById('openaiModel')?.value || 'gpt-4o-mini';
+            } else if (provider === 'anthropic') {
+                model = document.getElementById('anthropicModel')?.value || 'claude-3-haiku-20240307';
+            }
+            
+            appSettings = {
+                aiProvider: provider,
+                apiKey: apiKey,
+                model: model
             };
-            localStorage.setItem('openego_settings', JSON.stringify(settings));
-            closeSettings();
-            showToast('Settings saved!', 'success');
+            
+            try {
+                if (typeof require !== 'undefined') {
+                    const { ipcRenderer } = require('electron');
+                    await ipcRenderer.invoke('save-settings', appSettings);
+                } else {
+                    localStorage.setItem('openego_settings', JSON.stringify(appSettings));
+                }
+                closeSettings();
+                showToast('Settings saved!', 'success');
+            } catch (e) {
+                showToast('Failed to save settings', 'error');
+            }
+        }
+        
+        // Update model dropdown based on provider
+        document.getElementById('aiProvider')?.addEventListener('change', (e) => {
+            updateModelDropdown(e.target.value);
+        });
+        
+        function updateModelDropdown(provider, selectedModel) {
+            const openaiRow = document.getElementById('openaiModelRow');
+            const anthropicRow = document.getElementById('anthropicModelRow');
+            
+            // Hide all model rows
+            if (openaiRow) openaiRow.style.display = 'none';
+            if (anthropicRow) anthropicRow.style.display = 'none';
+            
+            // Show appropriate row
+            if (provider === 'openai' && openaiRow) {
+                openaiRow.style.display = 'flex';
+                if (selectedModel) {
+                    document.getElementById('openaiModel').value = selectedModel;
+                }
+            } else if (provider === 'anthropic' && anthropicRow) {
+                anthropicRow.style.display = 'flex';
+                if (selectedModel) {
+                    document.getElementById('anthropicModel').value = selectedModel;
+                }
+            }
         }
         
         // ==================== UTILS ====================
