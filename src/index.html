@@ -3642,7 +3642,8 @@
             nextStep(2);
         }
         window.validateStep1 = validateStep1;
-        
+        window.nextStep = nextStep;
+
         function nextStep(step) {
             document.getElementById(`step${currentStep}`).classList.remove('active');
             document.getElementById(`step${step}`).classList.add('active');
@@ -7603,7 +7604,174 @@ async function setupAutoReply(enabled) {
         window.updateAIModelStatus = updateAIModelStatus;
         window.toggleModeSwitch = toggleModeSwitch;
         window.loadModeToggles = loadModeToggles;
-        
+
+        // ==================== NOTIFICATION MONITORING ====================
+        // Monitor notifications from WhatsApp, Signal, etc.
+
+        let notificationMonitoringActive = false;
+
+        /**
+         * Start monitoring macOS notifications for WhatsApp, Signal, etc.
+         */
+        async function startNotificationMonitoring() {
+            if (notificationMonitoringActive) return;
+            notificationMonitoringActive = true;
+
+            console.log('[Notifications] Starting monitoring...');
+
+            if (typeof require !== 'undefined') {
+                try {
+                    const { ipcRenderer } = require('electron');
+                    await ipcRenderer.invoke('start-notification-monitoring');
+                    console.log('[Notifications] Monitoring started');
+
+                    // Listen for new notifications
+                    ipcRenderer.on('new-notification', (event, data) => {
+                        console.log('[Notifications] New notification:', data);
+                        handleNotification(data);
+                    });
+                } catch (e) {
+                    console.error('[Notifications] Failed to start:', e);
+                }
+            }
+        }
+
+        /**
+         * Handle incoming notification
+         */
+        async function handleNotification(data) {
+            const { app, preview, timestamp } = data;
+
+            // Only process if Co-Pilot mode is enabled
+            const copilotEnabled = localStorage.getItem('openego_copilot_enabled') === 'true';
+            if (!copilotEnabled) {
+                console.log('[Notifications] Ignoring - Co-Pilot not enabled');
+                return;
+            }
+
+            // Show notification in UI
+            showToast(`${app}: ${preview.substring(0, 50)}...`, 'info');
+
+            // Generate AI response
+            try {
+                const { ipcRenderer } = require('electron');
+                const result = await ipcRenderer.invoke('generate-response-for-message', {
+                    message: preview,
+                    sender: app,
+                    platform: app
+                });
+
+                if (result.success) {
+                    // Copy to clipboard
+                    await ipcRenderer.invoke('openego-copy-to-clipboard', result.text);
+
+                    // Show notification with response
+                    showNotificationWithResponse(app, preview, result.text);
+                }
+            } catch (e) {
+                console.error('[Notifications] Error generating response:', e);
+            }
+        }
+
+        /**
+         * Show notification with generated response
+         */
+        function showNotificationWithResponse(app, originalMessage, aiResponse) {
+            // Create custom notification
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                width: 400px;
+                background: var(--card-bg, rgba(20, 20, 20, 0.98));
+                border: 1px solid var(--accent, #DE6D51);
+                border-radius: 12px;
+                padding: 20px;
+                z-index: 10000;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+            `;
+
+            notification.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                    <div>
+                        <h3 style="margin: 0; font-size: 14px; color: var(--accent);">
+                            <i class="fab fa-whatsapp"></i> ${app} Message
+                        </h3>
+                        <p style="margin: 5px 0 0 0; font-size: 12px; color: var(--text-secondary);">${originalMessage.substring(0, 100)}...</p>
+                    </div>
+                    <button onclick="this.closest('.whatsapp-notification').remove()" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 18px;">&times;</button>
+                </div>
+                <div style="background: rgba(222, 109, 81, 0.1); padding: 12px; border-radius: 8px; margin-bottom: 15px; border-left: 3px solid var(--accent);">
+                    <p style="margin: 0; font-size: 13px; color: var(--text);">${aiResponse}</p>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="copyAndDismiss(this, '${app}')" style="flex: 1; background: var(--accent); color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-size: 13px;">
+                        <i class="fas fa-copy"></i> Copied! Paste in ${app}
+                    </button>
+                </div>
+            `;
+            notification.className = 'whatsapp-notification';
+
+            document.body.appendChild(notification);
+
+            // Auto-remove after 30 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 30000);
+        }
+
+        /**
+         * Copy response and dismiss notification
+         */
+        function copyAndDismiss(btn, app) {
+            showToast(`Response copied! Paste in ${app}`, 'success');
+            btn.closest('.whatsapp-notification').remove();
+        }
+        window.copyAndDismiss = copyAndDismiss;
+
+        /**
+         * Manual message input for platforms without API access
+         */
+        async function generateResponseForManualInput() {
+            const message = prompt('Paste the message you received:');
+            if (!message) return;
+
+            const platform = prompt('What app is this from? (WhatsApp, Signal, etc.):') || 'Unknown';
+
+            showToast('Generating response...', 'info');
+
+            try {
+                if (typeof require !== 'undefined') {
+                    const { ipcRenderer } = require('electron');
+                    const result = await ipcRenderer.invoke('generate-response-for-message', {
+                        message: message,
+                        sender: platform,
+                        platform: platform
+                    });
+
+                    if (result.success) {
+                        // Copy to clipboard
+                        await ipcRenderer.invoke('openego-copy-to-clipboard', result.text);
+
+                        // Show result
+                        showNotificationWithResponse(platform, message, result.text);
+                    } else {
+                        showToast('Error: ' + result.error, 'error');
+                    }
+                }
+            } catch (e) {
+                console.error('[Manual Input] Error:', e);
+                showToast('Error generating response', 'error');
+            }
+        }
+        window.generateResponseForManualInput = generateResponseForManualInput;
+
+        // Expose notification functions
+        window.startNotificationMonitoring = startNotificationMonitoring;
+
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', () => {
             // Update Apple Mail status on load

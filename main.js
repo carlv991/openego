@@ -234,7 +234,11 @@ function createWindow() {
     } catch (e) {
       console.error('[Main] OpenEgo Core initialization failed:', e);
     }
-    
+
+    // Setup notification monitoring for WhatsApp and other apps
+    setupNotificationMonitoring();
+    console.log('[Main] Notification monitoring ready');
+
     console.log('[Main] All IPC handlers registered');
   }
   
@@ -430,6 +434,165 @@ function hideMainWindow() {
 ipcMain.on('hide-window', () => {
   hideMainWindow();
 });
+
+// ==================== NOTIFICATION MONITORING ====================
+// Monitor macOS notifications for WhatsApp, Signal, etc.
+
+let notificationMonitorInterval = null;
+let lastNotifications = new Set();
+
+function setupNotificationMonitoring() {
+  // Only works on macOS
+  if (process.platform !== 'darwin') {
+    console.log('[Notifications] macOS only feature');
+    return;
+  }
+
+  // IPC handler to start/stop notification monitoring
+  ipcMain.handle('start-notification-monitoring', () => {
+    startNotificationMonitoring();
+    return { success: true };
+  });
+
+  ipcMain.handle('stop-notification-monitoring', () => {
+    stopNotificationMonitoring();
+    return { success: true };
+  });
+
+  // Handle manual message input for platforms without API access
+  ipcMain.handle('generate-response-for-message', async (event, data) => {
+    try {
+      const { message, sender, platform } = data;
+      console.log(`[Generate Response] For ${platform} message from ${sender}`);
+
+      // Import the AI generator
+      const { AIResponseGenerator } = require('./ai-response-generator');
+      const generator = new AIResponseGenerator();
+
+      const result = await generator.generateResponse({
+        message: message,
+        sender: sender,
+        channel: platform,
+        platform: platform
+      });
+
+      return result;
+    } catch (e) {
+      console.error('[Generate Response] Error:', e);
+      return { success: false, error: e.message };
+    }
+  });
+
+  console.log('[Notifications] IPC handlers registered');
+}
+
+async function startNotificationMonitoring() {
+  if (notificationMonitorInterval) {
+    clearInterval(notificationMonitorInterval);
+  }
+
+  console.log('[Notifications] Starting notification monitoring...');
+
+  // Check every 3 seconds for new notifications
+  notificationMonitorInterval = setInterval(async () => {
+    await checkForNewNotifications();
+  }, 3000);
+}
+
+function stopNotificationMonitoring() {
+  if (notificationMonitorInterval) {
+    clearInterval(notificationMonitorInterval);
+    notificationMonitorInterval = null;
+    console.log('[Notifications] Stopped monitoring');
+  }
+}
+
+async function checkForNewNotifications() {
+  try {
+    const { exec } = require('child_process');
+    const util = require('util');
+    const execAsync = util.promisify(exec);
+
+    // AppleScript to get recent notifications
+    // Note: This requires Notification Center access which may be restricted
+    const script = `
+      tell application "System Events"
+        try
+          tell application process "NotificationCenter"
+            set notificationList to {}
+            try
+              set notificationGroups to groups of scroll area 1 of window "Notification Center"
+              repeat with aGroup in notificationGroups
+                set groupName to name of aGroup
+                if groupName contains "WhatsApp" or groupName contains "Signal" or groupName contains "Messenger" or groupName contains "Telegram" then
+                  set notificationItems to UI elements of aGroup
+                  repeat with anItem in notificationItems
+                    try
+                      set itemName to name of anItem
+                      if itemName is not "" then
+                        set end of notificationList to (groupName & ": " & itemName)
+                      end if
+                    end try
+                  end repeat
+                end if
+              end repeat
+            end try
+            return notificationList as string
+          end tell
+        on error
+          return "ACCESS_DENIED"
+        end try
+      end tell
+    `;
+
+    // Note: This AppleScript often fails due to macOS security restrictions
+    // It's a best-effort approach
+    try {
+      const { stdout } = await execAsync(`osascript -e '${script}'`, { timeout: 5000 });
+
+      if (stdout && stdout.trim() !== '' && stdout.trim() !== 'ACCESS_DENIED') {
+        const notifications = stdout.split(',').map(n => n.trim()).filter(n => n);
+
+        // Check for new notifications
+        for (const notification of notifications) {
+          if (!lastNotifications.has(notification)) {
+            // New notification detected!
+            console.log('[Notifications] New notification:', notification);
+
+            // Parse notification
+            const parts = notification.split(':');
+            const appName = parts[0]?.trim();
+            const messagePreview = parts.slice(1).join(':')?.trim();
+
+            if (appName && messagePreview) {
+              // Send to renderer
+              if (mainWindow && !mainWindow.isDestroyed()) {
+                mainWindow.webContents.send('new-notification', {
+                  app: appName,
+                  preview: messagePreview,
+                  timestamp: new Date().toISOString()
+                });
+              }
+            }
+
+            lastNotifications.add(notification);
+          }
+        }
+
+        // Cleanup old notifications (keep last 50)
+        if (lastNotifications.size > 50) {
+          const notificationsArray = Array.from(lastNotifications);
+          lastNotifications = new Set(notificationsArray.slice(-50));
+        }
+      }
+    } catch (e) {
+      // Silent fail - notification monitoring is best-effort
+      // console.log('[Notifications] Check failed (expected due to macOS security):', e.message);
+    }
+  } catch (e) {
+    console.error('[Notifications] Error:', e);
+  }
+}
 
 app.whenReady().then(createWindow);
 
