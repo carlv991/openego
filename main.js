@@ -109,6 +109,20 @@ ipcMain.handle('retrain-persona', async (event) => {
 });
 console.log('[Main] retrain-persona handler registered directly in main.js');
 
+// Register save-ai-settings handler at top level to ensure it's always available
+ipcMain.handle('save-ai-settings', async (event, settings) => {
+  try {
+    const settingsPath = path.join(os.homedir(), '.openego_ai_settings.json');
+    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
+    console.log('[Main] AI settings saved to', settingsPath);
+    return { success: true };
+  } catch (e) {
+    console.error('[Main] Error saving AI settings:', e);
+    return { success: false, error: e.message };
+  }
+});
+console.log('[Main] save-ai-settings handler registered directly in main.js');
+
 function createWindow() {
   // Prevent creating multiple windows
   if (mainWindow && !mainWindow.isDestroyed()) {
@@ -190,25 +204,6 @@ function createWindow() {
     console.log('[Main] All IPC handlers registered');
   }
   
-  // Register save-ai-settings handler (outside conditional to ensure it's always available)
-  // Remove any existing handler first to prevent duplicate registration errors
-  try {
-    ipcMain.removeHandler('save-ai-settings');
-  } catch (e) {
-    // Handler might not exist yet, ignore error
-  }
-  ipcMain.handle('save-ai-settings', async (event, settings) => {
-    try {
-      const settingsPath = path.join(os.homedir(), '.openego_ai_settings.json');
-      fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
-      console.log('[Main] AI settings saved to', settingsPath);
-      return { success: true };
-    } catch (e) {
-      console.error('[Main] Error saving AI settings:', e);
-      return { success: false, error: e.message };
-    }
-  });
-
   // Setup menu bar (top right)
   setupMenuBar();
   
