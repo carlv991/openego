@@ -105,30 +105,6 @@ ipcMain.handle('gmail-connect', async () => {
   };
 });
 
-// Settings storage
-const SETTINGS_PATH = path.join(os.homedir(), '.openego_settings_v2.json');
-
-function loadSettings() {
-  try {
-    if (fs.existsSync(SETTINGS_PATH)) {
-      return JSON.parse(fs.readFileSync(SETTINGS_PATH, 'utf8'));
-    }
-  } catch (e) {
-    console.error('[Main] Error loading settings:', e);
-  }
-  return {};
-}
-
-function saveSettings(settings) {
-  try {
-    fs.writeFileSync(SETTINGS_PATH, JSON.stringify(settings, null, 2));
-    return true;
-  } catch (e) {
-    console.error('[Main] Error saving settings:', e);
-    return false;
-  }
-}
-
 // ==================== SETTINGS IPC ====================
 ipcMain.handle('get-settings', async () => {
   return { success: true, settings: loadSettings() };
